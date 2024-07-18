@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Medical Record</title>
+</head>
+<body>
+<h1>Add Medical Record</h1>
+<form action="/medical_records" method="post">
+    <label for="animal_id">Animal:</label>
+    <select name="animal_id" id="animal_id">
+        {{range .Animals}}
+        <option value="{{.ID}}">{{.Name}}</option>
+        {{end}}
+    </select>
+    <br>
+    <label for="checkup_date">Checkup Date:</label>
+    <input type="date" id="checkup_date" name="checkup_date">
+    <br>
+    <label for="notes">Notes:</label>
+    <textarea id="notes" name="notes"></textarea>
+    <br>
+    <label for="vet_name">Vet Name:</label>
+    <input type="text" id="vet_name" name="vet_name">
+    <br>
+    <button type="submit">Add Medical Record</button>
+</form>
+</body>
+</html>

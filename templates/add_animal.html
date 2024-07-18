@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Animal</title>
+</head>
+<body>
+<h1>Add Animal</h1>
+<form action="/animals" method="POST" enctype="multipart/form-data">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required><br>
+
+    <label for="species">Species:</label>
+    <select id="species" name="species" required>
+        <option value="1">Dog</option>
+        <option value="2">Cat</option>
+        <option value="3">Bird</option>
+        <!-- other animal-->
+    </select><br>
+
+    <label for="breed">Breed:</label>
+    <input type="text" id="breed" name="breed"><br>
+
+    <label for="age">Age:</label>
+    <input type="number" id="age" name="age"><br>
+
+    <label for="gender">Gender:</label>
+    <input type="text" id="gender" name="gender"><br>
+
+    <label for="status_id">Status:</label>
+    <select id="status_id" name="status_id" required>
+        <option value="1">Available</option>
+        <option value="2">Adopted</option>
+        <option value="3">In Treatment</option>
+        <!-- other status -->
+    </select><br>
+
+    <label for="arrival_date">Arrival Date:</label>
+    <input type="date" id="arrival_date" name="arrival_date" required><br>
+
+    <label for="description">Description:</label>
+    <textarea id="description" name="description"></textarea><br>
+
+    <label for="images">Images (up to 4):</label>
+    <input type="file" id="images" name="images" accept="image/*" multiple><br>
+
+    <input type="submit" value="Add Animal">
+</form>
+</body>
+</html>

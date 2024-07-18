@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="/css/buttons.css">
+</head>
+<body>
+<h1>Register</h1>
+<form action="/register" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required><br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required><br>
+
+    <label for="confirm_password">Confirm Password:</label>
+    <input type="password" id="confirm_password" name="confirm_password" required><br>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br>
+    <div class="button">
+        <button type="submit">Register</button>
+    </div>
+</form>
+
+<div id="message">
+    <!-- Здесь будет отображаться сообщение о регистрации -->
+</div>
+</body>
+</html>
