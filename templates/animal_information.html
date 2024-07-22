@@ -25,9 +25,10 @@
                     {{end}}
                 </ol>
                 <div class="carousel-inner">
+
                     {{range $index, $image := .Images}}
                     <div class="carousel-item {{if eq $index 0}}active{{end}}">
-                        <img class="d-block w-100" src="/uploads/{{$image.ImageURL}}" alt="Slide {{$index}}">
+                        <img class="d-block w-100" src="{{.ImageURL}}" alt="Slide {{$index}}">
                     </div>
                     {{end}}
                 </div>
@@ -43,7 +44,7 @@
         </div>
         <div class="col-md-6">
             <ul class="list-group">
-                <li class="list-group-item"><strong>Species:</strong> {{.Species}}</li>
+                <li class="list-group-item"><strong>Species:</strong> {{.SpeciesName}}</li>
                 <li class="list-group-item"><strong>Breed:</strong> {{.Breed}}</li>
                 <li class="list-group-item"><strong>Age:</strong> {{.Age}}</li>
                 <li class="list-group-item"><strong>Gender:</strong> {{.Gender}}</li>

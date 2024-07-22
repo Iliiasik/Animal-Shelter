@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -14,7 +15,9 @@ import (
 
 type AnimalWithImages struct {
 	models.Animal
-	Images []models.PostImage
+	Images      []models.PostImage
+	Status      string
+	SpeciesName string
 }
 
 // ShowAddAnimalForm displays the form to add a new animal
@@ -82,9 +85,9 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// Generate a unique filename
-		fileExt := filepath.Ext(fileHeader.Filename)
+		fileExt := path.Ext(fileHeader.Filename)
 		fileName := strconv.FormatInt(time.Now().UnixNano(), 10) + fileExt
-		filePath := filepath.Join(uploadDir, fileName)
+		filePath := path.Join(uploadDir, fileName)
 
 		// Save the file to the server
 		outFile, err := os.Create(filePath)
@@ -106,15 +109,17 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Convert backslashes to slashes in the file path
+		filePath = filepath.ToSlash(filePath)
 		filePaths = append(filePaths, filePath)
 	}
 
 	// Insert the animal data into the database
 	query := `
-		INSERT INTO Animals (name, species, breed, age, gender, status_id, arrival_date, description)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id
-	`
+        INSERT INTO Animals (name, species, breed, age, gender, status_id, arrival_date, description)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+    `
 	var animalID int
 	err = db.QueryRow(query, animal.Name, animal.Species, animal.Breed, animal.Age, animal.Gender, animal.StatusID, animal.ArrivalDate, animal.Description).Scan(&animalID)
 	if err != nil {
@@ -124,9 +129,9 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Insert the image data into the database
 	imageQuery := `
-		INSERT INTO PostImages (animal_id, image_url)
-		VALUES ($1, $2)
-	`
+        INSERT INTO PostImages (animal_id, image_url)
+        VALUES ($1, $2)
+    `
 	for _, filePath := range filePaths {
 		_, err = db.Exec(imageQuery, animalID, filePath)
 		if err != nil {
@@ -207,11 +212,13 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Fetch animal information
 	var animal AnimalWithImages
 	query := `
-        SELECT id, name, species, breed, age, gender, status_id, arrival_date, description
-        FROM Animals
-        WHERE id = $1
+        SELECT a.id, a.name, a.species, t.type_name, a.breed, a.age, a.gender, a.status_id, s.status_name, a.arrival_date, a.description
+        FROM Animals a
+        JOIN AnimalStatus s ON a.status_id = s.id
+        JOIN AnimalTypes t ON a.species = t.id
+        WHERE a.id = $1
     `
-	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.Species, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.ArrivalDate, &animal.Description)
+	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.Species, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Animal not found", http.StatusNotFound)

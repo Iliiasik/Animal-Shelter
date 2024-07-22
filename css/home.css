@@ -9,17 +9,36 @@
     font-family: "Quicksand", sans-serif;
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
 body {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     min-height: 100vh;
+}
+
+header .navbar {
     width: 100%;
-    padding: 40px 20px;
+    background-color: #f8f9fa; /* Background color of navbar */
+    border-bottom: 1px solid #e0e0e0; /* Optional: to add a border at the bottom */
+}
+
+header .navbar-brand {
+    font-size: 1.5rem; /* Font size for the brand */
+    font-family: "Quicksand", sans-serif; /* Apply Quicksand font to navbar brand */
+}
+
+header .navbar-nav .nav-link {
+    font-size: 1rem; /* Font size for navigation links */
+    font-family: "Quicksand", sans-serif; /* Apply Quicksand font to navbar links */
 }
 
 .cards-list {
-    z-index: 0;
     width: 100%;
     display: flex;
     justify-content: space-around;
@@ -34,6 +53,7 @@ body {
     box-shadow: 5px 5px 30px 7px rgba(0,0,0,0.25), -5px -5px 30px 7px rgba(0,0,0,0.22);
     cursor: pointer;
     transition: 0.4s;
+    text-decoration: none; /* Ensure no underline for links inside card */
 }
 
 .card .card_image {
@@ -66,7 +86,21 @@ body {
     box-shadow: 5px 5px 30px 15px rgba(0,0,0,0.25),
     -5px -5px 30px 15px rgba(0,0,0,0.22);
 }
+.card a {
+    text-decoration: none; /* Убирает подчеркивание */
+    color: inherit; /* Наследует цвет от родителя, чтобы текст не изменял цвет */
+}
 
+.card a:hover {
+    text-decoration: none; /* Убирает подчеркивание при наведении */
+    color: inherit; /* Убедиться, что цвет не меняется при наведении */
+}
+
+/* Также можно добавить стиль для состояния активной ссылки, если это необходимо */
+.card a:active {
+    text-decoration: none; /* Убирает подчеркивание при активации */
+    color: inherit; /* Убедиться, что цвет не меняется при активации */
+}
 .title-white {
     color: white;
 }
@@ -74,7 +108,6 @@ body {
 .title-black {
     color: black;
 }
-
 
 @media all and (max-width: 500px) {
     .cards-list {
