@@ -22,8 +22,11 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		loggedIn = true
 	}
 
+	// Получаем параметр species из запроса
+	species := r.URL.Query().Get("species")
+
 	// Fetch animals from the database
-	animals, err := fetchAllAnimalsWithImages(db)
+	animals, err := fetchAllAnimalsWithImages(db, species)
 	if err != nil {
 		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
 		return
@@ -37,12 +40,25 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
-func fetchAllAnimalsWithImages(db *sql.DB) ([]AnimalWithImages, error) {
-	query := `
-		SELECT id
-		FROM Animals
-	`
-	rows, err := db.Query(query)
+func fetchAllAnimalsWithImages(db *sql.DB, species string) ([]AnimalWithImages, error) {
+	var query string
+	var args []interface{}
+
+	if species != "" {
+		query = `
+			SELECT id
+			FROM Animals
+			WHERE species = $1
+		`
+		args = append(args, species)
+	} else {
+		query = `
+			SELECT id
+			FROM Animals
+		`
+	}
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

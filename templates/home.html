@@ -4,32 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Shelter</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/home.css">
     <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+    <script src="/js/home.js" defer></script>
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="#">Animal Shelter</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                {{if .LoggedIn}}
-                <li class="nav-item">
-                    <a class="nav-link" href="/profile">Profile</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">Logout</a>
-                </li>
-                {{else}}
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Login</a>
-                </li>
-                {{end}}
-            </ul>
-        </div>
-    </nav>
-</header>
+<nav>
+    <div class="wrapper">
+        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <ul class="nav-links">
+            <li>
+                <a href="#" class="desktop-item">Animal Types</a>
+                <ul class="drop-menu">
+                    <li><a  onclick="filterAnimals('1')">Dogs</a></li>
+                    <li><a  onclick="filterAnimals('2')">Cats</a></li>
+                    <li><a  onclick="filterAnimals('3')">Birds</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Feedback</a></li>
+            {{if .LoggedIn}}
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/logout">Logout</a></li>
+            {{else}}
+            <li><a href="/login">Login</a></li>
+            {{end}}
+        </ul>
+    </div>
+</nav>
 <div class="container mt-4">
     <div class="cards-list">
         {{range .Animals}}

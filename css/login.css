@@ -10,20 +10,29 @@
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: "Quicksand", sans-serif;
+}
+
+nav {
+    position: fixed;
+    z-index: 99;
     width: 100%;
-    padding: 40px 20px;
+    background: #242526;
 }
 
 main {
     display: grid;
     grid-template-columns: 45% 55%;
     place-items: center;
+    justify-content: center; /* Центрирование содержимого по горизонтали */
     width: min(700px, 95%);
     border-radius: 20px;
+    background-color: #fff; /* Добавьте фон для видимости */
+    padding: 20px; /* Добавьте отступы для лучшего вида */
+    margin-top: 90px; /* Отступ сверху для основного контента (высота nav + дополнительный отступ) */
+    margin-left: 280px;
 }
 
 .left-side {
