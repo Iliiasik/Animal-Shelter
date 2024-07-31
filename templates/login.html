@@ -4,9 +4,7 @@
     <title>Login</title>
     <link rel="stylesheet" type="text/css" href="/css/login.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
-
 </head>
-
 <body>
 <nav>
     <div class="wrapper">
@@ -20,6 +18,10 @@
     <div class="left-side"></div>
     <div class="right-side">
         <h1>Login</h1>
+        {{if .ErrorMessage}}
+        <div class="error-message">{{.ErrorMessage}}</div>
+        {{end}}
+
         <form action="/login" method="post">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
@@ -29,6 +31,7 @@
 
             <input type="submit" class="login-btn" value="Login">
         </form>
+        <p>Don't have an account? <a href="/register">Register here</a>.</p>
     </div>
 </main>
 </body>

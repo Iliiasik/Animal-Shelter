@@ -42,7 +42,7 @@ func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 // Register handles user registration
 func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		renderError(w, r, "Method not allowed")
 		return
 	}
 
@@ -52,48 +52,45 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
 	if !emailRegex.MatchString(email) {
-		http.Error(w, "Invalid email format", http.StatusBadRequest)
+		renderError(w, r, "Invalid email format")
 		return
 	}
 
 	if len(password) < 8 {
-		http.Error(w, "Password must be at least 8 characters long", http.StatusBadRequest)
+		renderError(w, r, "Password must be at least 8 characters long")
 		return
 	}
 
 	if password != confirmPassword {
-		http.Error(w, "Passwords do not match", http.StatusBadRequest)
+		renderError(w, r, "Passwords do not match")
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error generating hashed password: %v", err), http.StatusInternalServerError)
+		renderError(w, r, fmt.Sprintf("Error generating hashed password: %v", err))
 		return
 	}
 
 	token := generateToken()
 
-	// Insert user with role 'User' by default
 	_, err = db.Exec("INSERT INTO users (username, password, email, email_confirmed, role, confirmation_token) VALUES ($1, $2, $3, $4, $5, $6)", username, string(hashedPassword), email, false, "User", token)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error inserting user into database: %v", err), http.StatusInternalServerError)
+		renderError(w, r, "Username or email is already taken")
 		return
 	}
 
 	if err := sendConfirmationEmail(email, token); err != nil {
-		http.Error(w, fmt.Sprintf("Error sending confirmation email: %v", err), http.StatusInternalServerError)
+		renderError(w, r, fmt.Sprintf("Error sending confirmation email: %v", err))
 		return
 	}
-
-	// Return a success message
-	fmt.Fprintf(w, "Registration successful! Please check your email to confirm your account.")
+	http.Redirect(w, r, "/registration_success", http.StatusSeeOther)
 }
 
 // Login handles user login
 func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		renderError(w, r, "Method not allowed")
 		return
 	}
 
@@ -104,25 +101,24 @@ func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	err := db.QueryRow("SELECT id, password, email_confirmed FROM users WHERE username = $1", username).Scan(&user.ID, &user.Password, &user.EmailConfirmed)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+			renderError(w, r, "Invalid username or password")
 		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			renderError(w, r, "Internal server error")
 		}
 		return
 	}
 
 	if !user.EmailConfirmed {
-		http.Error(w, "Please confirm your email address first", http.StatusUnauthorized)
+		renderError(w, r, "Please confirm your email address first")
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		renderError(w, r, "Invalid username or password")
 		return
 	}
 
-	// Устанавливаем cookie сессии
 	sessionToken := generateToken()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session",
@@ -130,8 +126,24 @@ func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 
-	// Перенаправляем на главную страницу
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func renderError(w http.ResponseWriter, r *http.Request, message string) {
+	w.WriteHeader(http.StatusBadRequest)
+	data := struct {
+		ErrorMessage string
+	}{
+		ErrorMessage: message,
+	}
+
+	// Определяем какой шаблон использовать в зависимости от URL
+	tmpl := "login.html"
+	if r.URL.Path == "/register" {
+		tmpl = "register.html"
+	}
+
+	templates.ExecuteTemplate(w, tmpl, data)
 }
 
 // Logout handles user logout
@@ -188,6 +200,14 @@ func ConfirmEmail(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid token", http.StatusBadRequest)
 		return
 	}
+	tmpl, err := template.ParseFiles("templates/confirm.html")
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
-	fmt.Fprintf(w, "Email confirmed successfully!")
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }

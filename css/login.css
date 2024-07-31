@@ -45,7 +45,16 @@ main {
     pointer-events: none;
     border-radius: 20px 0 0 20px;
 }
-
+.left-side-reg {
+    height: 100%;
+    width: 100%;
+    background-image: url(https://i.pinimg.com/736x/13/23/69/13236951531b80214b9bfee45acdcd5e.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    border-radius: 20px 0 0 20px;
+}
 .right-side {
     padding: 60px;
 }
@@ -187,4 +196,8 @@ a {
 
 a:hover {
     color: rgb(13, 133, 185);
+}
+.error-message {
+    color: red;
+    font-weight: bold; /* Этот стиль сделает текст жирным, чтобы он лучше выделялся */
 }
