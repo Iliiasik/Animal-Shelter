@@ -1,28 +1,29 @@
 package db
 
 import (
-	"database/sql"
+	"Animals_Shelter/models"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 )
 
-func ConnectDB() *sql.DB {
-	// PostgreSQL connection string
-	connStr := "user=postgres password=gavno dbname=AShelter sslmode=disable"
-
-	// Open a connection to the database
-	db, err := sql.Open("postgres", connStr)
+func ConnectDB() *gorm.DB {
+	dsn := "user=postgres password=root dbname=AShelter sslmode=disable"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error opening database connection: %v", err)
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	// Check if the connection is successful
-	err = db.Ping()
-	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
-
-	log.Println("Connected to PostgreSQL database")
+	// Автоматическое создание таблиц на основе ваших моделей
+	db.AutoMigrate(
+		&models.AnimalStatus{},
+		&models.AnimalType{},
+		&models.Animal{},
+		&models.MedicalRecord{},
+		&models.PostImage{},
+		&models.User{},
+	)
 
 	return db
 }
