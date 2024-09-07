@@ -27,13 +27,10 @@ type Animal struct {
 	Breed       string      `json:"breed"`
 	Age         int         `json:"age"`
 	Gender      string      `json:"gender"`
-	StatusID    int         `json:"status_id" gorm:"index;foreignKey:StatusID;constraint:OnDelete:SET NULL;"`
+	StatusID    int         `json:"status_id" gorm:"not null"`
 	ArrivalDate string      `json:"arrival_date"`
 	Description string      `json:"description"`
 	Images      []PostImage `gorm:"foreignKey:AnimalID"`
-
-	// Relationships
-	AnimalStatus AnimalStatus `gorm:"foreignKey:StatusID;references:ID"`
 }
 
 func (Animal) TableName() string {
