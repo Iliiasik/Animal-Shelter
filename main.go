@@ -28,6 +28,16 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handlers.HomePage(sqlDB, w, r)
 	})
+
+	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.ShowProfile(sqlDB, w, r) // Маршрут для профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Другие маршруты
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
