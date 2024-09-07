@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+</head>
+<body>
+<nav>
+    <div class="navbar">
+        <div class="container nav-container">
+            <input class="checkbox" type="checkbox" name="" id="menu-toggle" />
+            <div class="hamburger-lines">
+                <span class="line line1"></span>
+                <span class="line line2"></span>
+                <span class="line line3"></span>
+            </div>
+            <div class="logo">
+                <h1>Admin Panel</h1>
+            </div>
+            <div class="menu-items">
+                <li><a href="/admin?table=users">Users</a></li>
+                <li><a href="/admin?table=animals">Animals</a></li>
+                <li><a href="/admin?table=sessions">Sessions</a></li>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Data from {{.Table}} Table</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                {{- range $key, $value := (index .Data 0) }}
+                <th>{{ $key }}</th>
+                {{- end }}
+            </tr>
+            </thead>
+            <tbody>
+            {{- range .Data }}
+            <tr>
+                {{- range $key, $value := . }}
+                <td>{{ $value }}</td>
+                {{- end }}
+            </tr>
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
