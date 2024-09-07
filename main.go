@@ -96,7 +96,7 @@ func main() {
 	})
 	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.Logout(w, r)
+			handlers.Logout(database, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
