@@ -118,7 +118,13 @@ func main() {
 	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
 		handlers.AdminPanel(database, w, r)
 	})
-
+	mux.HandleFunc("/admin/delete", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			handlers.DeleteRecord(database, w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
