@@ -120,6 +120,14 @@ func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionToken := generateToken()
+
+	// Save session token to the database
+	_, err = db.Exec("INSERT INTO sessions (session_id, user_id, expires_at) VALUES ($1, $2, $3)", sessionToken, user.ID, time.Now().Add(24*time.Hour))
+	if err != nil {
+		renderError(w, r, fmt.Sprintf("Error creating session: %v", err))
+		return
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session",
 		Value:   sessionToken,
@@ -147,15 +155,31 @@ func renderError(w http.ResponseWriter, r *http.Request, message string) {
 }
 
 // Logout handles user logout
-func Logout(w http.ResponseWriter, r *http.Request) {
-	// Удаляем cookie сессии
+func Logout(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Get the session token from the cookie
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	sessionToken := cookie.Value
+
+	// Remove the session from the database
+	_, err = db.Exec("DELETE FROM sessions WHERE session_id = $1", sessionToken)
+	if err != nil {
+		http.Error(w, "Error removing session", http.StatusInternalServerError)
+		return
+	}
+
+	// Remove cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session",
 		Value:   "",
-		Expires: time.Now().Add(-1 * time.Hour), // Устанавливаем прошедшее время для удаления cookie
+		Expires: time.Now().Add(-1 * time.Hour), // Set an expired time to delete the cookie
 	})
 
-	// Перенаправляем на главную страницу
+	// Redirect to the homepage
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

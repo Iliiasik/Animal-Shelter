@@ -32,6 +32,11 @@
     </div>
 </nav>
 <div class="container mt-4">
+    {{if .IsAdmin}}
+    <div class="admin-text">
+        <p>Admin-only text for testing purposes.</p>
+    </div>
+    {{end}}
     <div class="cards-list">
         {{range .Animals}}
         <a href="/animal_information?id={{.ID}}" class="card">
@@ -49,5 +54,8 @@
         {{end}}
     </div>
 </div>
+<p>LoggedIn: {{.LoggedIn}}</p>
+<p>IsAdmin: {{.IsAdmin}}</p>
+
 </body>
 </html>

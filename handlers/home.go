@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
+	"time"
 )
 
 // PageData represents the data passed to the HTML templates
 type PageData struct {
 	LoggedIn bool
+	IsAdmin  bool
 	Animals  []AnimalWithImages
 }
 
@@ -17,9 +19,20 @@ type PageData struct {
 func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Проверяем статус входа пользователя
 	loggedIn := false
+	isAdmin := false
 	session, err := r.Cookie("session")
 	if err == nil && session.Value != "" {
 		loggedIn = true
+
+		// Check if the user is admin
+		userID, err := getUserIDFromSession(db, session.Value)
+		if err == nil {
+			isAdmin, err = isUserAdmin(db, userID)
+			if err != nil {
+				http.Error(w, "Error checking admin status", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	// Получаем параметр species из запроса
@@ -34,10 +47,31 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	data := PageData{
 		LoggedIn: loggedIn,
+		IsAdmin:  isAdmin,
 		Animals:  animals,
 	}
 	tmpl := template.Must(template.ParseFiles("templates/home.html"))
 	tmpl.Execute(w, data)
+}
+
+// Helper function to get user ID from session
+func getUserIDFromSession(db *sql.DB, sessionID string) (int, error) {
+	var userID int
+	now := time.Now()
+	query := `
+		SELECT user_id FROM sessions
+		WHERE session_id = $1 AND expires_at > $2
+	`
+	err := db.QueryRow(query, sessionID, now).Scan(&userID)
+	return userID, err
+}
+
+// Helper function to check if the user is an admin
+func isUserAdmin(db *sql.DB, userID int) (bool, error) {
+	var isAdmin bool
+	query := `SELECT is_admin FROM Users WHERE id = $1`
+	err := db.QueryRow(query, userID).Scan(&isAdmin)
+	return isAdmin, err
 }
 
 func fetchAllAnimalsWithImages(db *sql.DB, species string) ([]AnimalWithImages, error) {

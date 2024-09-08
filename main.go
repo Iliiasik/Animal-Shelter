@@ -87,7 +87,7 @@ func main() {
 	})
 	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.Logout(w, r)
+			handlers.Logout(database, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -105,6 +105,9 @@ func main() {
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
+	})
+	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AdminPanel(database, w, r)
 	})
 
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
