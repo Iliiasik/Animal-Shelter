@@ -23,6 +23,7 @@ func ConnectDB() *gorm.DB {
 		&models.MedicalRecord{},
 		&models.PostImage{},
 		&models.User{},
+		&models.Session{},
 	)
 
 	return db
