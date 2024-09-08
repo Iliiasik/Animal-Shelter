@@ -7,59 +7,50 @@ import (
 
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
-
-	_ "github.com/lib/pq"
 )
 
-// LoggerMiddleware - middleware для логирования HTTP-запросов и ответов
-func LoggerMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		// Создаем ResponseWriter обертку
-		ww := &responseWriter{w, http.StatusOK}
-		// Вызываем следующий обработчик
-		next.ServeHTTP(ww, r)
-		// Логируем запрос и ответ
-		log.Printf("%s %s %d %s", r.Method, r.RequestURI, ww.status, time.Since(start))
-	})
-}
-
-// responseWriter - обертка для http.ResponseWriter, чтобы захватывать статус код
-type responseWriter struct {
-	http.ResponseWriter
-	status int
-}
-
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	rw.status = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
 func main() {
-	// Подключение к базе данных
-	database := db.ConnectDB()
-	defer database.Close()
+	// Подключение к базе данных через GORM
+	gormDB := db.ConnectDB()
+
+	// Получаем *sql.DB из *gorm.DB
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get *sql.DB from GORM: %v", err)
+	}
+
+	defer sqlDB.Close()
 
 	// Создаем новый маршрутизатор
 	mux := http.NewServeMux()
 
-	// Настройка маршрутов
+	// Настройка маршрутов с использованием *sql.DB
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handlers.HomePage(database, w, r)
+		handlers.HomePage(sqlDB, w, r)
 	})
+
+	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.ShowProfile(sqlDB, w, r) // Маршрут для профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Другие маршруты
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			handlers.ShowAddAnimalForm(w, r)
 		case "POST":
-			handlers.AddAnimal(database, w, r)
+			handlers.AddAnimal(sqlDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/animal_information", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.AnimalInformation(database, w, r)
+			handlers.AnimalInformation(sqlDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -67,9 +58,9 @@ func main() {
 	mux.HandleFunc("/medical_records", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			handlers.ShowAddMedicalRecordForm(database, w, r)
+			handlers.ShowAddMedicalRecordForm(sqlDB, w, r)
 		case "POST":
-			handlers.AddMedicalRecord(database, w, r)
+			handlers.AddMedicalRecord(sqlDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -79,7 +70,7 @@ func main() {
 		case "GET":
 			handlers.ShowRegisterForm(w, r)
 		case "POST":
-			handlers.Register(database, w, r)
+			handlers.Register(sqlDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -89,7 +80,7 @@ func main() {
 		case "GET":
 			handlers.ShowLoginForm(w, r)
 		case "POST":
-			handlers.Login(database, w, r)
+			handlers.Login(sqlDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -103,7 +94,7 @@ func main() {
 	})
 	mux.HandleFunc("/confirm", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.ConfirmEmail(database, w, r)
+			handlers.ConfirmEmail(sqlDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -128,4 +119,28 @@ func main() {
 
 	log.Println("Server started on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", loggedMux))
+}
+
+// LoggerMiddleware - middleware для логирования HTTP-запросов и ответов
+func LoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		// Создаем ResponseWriter обертку
+		ww := &responseWriter{w, http.StatusOK}
+		// Вызываем следующий обработчик
+		next.ServeHTTP(ww, r)
+		// Логируем запрос и ответ
+		log.Printf("%s %s %d %s", r.Method, r.RequestURI, ww.status, time.Since(start))
+	})
+}
+
+// responseWriter - обертка для http.ResponseWriter, чтобы захватывать статус код
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	rw.status = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
 }
