@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 )
 
 // AdminPanel displays the admin panel page with dynamic table data
@@ -39,11 +40,11 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Dynamically fetch data from the selected table
 	switch table {
 	case "users":
-		rows, err = db.Query("SELECT id, username, email, is_admin FROM users")
+		rows, err = db.Query("SELECT id, username, email, is_admin, role, email_confirmed FROM users")
 	case "animals":
-		rows, err = db.Query("SELECT id, name, species, age FROM animals")
+		rows, err = db.Query("SELECT id, name, age, breed, gender, arrival_date FROM animals")
 	case "sessions":
-		rows, err = db.Query("SELECT id, user_id, session_id FROM sessions")
+		rows, err = db.Query("SELECT id, user_id, session_id, created_at, expires_at FROM sessions")
 	default:
 		http.Error(w, "Invalid table", http.StatusBadRequest)
 		return
@@ -85,4 +86,51 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
+}
+
+// DeleteRecord handles record deletion requests
+func DeleteRecord(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get the table and ID from the request
+	table := r.URL.Query().Get("table")
+	id := r.URL.Query().Get("id")
+
+	if table == "" || id == "" {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	// Convert ID to integer
+	recordID, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// Delete record from the database
+	var query string
+	switch table {
+	case "users":
+		query = "DELETE FROM users WHERE id = $1"
+	case "animals":
+		query = "DELETE FROM animals WHERE id = $1"
+	case "sessions":
+		query = "DELETE FROM sessions WHERE id = $1"
+	default:
+		http.Error(w, "Invalid table", http.StatusBadRequest)
+		return
+	}
+
+	_, err = db.Exec(query, recordID)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Redirect back to the admin panel
+	http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
 }
