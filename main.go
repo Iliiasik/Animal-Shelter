@@ -111,7 +111,7 @@ func main() {
 	})
 	mux.HandleFunc("/admin/delete", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
-			handlers.DeleteRecord(database, w, r)
+			handlers.DeleteRecord(sqlDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

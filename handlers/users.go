@@ -74,7 +74,7 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	token := generateToken()
 
-	_, err = db.Exec("INSERT INTO users (username, password, email, email_confirmed, role, confirmation_token) VALUES ($1, $2, $3, $4, $5, $6)", username, string(hashedPassword), email, false, "User", token)
+	_, err = db.Exec("INSERT INTO users (username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7)", username, string(hashedPassword), email, false, "User", token, false)
 	if err != nil {
 		renderError(w, r, "Username or email is already taken")
 		return
