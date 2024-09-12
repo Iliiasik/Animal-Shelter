@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -10,7 +9,7 @@ import (
 
 // AdminPanel displays the admin panel page with dynamic table data
 func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Get the current session
+	// Получаем сессию пользователя
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		http.Error(w, "Access denied", http.StatusForbidden)
@@ -18,7 +17,7 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := cookie.Value
 
-	// Check if the session exists and retrieve user info
+	// Проверяем права пользователя
 	var user User
 	err = db.QueryRow("SELECT users.id, users.is_admin FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.session_id = $1", sessionToken).Scan(&user.ID, &user.IsAdmin)
 	if err != nil || !user.IsAdmin {
@@ -26,9 +25,9 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the table parameter from the URL
+	// Получаем параметры таблицы и поиска
 	table := r.URL.Query().Get("table")
-	fmt.Println("Table selected:", table) // Debugging statement
+	searchQuery := r.URL.Query().Get("search")
 
 	if table == "" {
 		http.Redirect(w, r, "/admin?table=users", http.StatusFound)
@@ -36,26 +35,46 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var rows *sql.Rows
+	query := ""
 
-	// Dynamically fetch data from the selected table
+	// Формируем запрос на основе таблицы и поиска
 	switch table {
 	case "users":
-		rows, err = db.Query("SELECT id, username, email, is_admin, role, email_confirmed FROM users")
+		query = "SELECT id, username, email, is_admin, role, email_confirmed FROM users"
+		if searchQuery != "" {
+			query += " WHERE username ILIKE '%' || $1 || '%' OR email ILIKE '%' || $1 || '%'"
+			rows, err = db.Query(query, searchQuery)
+		} else {
+			rows, err = db.Query(query)
+		}
 	case "animals":
-		rows, err = db.Query("SELECT id, name, age, breed, gender, arrival_date FROM animals")
+		query = "SELECT id, name, age, breed, gender, arrival_date FROM animals"
+		if searchQuery != "" {
+			query += " WHERE name ILIKE '%' || $1 || '%' OR breed ILIKE '%' || $1 || '%'"
+			rows, err = db.Query(query, searchQuery)
+		} else {
+			rows, err = db.Query(query)
+		}
 	case "sessions":
-		rows, err = db.Query("SELECT id, user_id, session_id, created_at, expires_at FROM sessions")
+		query = "SELECT id, user_id, session_id, created_at, expires_at FROM sessions"
+		if searchQuery != "" {
+			query += " WHERE session_id ILIKE '%' || $1 || '%'"
+			rows, err = db.Query(query, searchQuery)
+		} else {
+			rows, err = db.Query(query)
+		}
 	default:
 		http.Error(w, "Invalid table", http.StatusBadRequest)
 		return
 	}
+
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	// Prepare data for the template
+	// Обрабатываем данные для шаблона
 	var data []map[string]interface{}
 	columns, _ := rows.Columns()
 	for rows.Next() {
@@ -79,12 +98,14 @@ func AdminPanel(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Передаем данные в шаблон
 	err = tmpl.Execute(w, map[string]interface{}{
-		"Table": table,
-		"Data":  data,
+		"Table":       table,
+		"Data":        data,
+		"SearchQuery": searchQuery,
 	})
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "Record not found", http.StatusInternalServerError)
 	}
 }
 

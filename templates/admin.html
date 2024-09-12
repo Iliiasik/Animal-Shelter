@@ -6,6 +6,28 @@
     <title>Admin Panel</title>
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+
+            // Автоматическая отправка формы при вводе текста
+            searchInput.addEventListener('input', function() {
+                const table = document.querySelector('input[name="table"]').value;
+                const searchQuery = searchInput.value;
+
+                // Отправляем GET запрос с параметром поиска
+                fetch(`/admin?table=${table}&search=${encodeURIComponent(searchQuery)}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        // Обновляем таблицу без перезагрузки страницы
+                        const parser = new DOMParser();
+                        const newDocument = parser.parseFromString(data, 'text/html');
+                        const newTable = newDocument.querySelector('.table-container').innerHTML;
+                        document.querySelector('.table-container').innerHTML = newTable;
+                    });
+            });
+        });
+    </script>
 </head>
 <body>
 <nav>
@@ -25,12 +47,18 @@
                 <li><a href="/admin?table=animals">Animals</a></li>
                 <li><a href="/admin?table=sessions">Sessions</a></li>
             </ul>
+            <!-- Search form inside navbar -->
+            <form action="/admin" method="GET" class="search-form">
+                <input type="hidden" name="table" value="{{.Table}}">
+                <input type="text" name="search" placeholder="Search..." class="search-input" value="{{.SearchQuery}}">
+            </form>
         </div>
     </div>
 </nav>
 
 <div class="container">
     <h2>Data from <span class="table-name">{{.Table}}</span> Table</h2>
+
     <div class="table-container">
         <table>
             <thead>
