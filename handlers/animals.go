@@ -39,25 +39,49 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	var animal models.Animal
 	animal.Name = r.FormValue("name")
-	species, err := strconv.Atoi(r.FormValue("species"))
-	if err != nil {
-		http.Error(w, "Invalid species", http.StatusBadRequest)
+
+	// Получаем или создаем запись о виде (species)
+	speciesName := r.FormValue("species")
+	var speciesID int
+	err := db.QueryRow("SELECT id FROM animaltypes WHERE type_name = $1", speciesName).Scan(&speciesID)
+	if err == sql.ErrNoRows {
+		// Если вид отсутствует, добавляем его
+		err = db.QueryRow("INSERT INTO animaltypes (type_name) VALUES ($1) RETURNING id", speciesName).Scan(&speciesID)
+		if err != nil {
+			http.Error(w, "Error inserting species", http.StatusInternalServerError)
+			return
+		}
+	} else if err != nil {
+		http.Error(w, "Error fetching species", http.StatusInternalServerError)
 		return
 	}
-	animal.Species = species
-	animal.Breed = r.FormValue("breed")
-	animal.Age, _ = strconv.Atoi(r.FormValue("age"))
-	animal.Gender = r.FormValue("gender")
-	statusID, err := strconv.Atoi(r.FormValue("status_id"))
-	if err != nil {
-		http.Error(w, "Invalid status ID", http.StatusBadRequest)
+	animal.Species = speciesID
+
+	// Получаем или создаем запись о статусе
+	statusName := r.FormValue("status_id")
+	var statusID int
+	err = db.QueryRow("SELECT id FROM animalstatus WHERE status_name = $1", statusName).Scan(&statusID)
+	if err == sql.ErrNoRows {
+		// Если статус отсутствует, добавляем его
+		err = db.QueryRow("INSERT INTO animalstatus (status_name) VALUES ($1) RETURNING id", statusName).Scan(&statusID)
+		if err != nil {
+			http.Error(w, "Error inserting status", http.StatusInternalServerError)
+			return
+		}
+	} else if err != nil {
+		http.Error(w, "Error fetching status", http.StatusInternalServerError)
 		return
 	}
 	animal.StatusID = statusID
+
+	// Остальные данные животного
+	animal.Breed = r.FormValue("breed")
+	animal.Age, _ = strconv.Atoi(r.FormValue("age"))
+	animal.Gender = r.FormValue("gender")
 	animal.ArrivalDate = r.FormValue("arrival_date")
 	animal.Description = r.FormValue("description")
 
-	// Create the uploads directory if it doesn't exist
+	// Создаем директорию "uploads", если она не существует
 	uploadDir := "uploads"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, os.ModePerm)
@@ -69,7 +93,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	var filePaths []string
 
-	// Handle multiple image uploads
+	// Обрабатываем загрузку нескольких изображений
 	files := r.MultipartForm.File["images"]
 	if len(files) > 4 {
 		http.Error(w, "You can upload a maximum of 4 images", http.StatusBadRequest)
@@ -84,12 +108,12 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		// Generate a unique filename
+		// Генерация уникального имени файла
 		fileExt := path.Ext(fileHeader.Filename)
 		fileName := strconv.FormatInt(time.Now().UnixNano(), 10) + fileExt
 		filePath := path.Join(uploadDir, fileName)
 
-		// Save the file to the server
+		// Сохранение файла на сервере
 		outFile, err := os.Create(filePath)
 		if err != nil {
 			http.Error(w, "Error saving file", http.StatusInternalServerError)
@@ -109,14 +133,14 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Convert backslashes to slashes in the file path
+		// Конвертируем обратные слеши в прямые для правильного пути файла
 		filePath = filepath.ToSlash(filePath)
 		filePaths = append(filePaths, filePath)
 	}
 
-	// Insert the animal data into the database
+	// Вставка данных о животном в базу данных
 	query := `
-        INSERT INTO Animals (name, species, breed, age, gender, status_id, arrival_date, description)
+        INSERT INTO animals (name, species, breed, age, gender, status_id, arrival_date, description)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id
     `
@@ -127,9 +151,9 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert the image data into the database
+	// Вставка данных изображений в базу данных
 	imageQuery := `
-        INSERT INTO PostImages (animal_id, image_url)
+        INSERT INTO postimages (animal_id, image_url)
         VALUES ($1, $2)
     `
 	for _, filePath := range filePaths {
@@ -140,6 +164,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Перенаправление на главную страницу после успешной обработки
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -213,9 +238,9 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var animal AnimalWithImages
 	query := `
         SELECT a.id, a.name, a.species, t.type_name, a.breed, a.age, a.gender, a.status_id, s.status_name, a.arrival_date, a.description
-        FROM Animals a
-        JOIN AnimalStatus s ON a.status_id = s.id
-        JOIN AnimalTypes t ON a.species = t.id
+        FROM animals a
+        JOIN animalstatus s ON a.status_id = s.id
+        JOIN animaltypes t ON a.species = t.id
         WHERE a.id = $1
     `
 	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.Species, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
@@ -232,7 +257,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Fetch animal images
 	imageQuery := `
         SELECT id, animal_id, image_url
-        FROM PostImages
+        FROM postimages
         WHERE animal_id = $1
     `
 	rows, err := db.Query(imageQuery, animalID)

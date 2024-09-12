@@ -17,6 +17,7 @@ body {
 
 nav {
     position: fixed;
+    height: 70px; /* Adjust this value as needed */
     z-index: 99;
     width: 100%;
     background: #242526;
@@ -31,7 +32,7 @@ main {
     border-radius: 20px;
     background-color: #fff; /* Добавьте фон для видимости */
     padding: 20px; /* Добавьте отступы для лучшего вида */
-    margin-top: 90px; /* Отступ сверху для основного контента (высота nav + дополнительный отступ) */
+    padding-top: calc(20px + 70px); /* Add padding-top to ensure the content does not overlap with nav */
     margin-left: 280px;
 }
 
