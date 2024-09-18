@@ -16,9 +16,9 @@
             <li>
                 <a href="#" class="desktop-item">Animal Types</a>
                 <ul class="drop-menu">
-                    <li><a  onclick="filterAnimals('1')">Dogs</a></li>
-                    <li><a  onclick="filterAnimals('2')">Cats</a></li>
-                    <li><a  onclick="filterAnimals('3')">Birds</a></li>
+                    <li><a onclick="filterAnimals('1')">Dogs</a></li>
+                    <li><a onclick="filterAnimals('2')">Cats</a></li>
+                    <li><a onclick="filterAnimals('3')">Birds</a></li>
                 </ul>
             </li>
             <li><a href="#">Feedback</a></li>
@@ -31,12 +31,42 @@
         </ul>
     </div>
 </nav>
-<div class="container mt-4">
-    {{if .IsAdmin}}
-    <div class="admin-text">
-        <p>Admin-only text for testing purposes.</p>
+
+<!-- Intro Section -->
+<section class="intro">
+    <div class="carousel">
+        <img src="https://images.pexels.com/photos/736530/pexels-photo-736530.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
+        <img src="https://images.pexels.com/photos/7862080/pexels-photo-7862080.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
+        <img src="https://images.unsplash.com/photo-1554692918-08fa0fdc9db3?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Adopt a Friend" class="carousel-image">
     </div>
-    {{end}}
+    <div class="intro-text">
+        <h1>Adopt a Friend from the Shelter</h1>
+        <p>Your new best friend is waiting for you!</p>
+    </div>
+</section>
+
+
+<!-- About Us Section -->
+<section class="about-us-section">
+    <h2>About Us</h2>
+    <p>We are a dedicated animal shelter committed to rescuing and finding loving homes for abandoned cats and dogs. Our goal is to provide them with the care, attention, and love they deserve while they wait for their forever homes.
+
+    </p>
+
+    <p>If you're looking to adopt a new companion, explore our "Choose Your Friend" section where you can find pets ready to be part of your family.
+
+    </p>
+
+    <p>You can also <a href="/register">register</a> and submit your adoption application online.</p>
+
+    <h3>Thank you for your kindness!</h3>
+</section>
+
+
+
+<!-- Choose Your Friend Section -->
+<section class="choose-friend">
+    <h2>Choose Your Friend</h2>
     <div class="cards-list">
         {{range .Animals}}
         <a href="/animal_information?id={{.ID}}" class="card">
@@ -53,8 +83,41 @@
         </a>
         {{end}}
     </div>
-</div>
-<p>LoggedIn: {{.LoggedIn}}</p>
-<p>IsAdmin: {{.IsAdmin}}</p>
+</section>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const images = document.querySelectorAll('.carousel-image');
+        let index = 0;
+
+        function showNextImage() {
+            images[index].style.opacity = 0; // Скрываем текущее изображение
+            index = (index + 1) % images.length; // Переход к следующему изображению
+            images[index].style.opacity = 1; // Показываем следующее изображение
+        }
+
+        // Показ следующего изображения сразу после загрузки
+        showNextImage();
+
+        setInterval(showNextImage, 6000); // Изменить изображение каждые 3 секунды
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                // Scrolling down
+                navbar.classList.add('nav-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+        });
+    });
+    </script>
 </html>

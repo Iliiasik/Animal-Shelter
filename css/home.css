@@ -30,6 +30,11 @@ nav {
     z-index: 99;
     width: 100%;
     background: #242526;
+    transition: transform 0.3s ease-in-out; /* Плавный переход по трансформации */
+}
+
+.nav-hidden {
+    transform: translateY(-100%); /* Перемещаем навбар вверх за пределы экрана */
 }
 
 nav .wrapper {
@@ -507,4 +512,142 @@ nav .wrapper {
     width: 5px;
     background: #fff;
     transition: width 150ms ease 100ms;
+}
+.intro {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+    width: 100%;
+    min-height: 80vh; /* Увеличенная минимальная высота секции */
+    display: flex;
+    align-items: center; /* Центрирование текста по вертикали */
+    justify-content: center; /* Центрирование текста по горизонтали */
+}
+
+.intro-image {
+    width: 100%;
+    height: 100%; /* Подгоняем высоту изображения к высоте секции */
+    object-fit: cover; /* Обрезка изображения, чтобы заполнить секцию */
+}
+
+
+.intro-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: center;
+    font-size: 2em;
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон для текста */
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.about-us-section {
+    background-color: #f4f4f4; /* Более тёмный фон */
+    padding: 40px 20px;
+}
+
+.about-us-section h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.about-us-section h3 {
+    font-size: 1em;
+    margin-top: 20px;
+    text-align: center;
+    color: #a45c65;
+}
+.about-us-section p {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.choose-friend h2 {
+    font-size: 1.5em;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    position: relative; /* Необходимо для позиционирования псевдоэлемента */
+    padding-bottom: 10px; /* Отступ снизу для места под подчеркивание */
+}
+
+.choose-friend h2::after {
+    content: ""; /* Псевдоэлемент не имеет содержимого */
+    display: block;
+    width: 10%; /* Ширина подчеркивания равна половине ширины текста */
+    height: 2px; /* Толщина подчеркивания */
+    background-color: #333; /* Цвет подчеркивания */
+    position: absolute; /* Позиционирование относительно родительского элемента */
+    left: 50%; /* Центрирование по горизонтали */
+    transform: translateX(-50%); /* Смещение на половину ширины элемента для точного центрирования */
+    bottom: 0; /* Расположить подчеркивание чуть ниже текста */
+}
+
+
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Убедитесь, что высота соответствует размеру изображений */
+    overflow: hidden;
+}
+
+.carousel-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.carousel-image.active {
+    opacity: 1;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #717377;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #636468;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #435d73;
+}
+
+::-webkit-scrollbar-track {
+    background: #cccccc;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+
+::-webkit-scrollbar-track:hover {
+    background: #bebebe;
+}
+
+::-webkit-scrollbar-track:active {
+    background: #d7d7d7;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
