@@ -331,7 +331,7 @@ nav .wrapper {
 .cards-list {
     width: 100%;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: flex-start;
     flex-wrap: wrap;
 }
 
@@ -650,4 +650,57 @@ nav .wrapper {
 
 ::-webkit-scrollbar-corner {
     background: transparent;
+}
+
+
+.view-more {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.view-more-button {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #090909;
+    text-decoration: none; /* Убирает подчеркивание */
+}
+
+.view-more-button:hover {
+    background-color: #000;
+    color: #eee;
+}
+
+.news-section {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.news-section h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.news-section p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.news-section h3 {
+    font-size: 20px;
+    color: #4CAF50;
+    margin-top: 20px;
 }

@@ -47,6 +47,7 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handlers.HomePage(database, w, r)
 	})
+
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
