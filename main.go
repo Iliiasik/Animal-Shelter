@@ -36,6 +36,16 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.EditProfile(sqlDB, w, r) // Маршрут для редактирования профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SaveProfile(sqlDB, w, r) // Маршрут для сохранения профиля
+	})
 
 	// Другие маршруты
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {

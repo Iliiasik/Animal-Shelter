@@ -3,19 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
+    <title>Profile of {{.Username}}</title>
+    <link rel="stylesheet" type="text/css" href="/css/profile.css">
+    <link rel="stylesheet" type="text/css" href="/css/home.css">
 </head>
 <body>
-<h1>{{.Username}}'s Profile</h1>
-<img src="{{.ProfileImage}}" alt="Profile Image" width="150px">
-<p><strong>First Name:</strong> {{.FirstName}}</p>
-<p><strong>Last Name:</strong> {{.LastName}}</p>
-<p><strong>Email:</strong> {{.Email}}</p>
-<p><strong>Phone Number:</strong> {{.PhoneNumber}}</p>
-<p><strong>Date of Birth:</strong> {{.DateOfBirth}}</p>
-<p><strong>City:</strong> {{.City}}</p>
-<p><strong>Country:</strong> {{.Country}}</p>
-<p><strong>Website:</strong> <a href="{{.Website}}" target="_blank">{{.Website}}</a></p>
-<p><strong>Bio:</strong> {{.Bio}}</p>
+<div class="profile-background">
+    <div class="profile">
+        <div class="profile-image">
+            <img src="{{.ProfileImage}}" alt="Profile Image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+        </div>
+        <div class="profile-info">
+            
+            <h1> {{.Username}}</h1>
+            <h3>{{.FirstName}} {{.LastName}}</h3>
+            <p>{{.Bio}}</p>
+
+            <div class="contact-info">
+
+                <strong>Email:</strong> {{.Email}}<br>
+                <strong>Phone:</strong> {{.PhoneNumber}}<br>
+                <strong>Date of Birth:</strong> {{.DateOfBirth}}<br>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка Home (слева) -->
+<a href="/home" class="button-home">Home</a>
+
+<!-- Кнопка Edit Profile (справа) -->
+<a href="/edit-profile" class="button-edit">Edit Profile</a>
+
 </body>
 </html>

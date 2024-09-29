@@ -1,0 +1,114 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.profile-background {
+    background-image: url('https://images.unsplash.com/photo-1727102062617-2b793eec0a50?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+    background-size: cover;
+    background-position: center;
+    height: 300px;
+    position: relative;
+}
+
+/*начало стиля кнопок изменения фона*/
+.edit-bg-button{
+    display: none;
+    
+}
+.custom-button{
+    position: fixed;
+    top: 280px;
+    right: 0;
+   
+    background-color: #adadad;
+    color: white; /* Цвет текста */
+    border: none; /* Без границы */
+    border-radius: 5px; /* Скругление углов */
+    cursor: pointer; /* Курсор в виде указателя */
+}
+.custom-button:hover {
+    background-color: #7e7e7e;
+}
+/* конец стиля кнопок изменения фона*/
+
+.profile {
+    display: flex;
+    align-items: flex-start;
+    max-width: 800px;
+    margin: 150px auto 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image {
+    flex: 0 0 150px;
+    margin-right: 20px;
+}
+
+.profile-image img {
+    max-width: 100%;
+    border-radius: 50%;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-info h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+textarea {
+    resize: none;
+}
+
+button.button-save {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.button-save:hover {
+    background-color: #2980b9;
+}
+
+.button-home {
+    position: fixed;
+    bottom: 50px;
+    left: -5px;
+    padding: 10px 20px;
+    background-color: #adadad;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.button-home:hover {
+    background-color: #7e7e7e;
+}

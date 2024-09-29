@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="/css/login.css">
+    <link rel="stylesheet" type="text/css" href="/css/register.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
 </head>
 <body>
@@ -23,6 +23,22 @@
         {{end}}
 
         <form action="/register" method="post">
+
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name"  required><br>
+
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required><br>
+
+            <label for="bio">Bio:</label>
+            <input type="text" id="bio" name="bio"  required><br>
+
+
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number"  required><br>
+
+            <hr class="visual_border">
+
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
 

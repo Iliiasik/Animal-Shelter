@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 	"html/template"
+	"log"
 	"net/http"
 	"regexp"
 	"time"
@@ -15,7 +16,7 @@ import (
 
 var (
 	emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	templates  = template.Must(template.ParseFiles("templates/register.html", "templates/login.html"))
+	templates  = template.Must(template.ParseFiles("templates/register.html", "templates/login.html", "templates/edit_profile.html"))
 )
 
 // User represents a user in the database
@@ -27,6 +28,13 @@ type User struct {
 	IsAdmin           bool
 	EmailConfirmed    bool
 	ConfirmationToken string
+	// Новые поля для профиля
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	Bio          string `json:"bio"`
+	ProfileImage string `json:"profile_image"`
+	PhoneNumber  string `json:"phone_number"`
+	DateOfBirth  string `json:"date_of_birth"`
 }
 
 // ShowRegisterForm renders the registration form
@@ -45,7 +53,12 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		renderError(w, r, "Method not allowed")
 		return
 	}
-
+	firstName := r.FormValue("first_name")
+	lastName := r.FormValue("last_name")
+	bio := r.FormValue("bio")
+	phoneNumber := r.FormValue("phone_number")
+	profileImage := "empty"
+	dateOfBirth := "empty"
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
@@ -74,7 +87,7 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	token := generateToken()
 
-	_, err = db.Exec("INSERT INTO users (username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7)", username, string(hashedPassword), email, false, "User", token, false)
+	_, err = db.Exec("INSERT INTO users (first_name,last_name,bio,profile_image,phone_number,date_of_birth,username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9,$10,$11,$12,$13)", firstName, lastName, bio, profileImage, phoneNumber, dateOfBirth, username, string(hashedPassword), email, false, "User", token, false)
 	if err != nil {
 		renderError(w, r, "Username or email is already taken")
 		return
@@ -234,4 +247,65 @@ func ConfirmEmail(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
+}
+
+// EditProfile handles the editing of the user profile
+func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получите ID пользователя из сессии или куки (здесь показан пример с куки)
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	sessionToken := cookie.Value
+
+	// Получите информацию о пользователе из базы данных (в примере предполагается, что у вас есть такой метод)
+	var user User
+	err = db.QueryRow("SELECT id, username, email, phone_number, bio, profile_image, date_of_birth FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", sessionToken).Scan(&user.ID, &user.Username, &user.Email, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth)
+	if err != nil {
+		http.Error(w, "Error fetching user data", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправьте данные пользователя в шаблон
+	err = templates.ExecuteTemplate(w, "edit_profile.html", user)
+	if err != nil {
+		log.Printf("Error rendering template: %v", err)
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
+}
+
+// SaveProfile handles saving the updated user profile
+func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Получите данные из формы
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	bio := r.FormValue("bio")
+	email := r.FormValue("email")
+	phone := r.FormValue("phone")
+	dob := r.FormValue("dob")
+
+	// Получите ID пользователя из сессии (аналогично EditProfile)
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	sessionToken := cookie.Value
+
+	// Обновите информацию о пользователе в базе данных
+	_, err = db.Exec("UPDATE users SET first_name = $1, last_name = $2, bio = $3, email = $4, phone_number = $5, date_of_birth = $6 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $7)", firstName, lastName, bio, email, phone, dob, sessionToken)
+	if err != nil {
+		http.Error(w, "Error saving profile", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/profile", http.StatusSeeOther) // Перенаправление на страницу профиля после сохранения
 }

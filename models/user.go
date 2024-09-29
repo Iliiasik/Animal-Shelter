@@ -17,7 +17,4 @@ type User struct {
 	ProfileImage string `json:"profile_image"`
 	PhoneNumber  string `json:"phone_number"`
 	DateOfBirth  string `json:"date_of_birth"`
-	City         string `json:"city"`
-	Country      string `json:"country"`
-	Website      string `json:"website"`
 }
