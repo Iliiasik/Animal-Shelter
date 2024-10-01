@@ -55,8 +55,45 @@ main {
     border-radius: 20px 0 0 20px;
 }
 .right-side {
-    
+
 }
+
+/*стили добавления фото*/
+.upload-btn {
+    background-color: #4CAF50; /* Цвет фона */
+    color: white; /* Цвет текста */
+    padding: 10px 20px; /* Внутренние отступы */
+    border: none; /* Убираем рамку */
+    border-radius: 5px; /* Закругленные углы */
+    cursor: pointer; /* Указатель курсора */
+    font-size: 16px; /* Размер шрифта */
+    transition: background-color 0.3s ease; /* Плавное изменение цвета при наведении */
+}
+
+.upload-btn:hover {
+    background-color: #45a049; /* Изменение цвета при наведении */
+}
+
+.upload-btn:active {
+    background-color: #3e8e41; /* Цвет при клике */
+    transform: scale(0.98); /* Легкое уменьшение кнопки при нажатии */
+}
+
+.upload-btn:focus {
+    outline: none; /* Убираем контур при фокусе */
+}
+.file-upload-container {
+    display: flex;           /* Устанавливаем flex-контейнер */
+    align-items: center;      /* Выравнивание по вертикали по центру */
+    gap: 10px;               /* Расстояние между кнопкой и текстом */
+}
+
+#file-chosen {
+    font-size: 14px;          /* Размер текста выбранного файла */
+    color: #555;              /* Цвет текста */
+}
+/*стили добавления фото*/
+
 .visual_border{
     height: 10px;
     border-radius: 20px  20px  20px 20px;

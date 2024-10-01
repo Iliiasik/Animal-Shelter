@@ -83,6 +83,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Создаем директорию "uploads", если она не существует
 	uploadDir := "uploads"
+
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, os.ModePerm)
 		if err != nil {

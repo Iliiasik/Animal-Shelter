@@ -10,7 +10,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -53,11 +57,16 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		renderError(w, r, "Method not allowed")
 		return
 	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		return
+	}
+
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	bio := r.FormValue("bio")
 	phoneNumber := r.FormValue("phone_number")
-	profileImage := "empty"
 	dateOfBirth := "empty"
 	username := r.FormValue("username")
 	password := r.FormValue("password")
@@ -87,7 +96,60 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	token := generateToken()
 
-	_, err = db.Exec("INSERT INTO users (first_name,last_name,bio,profile_image,phone_number,date_of_birth,username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9,$10,$11,$12,$13)", firstName, lastName, bio, profileImage, phoneNumber, dateOfBirth, username, string(hashedPassword), email, false, "User", token, false)
+	// Обработка загрузки изображения профиля
+	var profileImage string // По умолчанию будет пустой, если не загружено изображение
+	file, handler, err := r.FormFile("profile_image")
+	if err == nil {
+		defer file.Close()
+
+		// Создание директории для загрузок
+		uploadDir := "uploads/profile_images"
+		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+			err = os.MkdirAll(uploadDir, os.ModePerm)
+			if err != nil {
+				renderError(w, r, "Error creating upload directory")
+				return
+			}
+		}
+
+		// Генерация уникального имени файла
+		fileExt := path.Ext(handler.Filename)
+		fileName := strconv.FormatInt(time.Now().UnixNano(), 10) + fileExt
+		filePath := path.Join(uploadDir, fileName)
+
+		// Сохранение файла на сервере
+		outFile, err := os.Create(filePath)
+		if err != nil {
+			renderError(w, r, "Error saving profile image")
+			return
+		}
+		defer outFile.Close()
+
+		_, err = file.Seek(0, 0)
+		if err != nil {
+			renderError(w, r, "Error seeking file")
+			return
+		}
+
+		_, err = outFile.ReadFrom(file)
+		if err != nil {
+			renderError(w, r, "Error writing file")
+			return
+		}
+
+		// Конвертация пути файла
+		profileImage = filepath.ToSlash(filePath)
+	} else if err != http.ErrMissingFile {
+		// Если произошла другая ошибка, кроме отсутствия файла
+		renderError(w, r, "Error processing profile image")
+		return
+	}
+
+	// Вставка данных пользователя в базу
+	_, err = db.Exec(
+		"INSERT INTO users (first_name, last_name, bio, profile_image, phone_number, date_of_birth, username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+		firstName, lastName, bio, profileImage, phoneNumber, dateOfBirth, username, string(hashedPassword), email, false, "User", token, false,
+	)
 	if err != nil {
 		renderError(w, r, "Username or email is already taken")
 		return
@@ -97,6 +159,7 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		renderError(w, r, fmt.Sprintf("Error sending confirmation email: %v", err))
 		return
 	}
+
 	http.Redirect(w, r, "/registration_success", http.StatusSeeOther)
 }
 
