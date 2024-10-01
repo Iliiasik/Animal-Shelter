@@ -2,9 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Shelter</title>
+    <link rel="stylesheet" href="/css/home.css">
+    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+    <script src="/js/home.js" defer></script>
 </head>
 <body>
-
+<nav>
+    <div class="wrapper">
+        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <ul class="nav-links">
+            <li>
+                <a href="#" class="desktop-item">Animal Types</a>
+                <ul class="drop-menu">
+                    <li><a  onclick="filterAnimals('1')">Dogs</a></li>
+                    <li><a  onclick="filterAnimals('2')">Cats</a></li>
+                    <li><a  onclick="filterAnimals('3')">Birds</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Feedback</a></li>
+            {{if .LoggedIn}}
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/logout">Logout</a></li>
+            {{else}}
+            <li><a href="/login">Login</a></li>
+            {{end}}
+        </ul>
+    </div>
+</nav>
+<div class="container mt-4">
+    <div class="cards-list">
+        {{range .Animals}}
+        <a href="/animal_information?id={{.ID}}" class="card">
+            <div class="card_image">
+                {{if .Images}}
+                <img src="{{(index .Images 0).ImageURL}}" class="d-block w-100" alt="{{.Name}}">
+                {{else}}
+                <img src="/images/default.png" class="d-block w-100" alt="Default Image">
+                {{end}}
+            </div>
+            <div class="card_title">
+                <p>{{.Name}}</p>
+            </div>
+        </a>
+        {{end}}
+    </div>
+</div>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                // Scrolling down
+                navbar.classList.add('nav-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+        });
+    });
+    </script>
 </html>

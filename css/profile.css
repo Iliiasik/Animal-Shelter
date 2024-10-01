@@ -1,0 +1,90 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0; /* Цвет фона страницы */
+}
+
+.profile-background {
+    background-image: url('https://images.unsplash.com/photo-1727102062617-2b793eec0a50?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* Добавляем фоновое изображение */
+    background-size: cover;       /* Изображение покрывает всю ширину контейнера */
+    background-position: center;  /* Центрируем фон */
+    height: 300px;                /* Высота фона */
+    position: relative;           /* Для позиционирования содержимого */
+}
+
+.profile {
+    display: flex;
+    align-items: flex-start;      /* Выравниваем элементы по вертикали сверху */
+    max-width: 800px;
+    margin: 200px auto 0 auto;    /* Центрируем блок и сдвигаем его вверх, чтобы аватар выходил за фон */
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тень */
+}
+
+.profile-image {
+    flex: 0 0 150px;              /* Фиксированная ширина для изображения */
+    margin-right: 20px;           /* Отступ справа от изображения */
+}
+
+.profile-image img {
+    max-width: 100%;
+    border-radius: 50%;           /* Закругляем изображение до круга */
+}
+
+.profile-info {
+    flex: 1;                      /* Информация о профиле занимает оставшееся пространство */
+}
+
+.profile-info h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.profile-info p {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.contact-info strong {
+    display: block;
+    margin-top: 10px;
+}
+
+.contact-info a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+.button-home, .button-edit {
+    position: fixed; /* Фиксируем кнопки на экране */
+    bottom: 50px;    /* Располагаем кнопки внизу страницы */
+    padding: 10px 20px;
+    background-color: #adadad; /* Цвет кнопок */
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляем тень */
+}
+
+.button-home {
+    left: -5px;  /* Кнопка слегка выходит за левый край экрана */
+
+    transform-origin: left bottom;
+}
+
+.button-edit {
+    right: -5px; /* Кнопка слегка выходит за правый край экрана */
+
+    transform-origin: right bottom;
+}
+
+.button-home:hover, .button-edit:hover {
+    background-color: #7e7e7e; /* Цвет кнопок */
+}

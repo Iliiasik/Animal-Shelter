@@ -54,6 +54,44 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверяем статус входа пользователя
+	loggedIn := false
+	isAdmin := false
+	session, err := r.Cookie("session")
+	if err == nil && session.Value != "" {
+		loggedIn = true
+
+		// Check if the user is admin
+		userID, err := getUserIDFromSession(db, session.Value)
+		if err == nil {
+			isAdmin, err = isUserAdmin(db, userID)
+			if err != nil {
+				http.Error(w, "Error checking admin status", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	// Получаем параметр species из запроса
+	species := r.URL.Query().Get("species")
+
+	// Fetch animals from the database
+	animals, err := fetchAllAnimalsWithImages(db, species)
+	if err != nil {
+		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
+		return
+	}
+
+	data := PageData{
+		LoggedIn: loggedIn,
+		IsAdmin:  isAdmin,
+		Animals:  animals,
+	}
+	tmpl := template.Must(template.ParseFiles("templates/animal_list.html"))
+	tmpl.Execute(w, data)
+}
+
 // Helper function to get user ID from session
 func getUserIDFromSession(db *sql.DB, sessionID string) (int, error) {
 	var userID int

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile of {{.Username}}</title>
+    <link rel="stylesheet" type="text/css" href="/css/edit_profile.css">
+    <link rel="stylesheet" type="text/css" href="/css/home.css">
+</head>
+<body>
+<div class="profile-background">
+
+    <input type="file" class="edit-bg-button">
+    <button class="custom-button" id="fileButton"> Сhange profile background</button>
+
+
+    <div class="profile">
+
+        <div class="profile-image">
+            <img src="{{.ProfileImage}}" alt="Profile Image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+        </div>
+
+        <div class="profile-info">
+            <form action="/save-profile" method="POST">
+                <h1>Edit Profile: {{.Username}}</h1>
+
+                <!-- First Name -->
+                <label for="firstName"><strong>First Name:</strong></label><br>
+                <input type="text" id="firstName" name="firstName" value="{{.FirstName}}" required><br><br>
+
+                <!-- Last Name -->
+                <label for="lastName"><strong>Last Name:</strong></label><br>
+                <input type="text" id="lastName" name="lastName" value="{{.LastName}}" required><br><br>
+
+                <!-- Bio -->
+                <label for="bio"><strong>Bio:</strong></label><br>
+                <textarea id="bio" name="bio" rows="4" required>{{.Bio}}</textarea><br><br>
+
+                <!-- Email -->
+                <label for="email"><strong>Email:</strong></label><br>
+                <input type="email" id="email" name="email" value="{{.Email}}" required><br><br>
+
+                <!-- Phone Number -->
+                <label for="phone"><strong>Phone:</strong></label><br>
+                <input type="tel" id="phone" name="phone" value="{{.PhoneNumber}}" required><br><br>
+
+                <!-- Date of Birth -->
+                <label for="dob"><strong>Date of Birth:</strong></label><br>
+                <input type="date" id="dob" name="dob" value="{{.DateOfBirth}}" required><br><br>
+
+
+                <!-- Submit Button -->
+                <button type="submit" class="button-save">Save Profile</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка Home (слева) -->
+<a href="/home" class="button-home">Home</a>
+
+</body>
+</html>

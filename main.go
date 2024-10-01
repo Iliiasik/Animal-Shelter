@@ -47,6 +47,9 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handlers.HomePage(database, w, r)
 	})
+	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AnimalListPage(database, w, r)
+	})
 
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -125,6 +128,38 @@ func main() {
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
+	})
+	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.ShowProfile(database, w, r) // Маршрут для профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.EditProfile(database, w, r) // Маршрут для редактирования профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SaveProfile(database, w, r) // Маршрут для сохранения профиля
+	})
+	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowForum(database, w, r)
+	})
+	mux.HandleFunc("/new_topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowNewTopicForm(w, r)
+	})
+	mux.HandleFunc("/create_topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateTopic(database, w, r)
+	})
+	mux.HandleFunc("/create_post", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreatePost(database, w, r)
+	})
+	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowTopic(database, w, r)
 	})
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
