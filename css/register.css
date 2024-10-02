@@ -1,0 +1,200 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Quicksand", sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: flex-start;
+    font-family: "Quicksand", sans-serif;
+}
+label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+main {
+    display: grid;
+    grid-template-columns: 1fr; /* Один столбец для мобильных устройств */
+    place-items: center;
+    width: 90%; /* Ширина подстраивается под экран */
+    max-width: 1200px; /* Ограничение максимальной ширины */
+    border-radius: 20px;
+    background-color: #fff;
+    padding: 20px;
+    padding-top: calc(20px + 70px); /* Чтобы содержимое не перекрывало навигацию */
+    margin: 0 auto; /* Центрирование по горизонтали */
+}
+
+/* Стили для больших экранов (ноутбуков) */
+@media (min-width: 1024px) {
+    main {
+        grid-template-columns: 1fr 1fr; /* Две колонки для более широких экранов */
+    }
+}
+
+.left-side-reg {
+    height: 100%;
+    width: 100%;
+    background-image: url(https://i.pinimg.com/736x/13/23/69/13236951531b80214b9bfee45acdcd5e.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    border-radius: 20px 0 0 20px;
+}
+
+.right-side {
+    padding: 20px; /* Добавим немного пространства для контента справа */
+}
+
+/*стили добавления фото*/
+
+.file-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#file-chosen {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Стили для визуальных границ */
+.visual_border {
+    height: 10px;
+    border-radius: 20px;
+    background-color: rgb(155, 155, 155);
+}
+
+/* Группа кнопок */
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 32px;
+}
+
+/* Общие стили для кнопок */
+.btn-group .btn {
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 8px 6px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.5s, color 0.5s;
+}
+
+.btn-group .btn:active {
+    transform: scale(0.97);
+}
+
+.btn-group .btn:hover {
+    background-color: #000;
+    color: #eee;
+}
+
+/* Стиль для разделительной линии */
+.or {
+    position: relative;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.or::before,
+.or::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #000;
+}
+
+.or::before {
+    left: 0;
+}
+
+.or::after {
+    right: 0;
+}
+
+/* Стили для ввода */
+input {
+    width: 100%;
+    padding: 12px 20px;
+    border: 2px solid #ccc;
+    outline: 0;
+    border-radius: 5px;
+    background-color: transparent;
+    margin: 4px 0 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.5s;
+}
+
+input:focus {
+    border: 2px solid #000;
+}
+
+/* Стили кнопки входа */
+.login-btn {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.login-btn:hover {
+    background-color: #000;
+    color: #eee;
+}
+
+.links {
+    display: flex;
+    justify-content: space-between;
+}
+a:link,
+a:visited,
+a:hover,
+a:active {
+    text-decoration: none;
+}
+a {
+    color: #000;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: -1px;
+    transition: all 0.4s ease;
+}
+
+a:hover {
+    color: rgb(13, 133, 185);
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
+}

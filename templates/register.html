@@ -2,8 +2,9 @@
 <html>
 <head>
     <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="/css/login.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <link rel="stylesheet" type="text/css" href="/css/register.css">
+
 </head>
 <body>
 <nav>
@@ -22,7 +23,30 @@
         <div class="error-message">{{.ErrorMessage}}</div>
         {{end}}
 
-        <form action="/register" method="post">
+        <form action="/register" method="post" enctype="multipart/form-data">
+
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" required><br>
+
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required><br>
+
+            <label for="bio">Bio:</label>
+            <input type="text" id="bio" name="bio" required><br>
+
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" placeholder="+996 " required><br>
+
+            <!-- Кастомная кнопка для загрузки изображения профиля -->
+            <label for="profile_image">Profile Image:</label>
+            <div class="file-upload-container">
+                <input type="file" id="profile_image" name="profile_image" style="display:none;" >
+                <button type="button" class="login-btn" onclick="document.getElementById('profile_image').click();">Upload Profile Image</button>
+                <span id="file-chosen">No file chosen</span>
+            </div><br>
+
+            <hr class="visual_border">
+
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
 
@@ -40,5 +64,47 @@
         <p>Already have an account? <a href="/login">Login here</a>.</p>
     </div>
 </main>
+
+<script>
+    document.getElementById('profile_image').addEventListener('change', function() {
+        const fileName = this.files[0].name;
+        const fileChosen = document.getElementById('file-chosen');
+
+        fileChosen.textContent = fileName.length > 20 ? fileName.substring(0, 13) + '...' : fileName;
+        fileChosen.setAttribute('title', fileName);  // Добавляем полное имя файла в атрибут title для всплывающего окна
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                // Scrolling down
+                navbar.classList.add('nav-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+        });
+    });
+    document.getElementById('phone_number').addEventListener('input', function(e) {
+        const x = e.target.value.replace(/\D/g, '').slice(0, 12); // Оставляем только цифры и ограничиваем до 12 символов
+        let formattedNumber = '+996 ';
+
+        if (x.length > 3) {
+            formattedNumber += '(' + x.slice(3, 6) + ')';
+        }
+
+        if (x.length > 6) {
+            formattedNumber += x.slice(6);
+        }
+
+        e.target.value = formattedNumber;
+    });
+</script>
 </body>
 </html>

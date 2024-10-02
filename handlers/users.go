@@ -8,8 +8,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 )
@@ -45,19 +47,23 @@ func ShowRegisterForm(w http.ResponseWriter, r *http.Request) {
 func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "login.html", nil)
 }
-
-// Register handles user registration
 func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		renderError(w, r, "Method not allowed")
 		return
 	}
 
+	// Получаем данные из формы
+	firstName := r.FormValue("first_name")
+	lastName := r.FormValue("last_name")
+	bio := r.FormValue("bio")
+	phoneNumber := r.FormValue("phone_number")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
 	email := r.FormValue("email")
 
+	// Проверяем корректность полей
 	if !emailRegex.MatchString(email) {
 		renderError(w, r, "Invalid email format")
 		return
@@ -73,24 +79,64 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Хэшируем пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		renderError(w, r, fmt.Sprintf("Error generating hashed password: %v", err))
 		return
 	}
 
+	// Обрабатываем загрузку изображения
+	file, header, err := r.FormFile("profile_image")
+	if err != nil && err != http.ErrMissingFile {
+		renderError(w, r, "Error uploading profile image")
+		return
+	}
+	var imagePath string
+	if file != nil {
+		defer file.Close()
+		imagePath = fmt.Sprintf("uploads/profile_images/%s", header.Filename)
+
+		// Сохраняем изображение на диск
+		out, err := os.Create(imagePath)
+		if err != nil {
+			renderError(w, r, "Error saving profile image")
+			return
+		}
+		defer out.Close()
+
+		_, err = io.Copy(out, file)
+		if err != nil {
+			renderError(w, r, "Error saving profile image")
+			return
+		}
+	} else {
+		imagePath = "" // Если изображение не загружено
+	}
+
+	// Генерируем токен подтверждения email
 	token := generateToken()
 
-	_, err = db.Exec("INSERT INTO users (username, password, email, email_confirmed, role, confirmation_token) VALUES ($1, $2, $3, $4, $5, $6)", username, string(hashedPassword), email, false, "User", token)
+	// Добавляем пользователя в базу данных
+	_, err = db.Exec(`
+		INSERT INTO users 
+		(username, password, email, email_confirmed, role, confirmation_token, first_name, last_name, bio, phone_number, profile_image) 
+		VALUES 
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		username, string(hashedPassword), email, false, "User", token, firstName, lastName, bio, phoneNumber, imagePath)
+
 	if err != nil {
 		renderError(w, r, "Username or email is already taken")
 		return
 	}
 
+	// Отправляем подтверждение на email
 	if err := sendConfirmationEmail(email, token); err != nil {
 		renderError(w, r, fmt.Sprintf("Error sending confirmation email: %v", err))
 		return
 	}
+
+	// Перенаправляем пользователя на страницу успешной регистрации
 	http.Redirect(w, r, "/registration_success", http.StatusSeeOther)
 }
 
