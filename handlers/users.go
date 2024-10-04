@@ -62,6 +62,7 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
 	email := r.FormValue("email")
+	dateOfBirth := r.FormValue("date_of_birth")
 
 	// Проверяем корректность полей
 	if !emailRegex.MatchString(email) {
@@ -120,10 +121,10 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Добавляем пользователя в базу данных
 	_, err = db.Exec(`
 		INSERT INTO users 
-		(username, password, email, email_confirmed, role, confirmation_token, first_name, last_name, bio, phone_number, profile_image) 
+		(username, password, email, email_confirmed, role, confirmation_token, first_name, last_name, bio, phone_number, profile_image, date_of_birth) 
 		VALUES 
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		username, string(hashedPassword), email, false, "User", token, firstName, lastName, bio, phoneNumber, imagePath)
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		username, string(hashedPassword), email, false, "User", token, firstName, lastName, bio, phoneNumber, imagePath, dateOfBirth)
 
 	if err != nil {
 		renderError(w, r, "Username or email is already taken")

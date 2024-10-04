@@ -24,12 +24,16 @@
         {{end}}
 
         <form action="/register" method="post" enctype="multipart/form-data">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
 
             <label for="first_name">First Name:</label>
             <input type="text" id="first_name" name="first_name" required><br>
 
             <label for="last_name">Last Name:</label>
             <input type="text" id="last_name" name="last_name" required><br>
+            <label for="date_of_birth">Date of Birth:</label>
+            <input type="date" id="date_of_birth" name="date_of_birth" required><br>
 
             <label for="bio">Bio:</label>
             <input type="text" id="bio" name="bio" required><br>
@@ -37,6 +41,13 @@
             <label for="phone_number">Phone Number:</label>
             <input type="text" id="phone_number" name="phone_number" placeholder="+996 " required><br>
 
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required><br>
             <!-- Кастомная кнопка для загрузки изображения профиля -->
             <label for="profile_image">Profile Image:</label>
             <div class="file-upload-container">
@@ -45,19 +56,6 @@
                 <span id="file-chosen">No file chosen</span>
             </div><br>
 
-            <hr class="visual_border">
-
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
-
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br>
-
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required><br>
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required><br>
 
             <input type="submit" class="login-btn" value="Register">
         </form>
@@ -91,19 +89,59 @@
             lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
         });
     });
-    document.getElementById('phone_number').addEventListener('input', function(e) {
-        const x = e.target.value.replace(/\D/g, '').slice(0, 12); // Оставляем только цифры и ограничиваем до 12 символов
-        let formattedNumber = '+996 ';
+    document.addEventListener("DOMContentLoaded", function() {
+        const phoneNumberInput = document.getElementById('phone_number');
 
-        if (x.length > 3) {
-            formattedNumber += '(' + x.slice(3, 6) + ')';
-        }
+        // Устанавливаем начальное значение "+996 "
+        phoneNumberInput.value = '+996 ';
 
-        if (x.length > 6) {
-            formattedNumber += x.slice(6);
-        }
+        phoneNumberInput.addEventListener('input', function(e) {
+            let input = e.target.value.replace(/\D/g, ''); // Удаляем все нецифровые символы
 
-        e.target.value = formattedNumber;
+            // Предзаполняем код страны "+996"
+            if (!input.startsWith('996')) {
+                input = '996' + input;
+            }
+
+            // Обрезаем до максимальной длины номера (9 цифр после кода страны)
+            input = input.slice(0, 13);
+
+            // Форматируем номер в вид +996 XXX XX XX XX
+            let formattedNumber = '+996 ';
+            if (input.length > 3) {
+                formattedNumber += input.slice(3, 6);  // XXX
+            }
+            if (input.length > 6) {
+                formattedNumber += ' ' + input.slice(6, 8);  // XX
+            }
+            if (input.length > 8) {
+                formattedNumber += ' ' + input.slice(8, 10);  // XX
+            }
+            if (input.length > 10) {
+                formattedNumber += ' ' + input.slice(10, 12);  // XX
+            }
+
+            e.target.value = formattedNumber;
+        });
+
+        phoneNumberInput.addEventListener('focus', function() {
+            // Если поле пустое, подставляем "+996 " при фокусе
+            if (phoneNumberInput.value === '') {
+                phoneNumberInput.value = '+996 ';
+            }
+        });
+
+        phoneNumberInput.addEventListener('blur', function() {
+            // Если после потери фокуса введен только "+996 ", очищаем поле
+            if (phoneNumberInput.value === '+996 ') {
+                phoneNumberInput.value = '';
+            }
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        const dateOfBirthInput = document.getElementById('date_of_birth');
+        const today = new Date().toISOString().split('T')[0]; // Получаем текущую дату в формате YYYY-MM-DD
+        dateOfBirthInput.setAttribute('max', today); // Устанавливаем максимальную дату как сегодняшний день
     });
 </script>
 </body>
