@@ -329,10 +329,11 @@ nav .wrapper {
 
 /* Карточки */
 .cards-list {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Максимум 3 карточки в строке */
+    gap: 30px; /* Промежуток между карточками */
+    justify-content: center; /* Центрируем карточки */
+    padding: 20px; /* Отступы вокруг грида */
 }
 
 .card {

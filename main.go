@@ -164,6 +164,7 @@ func main() {
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+	mux.Handle("/system_images/", http.StripPrefix("/system_images/", http.FileServer(http.Dir("system_images"))))
 
 	// Оборачиваем маршрутизатор в middleware логирования
 	loggedMux := LoggerMiddleware(mux)
