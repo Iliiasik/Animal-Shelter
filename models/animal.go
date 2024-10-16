@@ -30,6 +30,9 @@ type Animal struct {
 	StatusID    int         `json:"status_id" gorm:"not null"`
 	ArrivalDate string      `json:"arrival_date"`
 	Description string      `json:"description"`
+	Location    string `json:"location"`
+	Weight      int    `json:"weight"`
+	Color       string `json:"color"`
 	Images      []PostImage `gorm:"foreignKey:AnimalID"`
 }
 

@@ -5,14 +5,16 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 // PageData represents the data passed to the HTML templates
 type PageData struct {
-	LoggedIn bool
-	IsAdmin  bool
-	Animals  []AnimalWithImages
+	LoggedIn        bool
+	IsAdmin         bool
+	Animals         []AnimalWithImages
+	CurrentCategory string
 }
 
 // HomePage renders the home page
@@ -38,6 +40,12 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем параметр species из запроса
 	species := r.URL.Query().Get("species")
 
+	// Устанавливаем CurrentCategory
+	currentCategory := "all" // Значение по умолчанию
+	if species != "" {
+		currentCategory = species
+	}
+
 	// Fetch animals from the database
 	animals, err := fetchAllAnimalsWithImages(db, species)
 	if err != nil {
@@ -46,11 +54,61 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PageData{
-		LoggedIn: loggedIn,
-		IsAdmin:  isAdmin,
-		Animals:  animals,
+		LoggedIn:        loggedIn,
+		IsAdmin:         isAdmin,
+		Animals:         animals,
+		CurrentCategory: currentCategory, // Устанавливаем CurrentCategory
 	}
 	tmpl := template.Must(template.ParseFiles("templates/home.html"))
+	tmpl.Execute(w, data)
+}
+
+func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверяем статус входа пользователя
+	loggedIn := false
+	isAdmin := false
+	session, err := r.Cookie("session")
+	if err == nil && session.Value != "" {
+		loggedIn = true
+
+		// Check if the user is admin
+		userID, err := getUserIDFromSession(db, session.Value)
+		if err == nil {
+			isAdmin, err = isUserAdmin(db, userID)
+			if err != nil {
+				http.Error(w, "Error checking admin status", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	// Получаем параметры из запроса
+	species := r.URL.Query().Get("species")
+	breed := r.URL.Query().Get("breed")
+	color := r.URL.Query().Get("color")
+	age := r.URL.Query().Get("age")
+	gender := r.URL.Query().Get("gender")
+
+	// Устанавливаем CurrentCategory
+	currentCategory := "all" // Значение по умолчанию
+	if species != "" {
+		currentCategory = species
+	}
+
+	// Fetch animals from the database с использованием фильтров
+	animals, err := fetchAllAnimals(db, species, breed, color, age, gender)
+	if err != nil {
+		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
+		return
+	}
+
+	data := PageData{
+		LoggedIn:        loggedIn,
+		IsAdmin:         isAdmin,
+		Animals:         animals,
+		CurrentCategory: currentCategory, // Устанавливаем CurrentCategory
+	}
+	tmpl := template.Must(template.ParseFiles("templates/animal_list.html"))
 	tmpl.Execute(w, data)
 }
 
@@ -72,6 +130,62 @@ func isUserAdmin(db *sql.DB, userID int) (bool, error) {
 	query := `SELECT is_admin FROM Users WHERE id = $1`
 	err := db.QueryRow(query, userID).Scan(&isAdmin)
 	return isAdmin, err
+}
+func fetchAllAnimals(db *sql.DB, species, breed, color, age, gender string) ([]AnimalWithImages, error) {
+	var query string
+	var args []interface{}
+
+	// Начинаем с базового запроса
+	query = `
+		SELECT id
+		FROM Animals
+		WHERE 1=1
+	`
+
+	// Добавляем условия в запрос в зависимости от переданных параметров
+	if species != "" {
+		query += " AND species = $1"
+		args = append(args, species)
+	}
+	if breed != "" {
+		query += " AND breed LIKE $" + strconv.Itoa(len(args)+1) // Используем индексацию для параметров
+		args = append(args, "%"+breed+"%")
+	}
+	if color != "" {
+		query += " AND color LIKE $" + strconv.Itoa(len(args)+1)
+		args = append(args, "%"+color+"%")
+	}
+	if age != "" {
+		query += " AND age = $" + strconv.Itoa(len(args)+1)
+		args = append(args, age)
+	}
+	if gender != "" {
+		query += " AND gender = $" + strconv.Itoa(len(args)+1)
+		args = append(args, gender)
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var animals []AnimalWithImages
+	for rows.Next() {
+		var animalID int
+		if err := rows.Scan(&animalID); err != nil {
+			return nil, err
+		}
+
+		animal, err := fetchAnimalInformation(db, animalID)
+		if err != nil {
+			return nil, err
+		}
+
+		animals = append(animals, animal)
+	}
+
+	return animals, nil
 }
 
 func fetchAllAnimalsWithImages(db *sql.DB, species string) ([]AnimalWithImages, error) {

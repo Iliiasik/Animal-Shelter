@@ -1,0 +1,121 @@
+/* Стили для полей ввода и select */
+input, select {
+    width: 200px;
+    padding: 12px 20px;
+    border: 2px solid #ccc;
+    outline: 0;
+    border-radius: 5px;
+    background-color: transparent;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.5s;
+}
+
+/* Уменьшаем ширину select */
+select {
+    width: 160px; /* Уменьшенная ширина для select */
+}
+
+/* Фокус для полей */
+input:focus, select:focus {
+    border: 2px solid #000;
+}
+
+/* Контейнер для секции */
+.container {
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+}
+
+/* Контейнер для полей поиска */
+.search-container {
+    display: flex;
+    flex-direction: row; /* Все поля размещены в одной строке */
+    gap: 20px; /* Промежутки между полями */
+    justify-content: flex-start; /* Все элементы будут выровнены по левому краю */
+    align-items: center; /* Выровнять поля по центру по вертикали */
+    margin-top: 10px; /* Отступ сверху для небольшого пространства */
+}
+
+/* Блоки для полей поиска */
+.search-field {
+    display: flex;
+    flex-direction: row; /* Убираем вертикальное расположение */
+    align-items: center; /* Выровнять элементы по центру */
+}
+
+/* Стили для секции с категорией */
+.category-info {
+    background-color: #f0f0f0; /* Серый фон чуть темнее основного */
+    padding: 15px 60px; /* Отступы для области категории */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Размещаем заголовок и поле поиска по разным сторонам */
+    border-radius: 8px; /* Закругляем углы */
+    margin-bottom: 20px;
+
+}
+
+/* Заголовок категории */
+.category-title {
+    display: flex;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: darkgreen;
+}
+
+/* Иконка категории */
+.category-icon img {
+    width: 50px;
+    height: auto;
+    margin-right: 10px;
+}
+.search-button {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #090909;
+    text-decoration: none; /* Убирает подчеркивание */
+}
+
+.search-button:hover {
+    background-color: #000;
+    color: #eee;
+}
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    height: 100%; /* Занимает всю высоту родительского контейнера */
+    position: absolute; /* Позволяет расположить блок в центре */
+    top: 60%; /* Сдвигаем вниз на 60% */
+    left: 50%; /* Сдвигаем вправо на 50% */
+    transform: translate(-50%, -50%); /* Центрируем по середине */
+    text-align: center; /* Центрирование текста */
+}
+
+
+.no-results-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-results-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-results-small-text{
+    font-weight: bold;
+}

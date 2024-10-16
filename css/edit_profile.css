@@ -16,13 +16,13 @@ body {
 /*начало стиля кнопок изменения фона*/
 .edit-bg-button{
     display: none;
-    
+
 }
 .custom-button{
     position: fixed;
     top: 280px;
     right: 0;
-   
+
     background-color: #adadad;
     color: white; /* Цвет текста */
     border: none; /* Без границы */

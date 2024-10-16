@@ -75,13 +75,13 @@ body {
 
 .button-home {
     left: -5px;  /* Кнопка слегка выходит за левый край экрана */
-    
+
     transform-origin: left bottom;
 }
 
 .button-edit {
     right: -5px; /* Кнопка слегка выходит за правый край экрана */
-    
+
     transform-origin: right bottom;
 }
 

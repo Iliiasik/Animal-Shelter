@@ -5,3 +5,5 @@ function filterAnimals(species) {
     console.log('Redirecting to URL:', url.toString()); // Для отладки
     window.location.href = url.toString();
 }
+
+

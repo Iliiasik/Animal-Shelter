@@ -13,14 +13,7 @@
     <div class="wrapper">
         <div class="logo"><a href="/">Animal Shelter</a></div>
         <ul class="nav-links">
-            <li>
-                <a href="#" class="desktop-item">Animal Types</a>
-                <ul class="drop-menu">
-                    <li><a onclick="filterAnimals('1')">Dogs</a></li>
-                    <li><a onclick="filterAnimals('2')">Cats</a></li>
-                    <li><a onclick="filterAnimals('3')">Birds</a></li>
-                </ul>
-            </li>
+            <li><a href="/forum">Forum</a></li>
             <li><a href="#">Feedback</a></li>
             {{if .LoggedIn}}
             <li><a href="/profile">Profile</a></li>
@@ -66,25 +59,45 @@
 
 
 <!-- Choose Your Friend Section -->
+
 <section class="choose-friend">
     <h2>Choose Your Friend</h2>
     <div class="cards-list">
-        {{range .Animals}}
-        <a href="/animal_information?id={{.ID}}" class="card">
+        {{range $index, $animal := .Animals}}
+        {{if lt $index 3}} <!-- Display only the first three animals -->
+        <a href="/animal_information?id={{$animal.ID}}" class="card">
             <div class="card_image">
-                {{if .Images}}
-                <img src="{{(index .Images 0).ImageURL}}" class="d-block w-100" alt="{{.Name}}">
+                {{if $animal.Images}}
+                <img src="{{(index $animal.Images 0).ImageURL}}" class="d-block w-100" alt="{{$animal.Name}}">
                 {{else}}
                 <img src="/images/default.png" class="d-block w-100" alt="Default Image">
                 {{end}}
             </div>
             <div class="card_title">
-                <p>{{.Name}}</p>
+                <p>{{$animal.Name}}</p>
             </div>
         </a>
         {{end}}
+        {{end}}
+    </div>
+    <div class="view-more">
+        <a href="/animal_list" class="view-more-button">View More</a>
     </div>
 </section>
+<!-- News Section -->
+<section class="news-section">
+
+    <h2>Latest News</h2>
+    <p>Stay updated with the latest news and events from our shelter. Whether it's a successful adoption story or a community event, we have plenty of heartwarming updates to share!</p>
+
+    <p>We are excited to announce our upcoming charity event this weekend. Join us to help raise funds for shelter animals and meet our furry friends in person.</p>
+
+    <p>Don’t forget to follow us on social media for real-time updates and behind-the-scenes moments from the shelter.</p>
+
+    <h3>Thank you for your support!</h3>
+</section>
+
+
 </body>
 <script>
     document.addEventListener("DOMContentLoaded", function() {

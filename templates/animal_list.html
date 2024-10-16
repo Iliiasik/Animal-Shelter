@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Shelter</title>
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/animal_list.css">
+    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+    <script src="/js/home.js" defer></script>
+</head>
+<body>
+<nav>
+    <div class="wrapper">
+        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <ul class="nav-links">
+            <li>
+                <a href="#" class="desktop-item">Animal Types</a>
+                <ul class="drop-menu">
+                    <li><a href="/animal_list">All</a></li>
+                    <li><a onclick="filterAnimals('1')">Dogs</a></li>
+                    <li><a onclick="filterAnimals('2')">Cats</a></li>
+                    <li><a onclick="filterAnimals('3')">Birds</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Feedback</a></li>
+            {{if .LoggedIn}}
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/logout">Logout</a></li>
+            {{else}}
+            <li><a href="/login">Login</a></li>
+            {{end}}
+        </ul>
+    </div>
+</nav>
+<div class="container mt-4">
+    <div class="category-info">
+        <h2 class="category-title">
+            <span class="category-icon">
+                {{if eq .CurrentCategory "all"}}
+                <img src="system_images/all%20search.png" alt="All Icon">
+                {{else if eq .CurrentCategory "1"}}
+                <img src="system_images/dog%20search.png" alt="Dog Icon">
+                {{else if eq .CurrentCategory "2"}}
+                <img src="system_images/cat%20search.png" alt="Cat Icon">
+                {{else if eq .CurrentCategory "3"}}
+                <img src="system_images/bird%20search.png" alt="Bird Icon">
+                {{end}}
+            </span>
+            <span class="category-text">
+                {{if eq .CurrentCategory "all"}}Pets{{else if eq .CurrentCategory "1"}}Dogs{{else if eq .CurrentCategory "2"}}Cats{{else if eq .CurrentCategory "3"}}Birds{{end}}
+            </span>
+        </h2>
+        <div class="search-container">
+            <div class="search-field">
+                <input type="text" id="breed-search" class="search-input" placeholder="Search by breed...">
+            </div>
+
+            <div class="search-field">
+                <input type="text" id="color-search" class="search-input" placeholder="Search by color...">
+            </div>
+
+            <div class="search-field">
+                <input type="number" id="age-search" class="search-input" placeholder="Search by age...">
+            </div>
+
+            <div class="search-field">
+                <select id="gender-search" class="search-input">
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="search-field">
+                <button id="search-button" class="search-button" onclick="applyFilters()">Search</button>
+            </div>
+        </div>
+    </div>
+    <div class="cards-list">
+        {{if .Animals}}
+        {{range .Animals}}
+        <a href="/animal_information?id={{.ID}}" class="card">
+            <div class="card_image">
+                {{if .Images}}
+                <img src="{{(index .Images 0).ImageURL}}" class="d-block w-100" alt="{{.Name}}">
+                {{else}}
+                <img src="/images/default.png" class="d-block w-100" alt="Default Image">
+                {{end}}
+            </div>
+            <div class="card_title">
+                <p>{{.Name}}</p>
+            </div>
+        </a>
+        {{end}}
+        {{else}}
+        <div class="no-results">
+            <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-results-image">
+            <p class="no-results-text">Um, sorry, I didn't find anything :(</p>
+            <p class="no-results-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar)</p>
+        </div>
+        {{end}}
+    </div>
+
+
+</div>
+
+</body>
+<script>
+    // Получаем элементы полей ввода
+    const breedInput = document.getElementById('breed-search');
+    const colorInput = document.getElementById('color-search');
+    const ageInput = document.getElementById('age-search');
+    const genderSelect = document.getElementById('gender-search');
+
+    // Функция фильтрации
+    function applyFilters() {
+        const breed = breedInput.value;
+        const color = colorInput.value;
+        const age = ageInput.value;
+        const gender = genderSelect.value;
+
+        const url = new URL(window.location.href);
+
+        // Добавляем или удаляем параметры фильтрации
+        if (breed) url.searchParams.set('breed', breed);
+        else url.searchParams.delete('breed');
+
+        if (color) url.searchParams.set('color', color);
+        else url.searchParams.delete('color');
+
+        if (age) url.searchParams.set('age', age);
+        else url.searchParams.delete('age');
+
+        if (gender) url.searchParams.set('gender', gender);
+        else url.searchParams.delete('gender');
+
+        window.location.href = url.toString(); // Перенаправляем на новый URL
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                // Scrolling down
+                navbar.classList.add('nav-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+        });
+    });
+</script>
+</html>

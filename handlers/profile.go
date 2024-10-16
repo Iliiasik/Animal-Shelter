@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
+	_ "time"
 )
 
 var profileTemplate = template.Must(template.ParseFiles("templates/profile.html"))

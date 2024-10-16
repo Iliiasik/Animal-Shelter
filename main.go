@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
+	_ "time"
 
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
@@ -48,6 +48,10 @@ func main() {
 	})
 
 	// Другие маршруты
+	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AnimalListPage(sqlDB, w, r)
+	})
+
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
@@ -125,6 +129,38 @@ func main() {
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
+	})
+	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.ShowProfile(sqlDB, w, r) // Маршрут для профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handlers.EditProfile(sqlDB, w, r) // Маршрут для редактирования профиля
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SaveProfile(sqlDB, w, r) // Маршрут для сохранения профиля
+	})
+	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowForum(sqlDB, w, r)
+	})
+	mux.HandleFunc("/new_topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowNewTopicForm(w, r)
+	})
+	mux.HandleFunc("/create_topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateTopic(sqlDB, w, r)
+	})
+	mux.HandleFunc("/create_post", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreatePost(sqlDB, w, r)
+	})
+	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ShowTopic(sqlDB, w, r)
 	})
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
