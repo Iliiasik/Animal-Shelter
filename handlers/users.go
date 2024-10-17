@@ -8,13 +8,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"path"
-	"path/filepath"
 	"regexp"
-	"strconv"
 	"time"
 )
 
@@ -32,13 +30,12 @@ type User struct {
 	IsAdmin           bool
 	EmailConfirmed    bool
 	ConfirmationToken string
-	// Новые поля для профиля
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Bio          string `json:"bio"`
-	ProfileImage string `json:"profile_image"`
-	PhoneNumber  string `json:"phone_number"`
-	DateOfBirth  string `json:"date_of_birth"`
+	FirstName         string
+	LastName          string
+	Bio               string
+	ProfileImage      string
+	PhoneNumber       string
+	DateOfBirth       string
 }
 
 // ShowRegisterForm renders the registration form
@@ -50,29 +47,24 @@ func ShowRegisterForm(w http.ResponseWriter, r *http.Request) {
 func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "login.html", nil)
 }
-
-// Register handles user registration
 func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		renderError(w, r, "Method not allowed")
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Error parsing form data", http.StatusBadRequest)
-		return
-	}
-
+	// Получаем данные из формы
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	bio := r.FormValue("bio")
 	phoneNumber := r.FormValue("phone_number")
-	dateOfBirth := "empty"
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
 	email := r.FormValue("email")
+	dateOfBirth := r.FormValue("date_of_birth")
 
+	// Проверяем корректность полей
 	if !emailRegex.MatchString(email) {
 		renderError(w, r, "Invalid email format")
 		return
@@ -88,78 +80,82 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Проверяем, существует ли уже пользователь с таким email
+	var existingEmail string
+	err := db.QueryRow("SELECT email FROM users WHERE email = $1", email).Scan(&existingEmail)
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("Error checking for existing email: %v", err)
+		renderError(w, r, "Error checking email")
+		return
+	}
+
+	if existingEmail != "" {
+		renderError(w, r, "Email is already taken")
+		return
+	}
+
+	// Хэшируем пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		renderError(w, r, fmt.Sprintf("Error generating hashed password: %v", err))
 		return
 	}
 
-	token := generateToken()
-
-	// Обработка загрузки изображения профиля
-	var profileImage string // По умолчанию будет пустой, если не загружено изображение
-	file, handler, err := r.FormFile("profile_image")
-	if err == nil {
+	// Обрабатываем загрузку изображения
+	file, header, err := r.FormFile("profile_image")
+	if err != nil && err != http.ErrMissingFile {
+		renderError(w, r, "Error uploading profile image")
+		return
+	}
+	var imagePath string
+	if file != nil {
 		defer file.Close()
+		imagePath = fmt.Sprintf("uploads/profile_images/%s", header.Filename)
 
-		// Создание директории для загрузок
-		uploadDir := "uploads/profile_images"
-		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-			err = os.MkdirAll(uploadDir, os.ModePerm)
-			if err != nil {
-				renderError(w, r, "Error creating upload directory")
-				return
-			}
-		}
-
-		// Генерация уникального имени файла
-		fileExt := path.Ext(handler.Filename)
-		fileName := strconv.FormatInt(time.Now().UnixNano(), 10) + fileExt
-		filePath := path.Join(uploadDir, fileName)
-
-		// Сохранение файла на сервере
-		outFile, err := os.Create(filePath)
+		// Сохраняем изображение на диск
+		out, err := os.Create(imagePath)
 		if err != nil {
 			renderError(w, r, "Error saving profile image")
 			return
 		}
-		defer outFile.Close()
+		defer out.Close()
 
-		_, err = file.Seek(0, 0)
+		_, err = io.Copy(out, file)
 		if err != nil {
-			renderError(w, r, "Error seeking file")
+			renderError(w, r, "Error saving profile image")
 			return
 		}
-
-		_, err = outFile.ReadFrom(file)
-		if err != nil {
-			renderError(w, r, "Error writing file")
-			return
-		}
-
-		// Конвертация пути файла
-		profileImage = filepath.ToSlash(filePath)
-	} else if err != http.ErrMissingFile {
-		// Если произошла другая ошибка, кроме отсутствия файла
-		renderError(w, r, "Error processing profile image")
-		return
+	} else {
+		imagePath = "" // Если изображение не загружено
 	}
 
-	// Вставка данных пользователя в базу
-	_, err = db.Exec(
-		"INSERT INTO users (first_name, last_name, bio, profile_image, phone_number, date_of_birth, username, password, email, email_confirmed, role, confirmation_token, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
-		firstName, lastName, bio, profileImage, phoneNumber, dateOfBirth, username, string(hashedPassword), email, false, "User", token, false,
-	)
+	// Генерируем токен подтверждения email
+	token := generateToken()
+
+	// Логируем запрос на вставку
+	log.Println("Inserting new user into the database...")
+
+	// Добавляем пользователя в базу данных
+	_, err = db.Exec(`
+		INSERT INTO users 
+		(username, password, email, email_confirmed, role, confirmation_token, first_name, last_name, bio, phone_number, profile_image, date_of_birth) 
+		VALUES 
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		username, string(hashedPassword), email, false, "User", token, firstName, lastName, bio, phoneNumber, imagePath, dateOfBirth)
+
 	if err != nil {
+		log.Printf("Error inserting user: %v", err) // Логирование ошибки
 		renderError(w, r, "Username or email is already taken")
 		return
 	}
 
+	// Отправляем подтверждение на email
 	if err := sendConfirmationEmail(email, token); err != nil {
 		renderError(w, r, fmt.Sprintf("Error sending confirmation email: %v", err))
 		return
 	}
 
+	// Перенаправляем пользователя на страницу успешной регистрации
 	http.Redirect(w, r, "/registration_success", http.StatusSeeOther)
 }
 
@@ -311,8 +307,6 @@ func ConfirmEmail(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
-
-// EditProfile handles the editing of the user profile
 func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получите ID пользователя из сессии или куки (здесь показан пример с куки)
 	cookie, err := r.Cookie("session")

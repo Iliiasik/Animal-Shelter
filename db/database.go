@@ -24,6 +24,9 @@ func ConnectDB() *gorm.DB {
 		&models.PostImage{},
 		&models.User{},
 		&models.Session{},
+		&models.Adoption{},
+		&models.Topic{},
+		&models.Post{},
 	)
 
 	return db

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	_ "time"
+	"time"
 
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
@@ -27,24 +27,6 @@ func main() {
 	// Настройка маршрутов с использованием *sql.DB
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handlers.HomePage(sqlDB, w, r)
-	})
-
-	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			handlers.ShowProfile(sqlDB, w, r) // Маршрут для профиля
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			handlers.EditProfile(sqlDB, w, r) // Маршрут для редактирования профиля
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SaveProfile(sqlDB, w, r) // Маршрут для сохранения профиля
 	})
 
 	// Другие маршруты
@@ -165,6 +147,7 @@ func main() {
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+	mux.Handle("/system_images/", http.StripPrefix("/system_images/", http.FileServer(http.Dir("system_images"))))
 
 	// Оборачиваем маршрутизатор в middleware логирования
 	loggedMux := LoggerMiddleware(mux)
