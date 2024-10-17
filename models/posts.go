@@ -6,13 +6,16 @@ import (
 
 type Post struct {
 	ID        int       `json:"id" gorm:"primaryKey"`
-	TopicID   int       `json:"topic_id"`
-	UserID    int       `json:"user_id"`
+	TopicID   int       `json:"topic_id"`                      // Внешний ключ к таблице Topic
+	UserID    int       `json:"user_id" gorm:"index;not null"` // Внешний ключ к таблице Users
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 
 	// Связь с таблицей Topic
-	Topic Topic `gorm:"foreignKey:TopicID"`
+	Topic Topic `gorm:"foreignKey:TopicID;references:ID"`
+
+	// Связь с таблицей Users
+	User User `gorm:"foreignKey:UserID;references:ID"` // Связь с таблицей Users через поле UserID
 }
 
 func (Post) TableName() string {

@@ -17,7 +17,9 @@
 </nav>
 
 <h1>Forum Topics</h1>
-<a href="/new_topic">Create New Topic</a>
+<div class="view-more">
+    <a href="/new_topic" class="view-more-button">New topic</a>
+</div>
 <ul>
     {{range .}}
     <li><a href="/topic?id={{.ID}}">{{.Title}}</a></li>

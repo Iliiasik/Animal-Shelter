@@ -319,7 +319,7 @@ func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Получите информацию о пользователе из базы данных (в примере предполагается, что у вас есть такой метод)
 	var user User
-	err = db.QueryRow("SELECT id, username, email, phone_number, bio, profile_image, date_of_birth FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", sessionToken).Scan(&user.ID, &user.Username, &user.Email, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth)
+	err = db.QueryRow("SELECT id, username, phone_number, bio, profile_image, date_of_birth FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", sessionToken).Scan(&user.ID, &user.Username, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth)
 	if err != nil {
 		http.Error(w, "Error fetching user data", http.StatusInternalServerError)
 		return
@@ -344,7 +344,6 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	firstName := r.FormValue("firstName")
 	lastName := r.FormValue("lastName")
 	bio := r.FormValue("bio")
-	email := r.FormValue("email")
 	phone := r.FormValue("phone")
 	dob := r.FormValue("dob")
 
@@ -358,7 +357,7 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	sessionToken := cookie.Value
 
 	// Обновите информацию о пользователе в базе данных
-	_, err = db.Exec("UPDATE users SET first_name = $1, last_name = $2, bio = $3, email = $4, phone_number = $5, date_of_birth = $6 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $7)", firstName, lastName, bio, email, phone, dob, sessionToken)
+	_, err = db.Exec("UPDATE users SET first_name = $1, last_name = $2, bio = $3, phone_number = $4, date_of_birth = $5 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $6)", firstName, lastName, bio, phone, dob, sessionToken)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
 		return
