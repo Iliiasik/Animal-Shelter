@@ -9,9 +9,17 @@ import (
 
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/new_topic.html", "templates/topic.html"))
 
-// ShowForum displays the list of topics in the forum
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title FROM topics ORDER BY created_at DESC")
+	rows, err := db.Query(`
+    SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+           TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+    FROM topics t
+    LEFT JOIN users u ON t.user_id = u.id
+    LEFT JOIN posts p ON t.id = p.topic_id
+    GROUP BY t.id, u.username, u.profile_image
+    ORDER BY response_count DESC, t.created_at DESC
+`)
+
 	if err != nil {
 		http.Error(w, "Error fetching topics", http.StatusInternalServerError)
 		return
@@ -19,16 +27,24 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var topics []struct {
-		ID    int
-		Title string
+		ID            int
+		Title         string
+		Username      string
+		ProfileImage  string
+		ResponseCount int
+		CreatedAt     string
 	}
 
 	for rows.Next() {
 		var topic struct {
-			ID    int
-			Title string
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string // Добавлено поле для даты создания
 		}
-		if err := rows.Scan(&topic.ID, &topic.Title); err != nil {
+		if err := rows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
 			http.Error(w, "Error scanning topics", http.StatusInternalServerError)
 			return
 		}
