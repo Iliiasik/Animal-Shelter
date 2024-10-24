@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/forum.css">
     <title>Forum</title>
 </head>
 <body>
@@ -15,15 +16,64 @@
         </ul>
     </div>
 </nav>
+<!-- Контейнер для всего контента под navbar -->
+<div class="content-wrapper">
+    <!-- Приветствие с изображением и текстом в рамке -->
+    <div class="welcome-wrapper">
+        <div class="welcome-message">
+            <img src="system_images/forum welcome cat.jpeg" alt="Welcome Image" class="welcome-image">
+            <div class="welcome-text">
+                <h1>Welcome to the Forum!</h1>
+                <p>Feel free to explore and participate in our discussions.</p>
+            </div>
+        </div>
+    </div>
+    <h1>Forum Topics</h1>
+    <div class="view-more">
+        <a href="/new_topic" class="view-more-button">New Topic</a>
+    </div>
+    <ul>
+        {{range $index, $topic := .}}
+        <li class="topic">
+            <div class="user-info">
+                <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                <span class="username">{{$topic.Username}}</span>
+                <span class="created-at">{{$topic.CreatedAt}}</span> <!-- Дата создания -->
+            </div>
+            <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
 
-<h1>Forum Topics</h1>
-<div class="view-more">
-    <a href="/new_topic" class="view-more-button">New topic</a>
+            {{if eq $topic.ResponseCount 0}}
+            <span class="responses">No replies</span>
+            {{else}}
+            <span class="responses">Responses: {{$topic.ResponseCount}}</span>
+            {{end}}
+
+            {{if lt $index 3}}
+            <img src="system_images/fire.png" alt="Popular" class="fire-icon">
+            {{end}}
+        </li>
+        {{end}}
+    </ul>
 </div>
-<ul>
-    {{range .}}
-    <li><a href="/topic?id={{.ID}}">{{.Title}}</a></li>
-    {{end}}
-</ul>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                // Scrolling down
+                navbar.classList.add('nav-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+        });
+    });
+    </script>
 </html>
