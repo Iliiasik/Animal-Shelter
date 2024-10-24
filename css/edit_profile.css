@@ -9,52 +9,87 @@ body {
     background-image: url('https://images.unsplash.com/photo-1727102062617-2b793eec0a50?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
     background-size: cover;
     background-position: center;
-    height: 300px;
+    height: 300px; /* Высота 100% окна браузера */
     position: relative;
+    z-index: 1;
 }
 
-/*начало стиля кнопок изменения фона*/
-.edit-bg-button{
-    display: none;
 
+/*начало стиля кнопок изменения профиля*/
+.custom-upload-button {
+    width: 70%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
 }
-.custom-button{
-    position: fixed;
-    top: 280px;
-    right: 0;
 
-    background-color: #adadad;
-    color: white; /* Цвет текста */
-    border: none; /* Без границы */
-    border-radius: 5px; /* Скругление углов */
-    cursor: pointer; /* Курсор в виде указателя */
+.custom-upload-button:hover {
+    background-color: #000;
+    color: #eee;
 }
-.custom-button:hover {
-    background-color: #7e7e7e;
+.edit-crop-button{
+    width: 70%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
 }
-/* конец стиля кнопок изменения фона*/
+.edit-crop-button:hover{
+    background-color: #000;
+    color: #eee;
+}
+/* конец стиля кнопок изменения профиля */
 
-.profile {
+.profile-image-functions {
     display: flex;
     align-items: flex-start;
-    max-width: 800px;
-    margin: 150px auto 0 auto;
+    flex-direction: column;
+    width: 300px;
+}
+
+.profile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: flex-start;
+    width: 800px;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 2; /* Профиль выше фона */
 }
 
 .profile-image {
-    flex: 0 0 150px;
+    width: 150px;   /* Фиксируем ширину */
+    height: 150px;  /* Фиксируем высоту */
     margin-right: 20px;
+    overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
+    border-radius: 50%;  /* Делаем круглый контейнер */
 }
 
 .profile-image img {
-    max-width: 100%;
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Изображение заполняет контейнер, сохраняя пропорции */
+    display: block;    /* Убираем любые возможные отступы вокруг изображения */
 }
-
+.form-container{
+    width: 400px;
+}
 .profile-info {
     flex: 1;
 }
@@ -69,6 +104,68 @@ label {
     margin-bottom: 10px;
 }
 
+/* Начало стиля для модального окна */
+.modal {
+    display: none; /* По умолчанию скрыто */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный фон */
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 800px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.cropper-container.cropper-bg{
+    height: 700px;
+
+}
+.close {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.crop-container {
+    max-width: 100%;
+    height: auto;
+}
+
+.button-save {
+    width: 50%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.button-save:hover {
+    background-color: #000;
+    color: #eee;
+}
+/* Конец стиля для модального окна */
+
 input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
     width: 100%;
     padding: 10px;
@@ -80,35 +177,4 @@ input[type="text"], input[type="email"], input[type="tel"], input[type="date"], 
 
 textarea {
     resize: none;
-}
-
-button.button-save {
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button.button-save:hover {
-    background-color: #2980b9;
-}
-
-.button-home {
-    position: fixed;
-    bottom: 50px;
-    left: -5px;
-    padding: 10px 20px;
-    background-color: #adadad;
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.button-home:hover {
-    background-color: #7e7e7e;
 }

@@ -17,8 +17,10 @@ type User struct {
 	LastName          string    `json:"last_name"`                            // Фамилия пользователя
 	Bio               string    `json:"bio" gorm:"type:text"`                 // Биография пользователя (текстовое поле)
 	ProfileImage      string    `json:"profile_image"`                        // Путь к изображению профиля
+	ProfileBgImage    string    `json:"profile_bg_image"`                     // Путь к изображению фона профиля
 	PhoneNumber       string    `json:"phone_number"`                         // Номер телефона пользователя
 	DateOfBirth       time.Time `json:"date_of_birth" gorm:"type:date"`       // Дата рождения пользователя (формат даты)
+
 }
 
 func (User) TableName() string {

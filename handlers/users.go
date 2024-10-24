@@ -100,7 +100,6 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		renderError(w, r, fmt.Sprintf("Error generating hashed password: %v", err))
 		return
 	}
-
 	// Обрабатываем загрузку изображения
 	file, header, err := r.FormFile("profile_image")
 	if err != nil && err != http.ErrMissingFile {
@@ -110,7 +109,17 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var imagePath string
 	if file != nil {
 		defer file.Close()
-		imagePath = fmt.Sprintf("uploads/profile_images/%s", header.Filename)
+
+		// Генерация уникального имени файла
+		uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
+		imagePath = fmt.Sprintf("uploads/profile_images/%s", uniqueFileName)
+
+		// Создаем директорию, если она не существует
+		err := os.MkdirAll("uploads/profile_images", os.ModePerm)
+		if err != nil {
+			renderError(w, r, "Unable to create directory")
+			return
+		}
 
 		// Сохраняем изображение на диск
 		out, err := os.Create(imagePath)
@@ -306,62 +315,4 @@ func ConfirmEmail(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
-}
-func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Получите ID пользователя из сессии или куки (здесь показан пример с куки)
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	sessionToken := cookie.Value
-
-	// Получите информацию о пользователе из базы данных (в примере предполагается, что у вас есть такой метод)
-	var user User
-	err = db.QueryRow("SELECT id, username, phone_number, bio, profile_image, date_of_birth FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", sessionToken).Scan(&user.ID, &user.Username, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth)
-	if err != nil {
-		http.Error(w, "Error fetching user data", http.StatusInternalServerError)
-		return
-	}
-
-	// Отправьте данные пользователя в шаблон
-	err = templates.ExecuteTemplate(w, "edit_profile.html", user)
-	if err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Error rendering template", http.StatusInternalServerError)
-	}
-}
-
-// SaveProfile handles saving the updated user profile
-func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Получите данные из формы
-	firstName := r.FormValue("firstName")
-	lastName := r.FormValue("lastName")
-	bio := r.FormValue("bio")
-	phone := r.FormValue("phone")
-	dob := r.FormValue("dob")
-
-	// Получите ID пользователя из сессии (аналогично EditProfile)
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	sessionToken := cookie.Value
-
-	// Обновите информацию о пользователе в базе данных
-	_, err = db.Exec("UPDATE users SET first_name = $1, last_name = $2, bio = $3, phone_number = $4, date_of_birth = $5 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $6)", firstName, lastName, bio, phone, dob, sessionToken)
-	if err != nil {
-		http.Error(w, "Error saving profile", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/profile", http.StatusSeeOther) // Перенаправление на страницу профиля после сохранения
 }

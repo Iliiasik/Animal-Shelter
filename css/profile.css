@@ -13,6 +13,10 @@ body {
     position: relative;           /* Для позиционирования содержимого */
 }
 
+.profile-image-functions{
+    display: flex;
+    align-items: flex-start;
+}
 .profile {
     display: flex;
     align-items: flex-start;      /* Выравниваем элементы по вертикали сверху */
@@ -25,13 +29,18 @@ body {
 }
 
 .profile-image {
-    flex: 0 0 150px;              /* Фиксированная ширина для изображения */
-    margin-right: 20px;           /* Отступ справа от изображения */
+    width: 150px;   /* Фиксируем ширину */
+    height: 150px;  /* Фиксируем высоту */
+    margin-right: 20px;
+    overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
+    border-radius: 50%;  /* Делаем круглый контейнер */
 }
 
 .profile-image img {
-    max-width: 100%;
-    border-radius: 50%;           /* Закругляем изображение до круга */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Изображение заполняет контейнер, сохраняя пропорции */
+    display: block;    /* Убираем любые возможные отступы вокруг изображения */
 }
 
 .profile-info {
@@ -66,7 +75,7 @@ body {
     bottom: 50px;    /* Располагаем кнопки внизу страницы */
     padding: 10px 20px;
     background-color: #adadad; /* Цвет кнопок */
-    color: white;
+    color: #000000;
     text-decoration: none;
     font-size: 16px;
     border-radius: 5px;
@@ -75,16 +84,33 @@ body {
 
 .button-home {
     left: -5px;  /* Кнопка слегка выходит за левый край экрана */
-
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
     transform-origin: left bottom;
 }
 
 .button-edit {
     right: -5px; /* Кнопка слегка выходит за правый край экрана */
-
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
     transform-origin: right bottom;
 }
 
 .button-home:hover, .button-edit:hover {
-    background-color: #7e7e7e; /* Цвет кнопок */
+    background-color: #000;
+    color: #eee;
 }
