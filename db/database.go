@@ -22,7 +22,6 @@ func ConnectDB() *gorm.DB {
 		&models.Animal{},
 		&models.MedicalRecord{},
 		&models.PostImage{},
-		&models.User{},
 		&models.Session{},
 		&models.Adoption{},
 		&models.Topic{},

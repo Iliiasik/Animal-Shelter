@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="/css/home.css">
 </head>
 <body>
-<div class="profile-background">
+<div class="profile-background" style="background-image: url('{{if .ProfileBgImage}}{{.ProfileBgImage}}{{else}}https://images.unsplash.com/photo-1727102062617-2b793eec0a50?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D{{end}}');">
     <div class="profile">
         <div class="profile-image">
             <img src="{{.ProfileImage}}" alt="Profile Image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">

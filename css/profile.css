@@ -6,7 +6,7 @@ body {
 }
 
 .profile-background {
-    background-image: url('https://images.unsplash.com/photo-1727102062617-2b793eec0a50?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* Добавляем фоновое изображение */
+
     background-size: cover;       /* Изображение покрывает всю ширину контейнера */
     background-position: center;  /* Центрируем фон */
     height: 300px;                /* Высота фона */

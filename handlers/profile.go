@@ -54,13 +54,14 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	queryUser := `
 		SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, 
-		       date_of_birth 
+		       date_of_birth, profile_bg_image -- добавляем фоновое изображение
 		FROM users 
 		WHERE id = $1
 	`
 	err = db.QueryRow(queryUser, session.UserID).Scan(
 		&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Bio,
 		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth,
+		&user.ProfileBgImage, // добавляем поле для фона
 	)
 
 	if err != nil {
@@ -80,6 +81,7 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error rendering profile", http.StatusInternalServerError)
 	}
 }
+
 func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получите ID пользователя из сессии или куки
 	cookie, err := r.Cookie("session")
@@ -93,15 +95,18 @@ func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получите информацию о пользователе из базы данных
 	var user User
 	err = db.QueryRow(`
-        SELECT id, username, first_name, last_name, phone_number, bio, profile_image, date_of_birth 
+        SELECT id, username, first_name, last_name, phone_number, bio, profile_image, date_of_birth, profile_bg_image
         FROM users 
         WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)`, sessionToken).
-		Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth)
+		Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth, &user.ProfileBgImage)
 
 	if err != nil {
 		http.Error(w, "Error fetching user data", http.StatusInternalServerError)
 		return
 	}
+
+	// Логируем URL фонового изображения
+	log.Printf("Profile background image URL: %s", user.ProfileBgImage)
 
 	// Отправьте данные пользователя в шаблон
 	err = templates.ExecuteTemplate(w, "edit_profile.html", user)
@@ -111,6 +116,7 @@ func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SaveProfile handles saving the updated user profile including the cropped image
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -126,51 +132,7 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	phone := r.FormValue("phone")
 	dob := r.FormValue("dob")
 
-	// Логирование полученных данных формы
 	log.Printf("Form data: firstName=%s, lastName=%s, bio=%s, phone=%s, dob=%s\n", firstName, lastName, bio, phone, dob)
-
-	file, handler, err := r.FormFile("croppedImage")
-	if err != nil && err != http.ErrMissingFile {
-		http.Error(w, "Unable to upload image", http.StatusInternalServerError)
-		log.Println("Error uploading image:", err)
-		return
-	}
-
-	var imagePath string
-	if file != nil {
-		defer file.Close()
-
-		// Генерация уникального имени файла
-		uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
-		imagePath = fmt.Sprintf("uploads/profile_images/%s", uniqueFileName)
-
-		// Создаем директорию, если она не существует
-		err := os.MkdirAll("uploads/profile_images", os.ModePerm)
-		if err != nil {
-			http.Error(w, "Unable to create directory", http.StatusInternalServerError)
-			log.Println("Error creating directory:", err)
-			return
-		}
-
-		// Сохраняем изображение на диск
-		out, err := os.Create(imagePath)
-		if err != nil {
-			http.Error(w, "Unable to save the image", http.StatusInternalServerError)
-			log.Println("Error saving image:", err)
-			return
-		}
-		defer out.Close()
-
-		_, err = io.Copy(out, file)
-		if err != nil {
-			http.Error(w, "Error saving image", http.StatusInternalServerError)
-			log.Println("Error copying file contents:", err)
-			return
-		}
-	} else {
-		log.Println("No image uploaded")
-		imagePath = "" // Если изображение не загружено
-	}
 
 	// Получение ID пользователя из сессии
 	cookie, err := r.Cookie("session")
@@ -180,37 +142,54 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sessionToken := cookie.Value
-	log.Println("Session token:", sessionToken)
 
-	// Получение текущего пути к изображению пользователя из базы данных
-	var currentImagePath string
-	err = db.QueryRow(`SELECT profile_image FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)`, sessionToken).Scan(&currentImagePath)
+	// Получение старого изображения профиля и фона для удаления
+	var oldProfileImagePath, oldBackgroundImagePath string
+	err = db.QueryRow(`
+		SELECT profile_image, profile_bg_image 
+		FROM users 
+		WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)`, sessionToken).
+		Scan(&oldProfileImagePath, &oldBackgroundImagePath)
+	if err != nil && err != sql.ErrNoRows {
+		log.Println("Error fetching old images:", err)
+	}
+
+	// Загрузка изображения профиля
+	profileImagePath, err := saveImage(r, "croppedImage", "uploads/profile_images")
 	if err != nil {
-		http.Error(w, "Error retrieving current profile image", http.StatusInternalServerError)
-		log.Println("Error retrieving current image path:", err)
+		http.Error(w, "Unable to upload profile image", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("Profile image path: %s", profileImagePath)
 
-	// Удаление старого изображения, если оно существует
-	if currentImagePath != "" {
-		err := os.Remove(currentImagePath)
-		if err != nil {
-			log.Println("Error removing old profile image:", err)
-		}
+	// Загрузка фонового изображения
+	backgroundImagePath, err := saveImage(r, "backgroundImage", "uploads/profile_images/background")
+	if err != nil {
+		http.Error(w, "Unable to upload background image", http.StatusInternalServerError)
+		return
 	}
+	log.Printf("Background image path: %s", backgroundImagePath)
 
 	// Обновление профиля пользователя
 	query := `UPDATE users SET first_name = $1, last_name = $2, bio = $3, phone_number = $4, date_of_birth = $5`
-	if imagePath != "" {
-		query += ", profile_image = $6 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $7)"
-		_, err = db.Exec(query, firstName, lastName, bio, phone, dob, imagePath, sessionToken)
-		log.Println("Executing query with image")
-	} else {
-		query += " WHERE id = (SELECT user_id FROM sessions WHERE session_id = $6)"
-		_, err = db.Exec(query, firstName, lastName, bio, phone, dob, sessionToken)
-		log.Println("Executing query without image")
+	params := []interface{}{firstName, lastName, bio, phone, dob}
+
+	index := 6 // Начинаем с $6 для изображений
+	if profileImagePath != "" {
+		query += fmt.Sprintf(", profile_image = $%d", index)
+		params = append(params, profileImagePath)
+		index++
+	}
+	if backgroundImagePath != "" {
+		query += fmt.Sprintf(", profile_bg_image = $%d", index)
+		params = append(params, backgroundImagePath)
+		index++
 	}
 
+	query += " WHERE id = (SELECT user_id FROM sessions WHERE session_id = $" + fmt.Sprint(index) + ")"
+	params = append(params, sessionToken)
+
+	_, err = db.Exec(query, params...)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
 		log.Println("Error executing query:", err)
@@ -218,11 +197,69 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("Profile successfully updated")
-	// Возвращаем JSON ответ с информацией об успехе
+
+	// Удаление старого изображения профиля, если было загружено новое
+	if profileImagePath != "" && profileImagePath != oldProfileImagePath {
+		if oldProfileImagePath != "" {
+			err = os.Remove(oldProfileImagePath)
+			if err != nil {
+				log.Println("Error deleting old profile image file:", err)
+			} else {
+				log.Printf("Deleted old profile image: %s", oldProfileImagePath)
+			}
+		}
+	}
+
+	// Удаление старого фонового изображения, если было загружено новое
+	if backgroundImagePath != "" && backgroundImagePath != oldBackgroundImagePath {
+		if oldBackgroundImagePath != "" {
+			err = os.Remove(oldBackgroundImagePath)
+			if err != nil {
+				log.Println("Error deleting old background image file:", err)
+			} else {
+				log.Printf("Deleted old background image: %s", oldBackgroundImagePath)
+			}
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)                                // Установите статус 200 OK
-	json.NewEncoder(w).Encode(map[string]bool{"success": true}) // Вернуть объект JSON с успешным статусом
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
 
-	//http.Redirect(w, r, "/profile", http.StatusSeeOther)
+// Функция для сохранения изображения в указанную директорию
+func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
+	file, handler, err := r.FormFile(formFieldName)
+	if err != nil {
+		if err == http.ErrMissingFile {
+			return "", nil // Файл не загружен
+		}
+		log.Println("Error uploading image:", err)
+		return "", err
+	}
+	defer file.Close()
 
+	uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
+	imagePath := fmt.Sprintf("%s/%s", dir, uniqueFileName)
+
+	err = os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		log.Println("Error creating directory:", err)
+		return "", err
+	}
+
+	out, err := os.Create(imagePath)
+	if err != nil {
+		log.Println("Error saving image:", err)
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Println("Error copying file contents:", err)
+		return "", err
+	}
+
+	return imagePath, nil
 }

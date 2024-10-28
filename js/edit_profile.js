@@ -1,4 +1,5 @@
 let cropper;
+const customUploadButton=document.getElementById('customUploadButton')
 const profileImage = document.getElementById('profileImage');
 const uploadImage = document.getElementById('uploadImage');
 const cropModal = document.getElementById('cropModal');
@@ -6,8 +7,13 @@ const cropImage = document.getElementById('cropImage');
 const closeModal = document.querySelector('.close');
 const cropButton = document.getElementById('cropButton');
 const editCropButton = document.getElementById('editCropButton');
+const customBgButton = document.getElementById('customBgButton')
 let uploadedImageURL = '';
 let originalImageFile = null; // Хранение исходного изображения
+//фон профиля
+const uploadBg =document.getElementById('uploadBg')
+let uploadedBgImageURL = '';
+let originalBgImageFile = null; // Хранение исходного изображения
 
 // Обработка клика по кастомной кнопке загрузки
 customUploadButton.addEventListener('click', function () {
@@ -30,7 +36,23 @@ uploadImage.addEventListener('change', function (e) {
         reader.readAsDataURL(file);
     }
 });
+// Обработчик клика на кнопке редактирования фонового изображения
+customBgButton.addEventListener('click', function () {
+    uploadBg.click(); // Триггерим клик на скрытом input для загрузки фона
+});
 
+// Обработка загрузки фонового изображения
+uploadBg.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+        originalBgImageFile = file; // Сохраняем оригинальный файл для фонового изображения
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            document.querySelector('.profile-background').style.backgroundImage = `url(${event.target.result})`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
 // Открываем модальное окно обрезки по нажатию кнопки "Edit / Crop Image"
 editCropButton.addEventListener('click', function () {
     // Проверяем, есть ли текущее изображение
@@ -69,25 +91,29 @@ document.querySelector('.button-save').addEventListener('click', function (e) {
     formData.append('phone', document.getElementById('phone').value);
     formData.append('dob', document.getElementById('dob').value);
 
-    // Проверка, был ли создан cropper (значит, пользователь редактировал изображение)
+    // Добавляем фоновое изображение, если оно загружено
+    if (originalBgImageFile) {
+        formData.append('backgroundImage', originalBgImageFile, originalBgImageFile.name);
+        console.log('Background image added to FormData:', originalBgImageFile.name); // Логирование добавления
+    } else {
+        console.log('No background image uploaded.'); // Логирование, если изображение не загружено
+    }
+
+    // Проверка, был ли создан cropper (значит, пользователь редактировал изображение профиля)
     if (cropper) {
         cropper.getCroppedCanvas().toBlob(function (blob) {
             formData.append('croppedImage', blob, originalImageFile ? originalImageFile.name : 'cropped_image.jpg');
-
-            // Отправляем форму только после создания блоба
             sendProfileData(formData);
         }, 'image/jpeg');
     } else if (originalImageFile) {
-        // Если изображение не обрезано, передаем его как есть
         formData.append('croppedImage', originalImageFile, originalImageFile.name);
         sendProfileData(formData);
     } else {
-        // Если изображение не загружено
-        sendProfileData(formData);
+        sendProfileData(formData); // Если ничего не загружено
     }
 });
 
-// Функция отправки данных
+
 // Функция отправки данных
 function sendProfileData(formData) {
     fetch('/save-profile', {
