@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/animal_list.css">
     <link rel="stylesheet" href="/css/forum.css">
     <title>Forum</title>
 </head>
@@ -16,6 +17,7 @@
         </ul>
     </div>
 </nav>
+
 <!-- Контейнер для всего контента под navbar -->
 <div class="content-wrapper">
     <!-- Приветствие с изображением и текстом в рамке -->
@@ -28,35 +30,89 @@
             </div>
         </div>
     </div>
+
     <h1>Forum Topics</h1>
     <div class="view-more">
         <a href="/new_topic" class="view-more-button">New Topic</a>
     </div>
+
+    <div class="discussions-wrapper">
+        <div class="hot-discussion">
+            <h2>Hot Discussions</h2>
+            <ul>
+                {{range $index, $topic := .}}
+                {{if lt $index 3}} <!-- Отображаем только первые 3 темы -->
+                <li class="topic">
+                    <div class="user-info">
+                        <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        <span class="username">{{$topic.Username}}</span>
+                        <span class="created-at">{{$topic.CreatedAt}}</span>
+                    </div>
+                    <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
+                    <span class="responses">Responses: {{$topic.ResponseCount}}</span>
+                    <img src="system_images/fire.png" alt="Popular" class="fire-icon">
+                </li>
+                {{end}}
+                {{end}}
+            </ul>
+        </div>
+
+        <div class="now-discuss">
+            <h2>Now Discussing</h2>
+            <div class="topic-demo">
+                <p><strong>Demo Topic Title</strong></p>
+                <p>Discussion details go here...</p>
+            </div>
+            <div class="topic-demo">
+                <p><strong>Another Topic Title</strong></p>
+                <p>More discussion details...</p>
+            </div>
+            <div class="topic-demo">
+                <p><strong>Third Topic Title</strong></p>
+                <p>Even more discussion details...</p>
+            </div>
+        </div>
+    </div>
+    <div class="search-wrapper">
+        <div class="search-field">
+            <input type="text" id="topic-search" class="search-input" placeholder="Search by topic title...">
+            <button class="search-button" onclick="searchTopics()">Search</button>
+            <button class="search-button recent-button">Recent</button>
+        </div>
+    </div>
+
     <ul>
         {{range $index, $topic := .}}
+        {{if ge $index 3}} <!-- Отображаем остальные темы -->
         <li class="topic">
             <div class="user-info">
                 <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
                 <span class="username">{{$topic.Username}}</span>
-                <span class="created-at">{{$topic.CreatedAt}}</span> <!-- Дата создания -->
+                <span class="created-at">{{$topic.CreatedAt}}</span>
             </div>
             <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
-
-            {{if eq $topic.ResponseCount 0}}
-            <span class="responses">No replies</span>
-            {{else}}
             <span class="responses">Responses: {{$topic.ResponseCount}}</span>
-            {{end}}
-
-            {{if lt $index 3}}
-            <img src="system_images/fire.png" alt="Popular" class="fire-icon">
-            {{end}}
         </li>
+        {{end}}
         {{end}}
     </ul>
 </div>
+
 </body>
 <script>
+    const titleInput = document.getElementById('topic-search');
+    // Функция поиска топиков по названию
+    function searchTopics() {
+        const title = titleInput.value;
+        const url = new URL(window.location.href);
+
+        // Добавляем или удаляем параметр поиска
+        if (title) url.searchParams.set('title', title);
+        else url.searchParams.delete('title');
+
+        window.location.href = url.toString(); // Перенаправляем на новый URL
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const navbar = document.querySelector('nav');
         let lastScrollTop = 0;
@@ -65,15 +121,13 @@
             let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
             if (currentScrollTop > lastScrollTop) {
-                // Scrolling down
                 navbar.classList.add('nav-hidden');
             } else {
-                // Scrolling up
                 navbar.classList.remove('nav-hidden');
             }
 
             lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
         });
     });
-    </script>
+</script>
 </html>

@@ -10,15 +10,28 @@ import (
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/new_topic.html", "templates/topic.html"))
 
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query(`
+	// Получаем параметр поиска из запроса
+	title := r.URL.Query().Get("title")
+
+	// Основной SQL-запрос
+	query := `
     SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
            TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
     FROM topics t
     LEFT JOIN users u ON t.user_id = u.id
     LEFT JOIN posts p ON t.id = p.topic_id
-    GROUP BY t.id, u.username, u.profile_image
-    ORDER BY response_count DESC, t.created_at DESC
-`)
+    `
+
+	// Если параметр title не пуст, добавляем условие WHERE
+	var rows *sql.Rows
+	var err error
+	if title != "" {
+		query += `WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY response_count DESC, t.created_at DESC`
+		rows, err = db.Query(query, "%"+title+"%")
+	} else {
+		query += `GROUP BY t.id, u.username, u.profile_image ORDER BY response_count DESC, t.created_at DESC`
+		rows, err = db.Query(query)
+	}
 
 	if err != nil {
 		http.Error(w, "Error fetching topics", http.StatusInternalServerError)
@@ -26,6 +39,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
+	// Сканируем и отображаем результаты
 	var topics []struct {
 		ID            int
 		Title         string
@@ -42,7 +56,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			Username      string
 			ProfileImage  string
 			ResponseCount int
-			CreatedAt     string // Добавлено поле для даты создания
+			CreatedAt     string
 		}
 		if err := rows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
 			http.Error(w, "Error scanning topics", http.StatusInternalServerError)

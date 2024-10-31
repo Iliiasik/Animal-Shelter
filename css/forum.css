@@ -2,6 +2,7 @@
 .content-wrapper {
     margin: 80px auto 0;
     width: 80%;
+
 }
 
 .welcome-wrapper {
@@ -67,15 +68,18 @@ h1 {
 .topic:hover {
     transform: scale(1.05); /* Увеличение размера блока при наведении */
 }
+
 .user-info {
     display: flex;
     align-items: center;
 }
+
 .created-at {
     margin-left: auto; /* Сдвигаем дату к правому краю */
     font-size: 0.9em; /* Уменьшаем размер шрифта для даты, если нужно */
     color: #666; /* Изменяем цвет текста для лучшего восприятия */
 }
+
 .profile-image {
     width: 40px;
     height: 40px;
@@ -107,7 +111,6 @@ h1 {
     color: #666;
     margin-left: 10px;
     font-weight: bold;
-
 }
 
 .fire-icon {
@@ -115,4 +118,65 @@ h1 {
     height: 20px;
     margin-left: 10px;
     vertical-align: middle;
+}
+
+.discussions-wrapper {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.hot-discussion {
+    width: 62%; /* Ширина для Hot Discussions (большая часть) */
+    margin-right: 20px; /* Отступ справа */
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    padding: 15px;
+}
+
+.hot-discussion h2 {
+    text-align: center;
+}
+
+.now-discuss {
+    width: 38%; /* Ширина для Now Discuss (меньшая часть) */
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    padding: 15px;
+}
+
+.now-discuss h2 {
+    text-align: center;
+}
+
+.topic-demo {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+
+.now-discuss p {
+    margin-top: 10px;
+    font-size: 0.9em; /* Уменьшение размера текста для демонстрационного контента */
+}
+.search-wrapper {
+    display: flex;
+    justify-content: center; /* Центрируем кнопку поиска */
+    margin: 20px 0; /* Отступ сверху и снизу */
+}
+
+.search-field {
+    display: flex; /* Используем flex для размещения инпута и кнопки */
+    justify-content: center; /* Центрируем контент */
+    align-items: center; /* Вертикальное выравнивание */
+}
+.search-button {
+    margin-left: 10px;
+}
+
+.recent-button:hover {
+    background-color: #45a049; /* Более темный зеленый при наведении */
 }
