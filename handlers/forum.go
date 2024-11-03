@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -12,34 +13,127 @@ var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем параметр поиска из запроса
 	title := r.URL.Query().Get("title")
+	cookie, err := r.Cookie("session")
+	var userID int
+	var userLoggedIn bool
+	var userTopics []struct {
+		ID            int
+		Title         string
+		Username      string
+		ProfileImage  string
+		ResponseCount int
+		CreatedAt     string
+	}
+	var hottestTopics []struct {
+		ID            int
+		Title         string
+		Username      string
+		ProfileImage  string
+		ResponseCount int
+		CreatedAt     string
+	}
 
-	// Основной SQL-запрос
-	query := `
+	if err == nil {
+		userLoggedIn = true
+		err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+		if err != nil {
+			log.Printf("Error fetching user ID: %v", err)
+			return
+		}
+
+		// Получаем темы, созданные пользователем
+		userQuery := `
+        SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+               TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+        FROM topics t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN posts p ON t.id = p.topic_id
+        WHERE t.user_id = $1
+        GROUP BY t.id, u.username, u.profile_image
+        ORDER BY t.created_at DESC`
+
+		rows, err := db.Query(userQuery, userID)
+		if err != nil {
+			log.Printf("Error fetching user topics: %v", err)
+			return
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var topic struct {
+				ID            int
+				Title         string
+				Username      string
+				ProfileImage  string
+				ResponseCount int
+				CreatedAt     string
+			}
+			if err := rows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
+				log.Printf("Error scanning user topics: %v", err)
+				return
+			}
+			userTopics = append(userTopics, topic)
+		}
+	}
+
+	// Получаем самые горячие темы
+	hottestQuery := `
     SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
            TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
     FROM topics t
     LEFT JOIN users u ON t.user_id = u.id
     LEFT JOIN posts p ON t.id = p.topic_id
-    `
+    GROUP BY t.id, u.username, u.profile_image
+    ORDER BY response_count DESC
+    LIMIT 3`
 
-	// Если параметр title не пуст, добавляем условие WHERE
+	hottestRows, err := db.Query(hottestQuery)
+	if err != nil {
+		log.Printf("Error fetching hottest topics: %v", err)
+		return
+	}
+	defer hottestRows.Close()
+
+	for hottestRows.Next() {
+		var topic struct {
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string
+		}
+		if err := hottestRows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
+			log.Printf("Error scanning hottest topics: %v", err)
+			return
+		}
+		hottestTopics = append(hottestTopics, topic)
+	}
+
+	// Основной SQL-запрос для общих тем форума
+	query := `
+SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+FROM topics t
+LEFT JOIN users u ON t.user_id = u.id
+LEFT JOIN posts p ON t.id = p.topic_id
+`
+
 	var rows *sql.Rows
-	var err error
 	if title != "" {
-		query += `WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY response_count DESC, t.created_at DESC`
+		query += `WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY RANDOM()`
 		rows, err = db.Query(query, "%"+title+"%")
 	} else {
-		query += `GROUP BY t.id, u.username, u.profile_image ORDER BY response_count DESC, t.created_at DESC`
+		query += `GROUP BY t.id, u.username, u.profile_image ORDER BY RANDOM()`
 		rows, err = db.Query(query)
 	}
 
 	if err != nil {
-		http.Error(w, "Error fetching topics", http.StatusInternalServerError)
+		log.Printf("Error fetching topics: %v", err)
 		return
 	}
 	defer rows.Close()
 
-	// Сканируем и отображаем результаты
 	var topics []struct {
 		ID            int
 		Title         string
@@ -59,15 +153,48 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			CreatedAt     string
 		}
 		if err := rows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
-			http.Error(w, "Error scanning topics", http.StatusInternalServerError)
+			log.Printf("Error scanning topics: %v", err)
 			return
 		}
 		topics = append(topics, topic)
 	}
 
-	err = forumTemplates.ExecuteTemplate(w, "forum.html", topics)
+	// Передаем данные в шаблон
+	err = forumTemplates.ExecuteTemplate(w, "forum.html", struct {
+		Topics []struct {
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string
+		}
+		HottestTopics []struct {
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string
+		}
+		UserTopics []struct {
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string
+		}
+		UserLoggedIn bool
+	}{
+		Topics:        topics,
+		HottestTopics: hottestTopics,
+		UserTopics:    userTopics,
+		UserLoggedIn:  userLoggedIn,
+	})
+
 	if err != nil {
-		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		log.Printf("Error rendering template: %v", err)
 	}
 }
 
@@ -95,6 +222,19 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
 	if err != nil {
 		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Проверяем, сколько топиков уже создал пользователь
+	var topicCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM topics WHERE user_id = $1", userID).Scan(&topicCount)
+	if err != nil {
+		http.Error(w, "Error counting topics", http.StatusInternalServerError)
+		return
+	}
+
+	if topicCount >= 3 { // Ограничение на 3 топика
+		http.Error(w, "You can create a maximum of 3 topics", http.StatusForbidden)
 		return
 	}
 

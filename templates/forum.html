@@ -38,10 +38,9 @@
 
     <div class="discussions-wrapper">
         <div class="hot-discussion">
-            <h2>Hot Discussions</h2>
+            <h2>Hottest Discussions</h2>
             <ul>
-                {{range $index, $topic := .}}
-                {{if lt $index 3}} <!-- Отображаем только первые 3 темы -->
+                {{range $index, $topic := .HottestTopics}} <!-- Используйте .HottestTopics -->
                 <li class="topic">
                     <div class="user-info">
                         <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
@@ -53,26 +52,30 @@
                     <img src="system_images/fire.png" alt="Popular" class="fire-icon">
                 </li>
                 {{end}}
-                {{end}}
             </ul>
         </div>
 
+
         <div class="now-discuss">
-            <h2>Now Discussing</h2>
-            <div class="topic-demo">
-                <p><strong>Demo Topic Title</strong></p>
-                <p>Discussion details go here...</p>
-            </div>
-            <div class="topic-demo">
-                <p><strong>Another Topic Title</strong></p>
-                <p>More discussion details...</p>
-            </div>
-            <div class="topic-demo">
-                <p><strong>Third Topic Title</strong></p>
-                <p>Even more discussion details...</p>
-            </div>
+            <h2>Your Topics</h2>
+            {{if .UserLoggedIn}} <!-- Check if user is logged in -->
+            {{if .UserTopics}} <!-- Check if the user has topics -->
+            <ul>
+                {{range .UserTopics}} <!-- Correctly iterating over UserTopics -->
+                <li class="topic">
+                    <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
+                </li>
+                {{end}}
+            </ul>
+            {{else}}
+            <p>You have no topics created yet.</p>
+            {{end}}
+            {{else}}
+            <p>You need to <a href="/login">login</a> to see your topics.</p>
+            {{end}}
         </div>
     </div>
+
     <div class="search-wrapper">
         <div class="search-field">
             <input type="text" id="topic-search" class="search-input" placeholder="Search by topic title...">
@@ -82,8 +85,7 @@
     </div>
 
     <ul>
-        {{range $index, $topic := .}}
-        {{if ge $index 3}} <!-- Отображаем остальные темы -->
+        {{range $topic := .Topics}} <!-- Displaying remaining topics -->
         <li class="topic">
             <div class="user-info">
                 <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
@@ -93,7 +95,7 @@
             <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
             <span class="responses">Responses: {{$topic.ResponseCount}}</span>
         </li>
-        {{end}}
+
         {{end}}
     </ul>
 </div>
