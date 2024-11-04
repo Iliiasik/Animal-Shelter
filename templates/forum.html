@@ -18,9 +18,7 @@
     </div>
 </nav>
 
-<!-- Контейнер для всего контента под navbar -->
 <div class="content-wrapper">
-    <!-- Приветствие с изображением и текстом в рамке -->
     <div class="welcome-wrapper">
         <div class="welcome-message">
             <img src="system_images/forum welcome cat.jpeg" alt="Welcome Image" class="welcome-image">
@@ -40,7 +38,7 @@
         <div class="hot-discussion">
             <h2>Hottest Discussions</h2>
             <ul>
-                {{range $index, $topic := .HottestTopics}} <!-- Используйте .HottestTopics -->
+                {{range $index, $topic := .HottestTopics}}
                 <li class="topic">
                     <div class="user-info">
                         <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
@@ -55,13 +53,12 @@
             </ul>
         </div>
 
-
         <div class="now-discuss">
             <h2>Your Topics</h2>
-            {{if .UserLoggedIn}} <!-- Check if user is logged in -->
-            {{if .UserTopics}} <!-- Check if the user has topics -->
+            {{if .UserLoggedIn}}
+            {{if .UserTopics}}
             <ul>
-                {{range .UserTopics}} <!-- Correctly iterating over UserTopics -->
+                {{range .UserTopics}}
                 <li class="topic">
                     <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
                 </li>
@@ -85,7 +82,7 @@
     </div>
 
     <ul>
-        {{range $topic := .Topics}} <!-- Displaying remaining topics -->
+        {{range $topic := .Topics}}
         <li class="topic">
             <div class="user-info">
                 <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
@@ -95,24 +92,29 @@
             <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
             <span class="responses">Responses: {{$topic.ResponseCount}}</span>
         </li>
-
         {{end}}
     </ul>
+    <div class="pagination">
+        {{- range .Pages -}}
+        {{- if eq . "..." -}}
+        <span>...</span>
+        {{- else -}}
+        <a href="?page={{ . }}">{{ . }}</a>
+        {{- end -}}
+        {{- end -}}
+
+    </div>
 </div>
 
 </body>
 <script>
     const titleInput = document.getElementById('topic-search');
-    // Функция поиска топиков по названию
     function searchTopics() {
         const title = titleInput.value;
         const url = new URL(window.location.href);
-
-        // Добавляем или удаляем параметр поиска
         if (title) url.searchParams.set('title', title);
         else url.searchParams.delete('title');
-
-        window.location.href = url.toString(); // Перенаправляем на новый URL
+        window.location.href = url.toString();
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -128,7 +130,7 @@
                 navbar.classList.remove('nav-hidden');
             }
 
-            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
         });
     });
 </script>

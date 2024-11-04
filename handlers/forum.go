@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -11,20 +12,24 @@ import (
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/new_topic.html", "templates/topic.html"))
 
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Получаем параметр поиска из запроса
+	// Получаем параметры из запроса
 	title := r.URL.Query().Get("title")
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil {
+			page = p
+		}
+	}
+
+	const topicsPerPage = 8
+	offset := (page - 1) * topicsPerPage
+
+	// Получаем ID пользователя из cookie, если он авторизован
 	cookie, err := r.Cookie("session")
 	var userID int
 	var userLoggedIn bool
-	var userTopics []struct {
-		ID            int
-		Title         string
-		Username      string
-		ProfileImage  string
-		ResponseCount int
-		CreatedAt     string
-	}
-	var hottestTopics []struct {
+	var userTopics, hottestTopics []struct {
 		ID            int
 		Title         string
 		Username      string
@@ -41,16 +46,16 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Получаем темы, созданные пользователем
+		// Запрос для тем пользователя
 		userQuery := `
-        SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-               TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-        FROM topics t
-        LEFT JOIN users u ON t.user_id = u.id
-        LEFT JOIN posts p ON t.id = p.topic_id
-        WHERE t.user_id = $1
-        GROUP BY t.id, u.username, u.profile_image
-        ORDER BY t.created_at DESC`
+		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+		       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN posts p ON t.id = p.topic_id
+		WHERE t.user_id = $1
+		GROUP BY t.id, u.username, u.profile_image
+		ORDER BY t.created_at DESC`
 
 		rows, err := db.Query(userQuery, userID)
 		if err != nil {
@@ -76,16 +81,16 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Получаем самые горячие темы
+	// Запрос для самых популярных тем
 	hottestQuery := `
-    SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-           TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-    FROM topics t
-    LEFT JOIN users u ON t.user_id = u.id
-    LEFT JOIN posts p ON t.id = p.topic_id
-    GROUP BY t.id, u.username, u.profile_image
-    ORDER BY response_count DESC
-    LIMIT 3`
+	SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+	       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+	FROM topics t
+	LEFT JOIN users u ON t.user_id = u.id
+	LEFT JOIN posts p ON t.id = p.topic_id
+	GROUP BY t.id, u.username, u.profile_image
+	ORDER BY response_count DESC
+	LIMIT 3`
 
 	hottestRows, err := db.Query(hottestQuery)
 	if err != nil {
@@ -110,22 +115,21 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		hottestTopics = append(hottestTopics, topic)
 	}
 
-	// Основной SQL-запрос для общих тем форума
+	// Основной SQL-запрос для тем форума
 	query := `
-SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-FROM topics t
-LEFT JOIN users u ON t.user_id = u.id
-LEFT JOIN posts p ON t.id = p.topic_id
-`
+	SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+	       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+	FROM topics t
+	LEFT JOIN users u ON t.user_id = u.id
+	LEFT JOIN posts p ON t.id = p.topic_id`
 
 	var rows *sql.Rows
 	if title != "" {
-		query += `WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY RANDOM()`
-		rows, err = db.Query(query, "%"+title+"%")
+		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY t.created_at DESC LIMIT $2 OFFSET $3`
+		rows, err = db.Query(query, "%"+title+"%", topicsPerPage, offset)
 	} else {
-		query += `GROUP BY t.id, u.username, u.profile_image ORDER BY RANDOM()`
-		rows, err = db.Query(query)
+		query += ` GROUP BY t.id, u.username, u.profile_image ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
+		rows, err = db.Query(query, topicsPerPage, offset)
 	}
 
 	if err != nil {
@@ -159,6 +163,24 @@ LEFT JOIN posts p ON t.id = p.topic_id
 		topics = append(topics, topic)
 	}
 
+	// Получаем общее количество тем для пагинации
+	var totalTopics int
+	countQuery := `SELECT COUNT(*) FROM topics`
+	if title != "" {
+		countQuery += ` WHERE title ILIKE $1`
+		err = db.QueryRow(countQuery, "%"+title+"%").Scan(&totalTopics)
+	} else {
+		err = db.QueryRow(countQuery).Scan(&totalTopics)
+	}
+	if err != nil {
+		log.Printf("Error fetching total topic count: %v", err)
+		return
+	}
+
+	pageCount := int(math.Ceil(float64(totalTopics) / float64(topicsPerPage)))
+
+	// Формируем компактную пагинацию
+	pages := compactPagination(page, pageCount)
 	// Передаем данные в шаблон
 	err = forumTemplates.ExecuteTemplate(w, "forum.html", struct {
 		Topics []struct {
@@ -186,16 +208,66 @@ LEFT JOIN posts p ON t.id = p.topic_id
 			CreatedAt     string
 		}
 		UserLoggedIn bool
+		CurrentPage  int
+		TotalPages   int
+		Pages        []string
 	}{
 		Topics:        topics,
 		HottestTopics: hottestTopics,
 		UserTopics:    userTopics,
 		UserLoggedIn:  userLoggedIn,
+		CurrentPage:   page,
+		TotalPages:    pageCount,
+		Pages:         pages,
 	})
 
 	if err != nil {
 		log.Printf("Error rendering template: %v", err)
 	}
+}
+
+// compactPagination формирует список страниц в компактном виде
+func compactPagination(current, total int) []string {
+	var pages []string
+	if total <= 5 {
+		for i := 1; i <= total; i++ {
+			pages = append(pages, strconv.Itoa(i))
+		}
+		return pages
+	}
+
+	pages = append(pages, "1")
+	if current > 3 {
+		pages = append(pages, "...")
+	}
+
+	start := max(2, current-1)
+	end := min(total-1, current+1)
+
+	for i := start; i <= end; i++ {
+		pages = append(pages, strconv.Itoa(i))
+	}
+
+	if current < total-2 {
+		pages = append(pages, "...")
+	}
+	pages = append(pages, strconv.Itoa(total))
+
+	return pages
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // ShowNewTopicForm renders the form to create a new topic

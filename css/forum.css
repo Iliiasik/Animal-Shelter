@@ -180,3 +180,31 @@ h1 {
 .recent-button:hover {
     background-color: #45a049; /* Более темный зеленый при наведении */
 }
+.pagination {
+    display: flex;
+    justify-content: center; /* Центрирует элементы по горизонтали */
+    align-items: center; /* Центрирует элементы по вертикали */
+    margin: 20px 0; /* Отступы сверху и снизу */
+}
+
+.pagination a, .pagination span {
+    display: inline-block; /* Делает элементы блочными */
+    padding: 10px 15px; /* Внутренние отступы для кнопок */
+    margin: 0 5px; /* Отступы между кнопками */
+    border-radius: 5px; /* Скругленные углы */
+    background-color: #007bff; /* Цвет фона кнопок */
+    color: white; /* Цвет текста */
+    text-decoration: none; /* Убирает подчеркивание */
+    transition: background-color 0.3s; /* Плавный переход цвета фона */
+}
+
+.pagination a:hover {
+    background-color: #0056b3; /* Цвет фона при наведении */
+}
+
+.pagination span {
+    background-color: transparent; /* Прозрачный фон для разделителей */
+    color: #333; /* Цвет текста для разделителей */
+}
+
+
