@@ -8,14 +8,19 @@ const closeModal = document.querySelector('.close');
 const cropButton = document.getElementById('cropButton');
 const editCropButton = document.getElementById('editCropButton');
 const customBgButton = document.getElementById('customBgButton')
+//иконка профиля
 let uploadedImageURL = '';
 let originalImageFile = null; // Хранение исходного изображения
+const removeProfileImageButton = document.getElementById('removeProfileImage');
 //фон профиля
 const uploadBg =document.getElementById('uploadBg')
-let uploadedBgImageURL = '';
 let originalBgImageFile = null; // Хранение исходного изображения
+const removeBgButton = document.getElementById('removeBg');
 
-// Обработка клика по кастомной кнопке загрузки
+let removeProfileImageFlag = false; // Флаг для удаления изображения профиля
+let removeBackgroundFlag = false;   // Флаг для удаления фонового изображения
+
+// Обработка клика по кастомной кнопке загрузки иконки
 customUploadButton.addEventListener('click', function () {
     uploadImage.click(); // Триггерим клик на скрытом input для загрузки изображения
 });
@@ -23,7 +28,7 @@ cropButton.addEventListener('click', function () {
     cropModal.style.display = 'none'; // Закрываем модальное окно
 });
 
-// Обработка загрузки изображения
+// Обработка загрузки иконки
 uploadImage.addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (file) {
@@ -36,6 +41,7 @@ uploadImage.addEventListener('change', function (e) {
         reader.readAsDataURL(file);
     }
 });
+
 // Обработчик клика на кнопке редактирования фонового изображения
 customBgButton.addEventListener('click', function () {
     uploadBg.click(); // Триггерим клик на скрытом input для загрузки фона
@@ -52,6 +58,20 @@ uploadBg.addEventListener('change', function (e) {
         };
         reader.readAsDataURL(file);
     }
+});
+// Обработка удаления изображения профиля
+removeProfileImageButton.addEventListener('click', function () {
+    profileImage.src = "system_images/default_profile.jpg"; // Устанавливаем изображение по умолчанию
+    originalImageFile = null;
+    removeProfileImageFlag = true; // Устанавливаем флаг для удаления изображения
+    console.log('removeProfileImageFlag set to true');
+});
+// Обработка удаления фонового изображения
+removeBgButton.addEventListener('click', function () {
+    document.querySelector('.profile-background').style.backgroundImage = "url('system_images/default_bg.jpg')";
+    originalBgImageFile = null;
+    removeBackgroundFlag = true; // Устанавливаем флаг для удаления фона
+    console.log('removeBackgroundFlag set to true');
 });
 // Открываем модальное окно обрезки по нажатию кнопки "Edit / Crop Image"
 editCropButton.addEventListener('click', function () {
@@ -76,13 +96,42 @@ editCropButton.addEventListener('click', function () {
     }
 });
 
-closeModal.addEventListener('click', function () {
-    cropModal.style.display = 'none'; // Закрываем модальное окно
+// Сохраняем обрезанное изображение при нажатии на кнопку "Crop & Save"
+cropButton.addEventListener('click', function () {
+    if (cropper) {
+        const croppedCanvas = cropper.getCroppedCanvas();
+        const croppedImageDataUrl = croppedCanvas.toDataURL(); // Получаем URL обрезанного изображения
+
+        // Обновляем иконку профиля новым обрезанным изображением
+        profileImage.src = croppedImageDataUrl;
+        // Сохраняем или отправляем обрезанное изображение на сервер
+        console.log('Cropped Image Data URL:', croppedImageDataUrl);
+        cropModal.style.display = 'none';
+    }
 });
 
+// Закрытие модального окна только при нажатии на крестик
+closeModal.addEventListener('click', function () {
+    cropModal.style.display = 'none'; // Закрываем модальное окно
+
+    // Уничтожаем cropper и сбрасываем состояние
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+});
+window.addEventListener('click', function (e) {
+    if (e.target === cropModal) {
+        cropModal.style.display = 'none';
+        if (cropper) {
+            cropper.destroy(); // Уничтожаем экземпляр cropper, отменяя все изменения
+            cropper = null;
+        }
+    }
+});
 // Обработчик для отправки данных профиля
 document.querySelector('.button-save').addEventListener('click', function (e) {
-    e.preventDefault(); // Предотвращаем отправку формы
+    e.preventDefault();
 
     const formData = new FormData();
     formData.append('firstName', document.getElementById('firstName').value);
@@ -91,31 +140,37 @@ document.querySelector('.button-save').addEventListener('click', function (e) {
     formData.append('phone', document.getElementById('phone').value);
     formData.append('dob', document.getElementById('dob').value);
 
-    // Добавляем фоновое изображение, если оно загружено
+    // Обработка фонового изображения
     if (originalBgImageFile) {
         formData.append('backgroundImage', originalBgImageFile, originalBgImageFile.name);
-        console.log('Background image added to FormData:', originalBgImageFile.name); // Логирование добавления
-    } else {
-        console.log('No background image uploaded.'); // Логирование, если изображение не загружено
+    } else if (removeBackgroundFlag) {
+        formData.append('removeBackgroundImage', 'true');
     }
 
-    // Проверка, был ли создан cropper (значит, пользователь редактировал изображение профиля)
+    // Обработка изображения профиля
     if (cropper) {
         cropper.getCroppedCanvas().toBlob(function (blob) {
             formData.append('croppedImage', blob, originalImageFile ? originalImageFile.name : 'cropped_image.jpg');
+            if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
             sendProfileData(formData);
         }, 'image/jpeg');
     } else if (originalImageFile) {
         formData.append('croppedImage', originalImageFile, originalImageFile.name);
+        if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
         sendProfileData(formData);
     } else {
-        sendProfileData(formData); // Если ничего не загружено
+        if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
+        sendProfileData(formData);
     }
 });
 
-
-// Функция отправки данных
+// Функция отправки данных FormData`  и логирование перед отправкой
 function sendProfileData(formData) {
+    console.log('FormData being sent:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+
     fetch('/save-profile', {
         method: 'POST',
         body: formData
@@ -124,20 +179,21 @@ function sendProfileData(formData) {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json(); // Парсить JSON ответ
+            return response.json();
         })
         .then(data => {
             if (data.success) {
-                window.location.href = '/profile'; // Перенаправляем пользователя на страницу профиля
+                window.location.href = '/profile';
             } else {
-                alert('Error saving profile'); // Если успеха нет, показываем сообщение
+                alert('Error saving profile');
             }
         })
         .catch(error => {
-            console.error('Error:', error); // Логирование ошибок
-            alert('There was an error with your request. Please try again.'); // Сообщение об ошибке
+            console.error('Error:', error);
+            alert('There was an error with your request. Please try again.');
         });
 }
+
 document.addEventListener("DOMContentLoaded", function() {
     const phoneNumberInput = document.getElementById('phone');
 
@@ -191,9 +247,3 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-// Закрытие модального окна при клике вне его
-window.addEventListener('click', function (e) {
-    if (e.target === cropModal) {
-        cropModal.style.display = 'none';
-    }
-});
