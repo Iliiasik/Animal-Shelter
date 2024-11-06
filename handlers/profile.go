@@ -108,6 +108,16 @@ func EditProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Преобразование строки даты в формат yyyy-MM-dd
+	if user.DateOfBirth != "" {
+		parsedDate, err := time.Parse("2006-01-02T15:04:05Z", user.DateOfBirth)
+		if err == nil {
+			user.DateOfBirth = parsedDate.Format("2006-01-02") // Преобразуем в формат yyyy-MM-dd
+		} else {
+			log.Printf("Error parsing date of birth: %v", err)
+		}
+	}
+
 	// Логируем URL фонового изображения
 	log.Printf("Profile background image URL: %s", user.ProfileBgImage)
 

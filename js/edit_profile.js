@@ -247,3 +247,19 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+document.addEventListener("DOMContentLoaded", function() {
+    const dobInput = document.getElementById('dob');
+
+    // Устанавливаем минимальную и максимальную дату
+    const today = new Date();
+    const minDate = new Date('1900-01-01');
+    const maxDate = today;
+
+    // Преобразуем даты в формат YYYY-MM-DD
+    const minDateString = minDate.toISOString().split('T')[0];
+    const maxDateString = maxDate.toISOString().split('T')[0];
+
+    // Применяем ограничения
+    dobInput.setAttribute('min', minDateString);
+    dobInput.setAttribute('max', maxDateString);
+});
