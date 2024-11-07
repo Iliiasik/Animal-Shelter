@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -22,7 +24,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	const topicsPerPage = 8
+	const topicsPerPage = 16
 	offset := (page - 1) * topicsPerPage
 
 	// Получаем ID пользователя из cookie, если он авторизован
@@ -125,10 +127,10 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	var rows *sql.Rows
 	if title != "" {
-		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY t.created_at DESC LIMIT $2 OFFSET $3`
+		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $2 OFFSET $3`
 		rows, err = db.Query(query, "%"+title+"%", topicsPerPage, offset)
 	} else {
-		query += ` GROUP BY t.id, u.username, u.profile_image ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
+		query += ` GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $1 OFFSET $2`
 		rows, err = db.Query(query, topicsPerPage, offset)
 	}
 
@@ -180,7 +182,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	pageCount := int(math.Ceil(float64(totalTopics) / float64(topicsPerPage)))
 
 	// Формируем компактную пагинацию
-	pages := compactPagination(page, pageCount)
+	pages := compactPagination(page, pageCount, title)
 	// Передаем данные в шаблон
 	err = forumTemplates.ExecuteTemplate(w, "forum.html", struct {
 		Topics []struct {
@@ -227,31 +229,51 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 // compactPagination формирует список страниц в компактном виде
-func compactPagination(current, total int) []string {
+func compactPagination(current, total int, title string) []string {
 	var pages []string
+
+	// Функция для добавления номера страницы с учётом title
+	addPageLink := func(page int) string {
+		if title != "" {
+			// Добавляем параметр title в URL
+			return fmt.Sprintf("/forum?page=%d&title=%s", page, url.QueryEscape(title))
+		}
+		// Без параметра title
+		return fmt.Sprintf("/forum?page=%d", page)
+	}
+
+	// Если всего страниц 5 или меньше, выводим все страницы
 	if total <= 5 {
 		for i := 1; i <= total; i++ {
-			pages = append(pages, strconv.Itoa(i))
+			pages = append(pages, addPageLink(i))
 		}
 		return pages
 	}
 
-	pages = append(pages, "1")
+	// Добавляем первую страницу
+	pages = append(pages, addPageLink(1))
+
+	// Если текущая страница больше 3, добавляем троеточие
 	if current > 3 {
 		pages = append(pages, "...")
 	}
 
+	// Определяем диапазон для отображения номеров страниц вокруг текущей
 	start := max(2, current-1)
 	end := min(total-1, current+1)
 
+	// Добавляем страницы в диапазоне от start до end
 	for i := start; i <= end; i++ {
-		pages = append(pages, strconv.Itoa(i))
+		pages = append(pages, addPageLink(i))
 	}
 
+	// Если текущая страница меньше чем total-2, добавляем троеточие
 	if current < total-2 {
 		pages = append(pages, "...")
 	}
-	pages = append(pages, strconv.Itoa(total))
+
+	// Добавляем последнюю страницу
+	pages = append(pages, addPageLink(total))
 
 	return pages
 }

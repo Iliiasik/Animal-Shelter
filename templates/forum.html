@@ -73,7 +73,7 @@
         </div>
     </div>
 
-    <div class="search-wrapper">
+    <div class="search-wrapper" id="search-section">
         <div class="search-field">
             <input type="text" id="topic-search" class="search-input" placeholder="Search by topic title...">
             <button class="search-button" onclick="searchTopics()">Search</button>
@@ -81,6 +81,13 @@
         </div>
     </div>
 
+    {{if eq (len .Topics) 0}}
+    <div class="no-results">
+        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-results-image">
+        <p class="no-results-text">Um, sorry, I didn't find anything :(</p>
+        <p class="no-results-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar)</p>
+    </div>
+    {{else}}
     <ul>
         {{range $topic := .Topics}}
         <li class="topic">
@@ -94,16 +101,20 @@
         </li>
         {{end}}
     </ul>
+    {{end}}
+
     <div class="pagination">
         {{- range .Pages -}}
         {{- if eq . "..." -}}
         <span>...</span>
         {{- else -}}
-        <a href="?page={{ . }}">{{ . }}</a>
+        <a href="{{.}}#search-section" class="page-number">{{.}}</a>
         {{- end -}}
         {{- end -}}
-
     </div>
+
+
+
 </div>
 
 </body>

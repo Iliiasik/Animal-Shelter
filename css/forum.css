@@ -184,27 +184,39 @@ h1 {
     display: flex;
     justify-content: center; /* Центрирует элементы по горизонтали */
     align-items: center; /* Центрирует элементы по вертикали */
-    margin: 20px 0; /* Отступы сверху и снизу */
+    margin: 15px 0; /* Отступы сверху и снизу */
 }
 
 .pagination a, .pagination span {
     display: inline-block; /* Делает элементы блочными */
-    padding: 10px 15px; /* Внутренние отступы для кнопок */
-    margin: 0 5px; /* Отступы между кнопками */
-    border-radius: 5px; /* Скругленные углы */
-    background-color: #007bff; /* Цвет фона кнопок */
-    color: white; /* Цвет текста */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    margin: 0 4px; /* Отступы между кнопками */
+    border-radius: 8em; /* Уменьшенные скругленные углы */
+    font-size: 14px; /* Уменьшенный размер текста */
+    font-weight: 700; /* Более жирный текст */
+    color: black; /* Цвет текста */
     text-decoration: none; /* Убирает подчеркивание */
-    transition: background-color 0.3s; /* Плавный переход цвета фона */
+    background-color: white; /* Цвет фона */
+    border: 2px solid black; /* Жирная граница */
+    box-shadow: 0 0 0 0 black; /* Тень */
+    transition: all 0.3s ease-in-out; /* Плавный переход */
 }
 
 .pagination a:hover {
-    background-color: #0056b3; /* Цвет фона при наведении */
+    transform: translateY(-3px) translateX(-1px); /* Эффект при наведении */
+    box-shadow: 2px 5px 0 0 black; /* Тень при наведении */
+}
+
+.pagination a:active {
+    transform: translateY(1px) translateX(0px); /* Эффект при нажатии */
+    box-shadow: 0 0 0 0 black; /* Убирает тень при нажатии */
 }
 
 .pagination span {
     background-color: transparent; /* Прозрачный фон для разделителей */
     color: #333; /* Цвет текста для разделителей */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    font-size: 14px; /* Уменьшенный размер текста для разделителей */
+    font-weight: 700; /* Более жирный текст для разделителей */
 }
-
 
