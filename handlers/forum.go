@@ -212,7 +212,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		UserLoggedIn bool
 		CurrentPage  int
 		TotalPages   int
-		Pages        []string
+		Pages        []PageLink
 	}{
 		Topics:        topics,
 		HottestTopics: hottestTopics,
@@ -229,51 +229,55 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 // compactPagination формирует список страниц в компактном виде
-func compactPagination(current, total int, title string) []string {
-	var pages []string
+type PageLink struct {
+	URL      string
+	Number   string // текст для отображения на ссылке
+	IsActive bool   // true для текущей страницы
+}
 
-	// Функция для добавления номера страницы с учётом title
-	addPageLink := func(page int) string {
+func compactPagination(current, total int, title string) []PageLink {
+	var pages []PageLink
+
+	addPageLink := func(page int, isActive bool) PageLink {
+		urlString := fmt.Sprintf("/forum?page=%d", page) // Используем urlString, чтобы избежать конфликта с пакетом
 		if title != "" {
-			// Добавляем параметр title в URL
-			return fmt.Sprintf("/forum?page=%d&title=%s", page, url.QueryEscape(title))
+			// Используем правильный пакет для функции QueryEscape
+			urlString += fmt.Sprintf("&title=%s", url.QueryEscape(title))
 		}
-		// Без параметра title
-		return fmt.Sprintf("/forum?page=%d", page)
+		return PageLink{URL: urlString, Number: strconv.Itoa(page), IsActive: isActive}
 	}
 
-	// Если всего страниц 5 или меньше, выводим все страницы
+	// Если страниц меньше или равно 5, добавляем все страницы
 	if total <= 5 {
 		for i := 1; i <= total; i++ {
-			pages = append(pages, addPageLink(i))
+			pages = append(pages, addPageLink(i, i == current))
 		}
 		return pages
 	}
 
 	// Добавляем первую страницу
-	pages = append(pages, addPageLink(1))
+	pages = append(pages, addPageLink(1, current == 1))
 
 	// Если текущая страница больше 3, добавляем троеточие
 	if current > 3 {
-		pages = append(pages, "...")
+		pages = append(pages, PageLink{Number: "..."})
 	}
 
-	// Определяем диапазон для отображения номеров страниц вокруг текущей
+	// Определяем диапазон страниц вокруг текущей
 	start := max(2, current-1)
 	end := min(total-1, current+1)
 
-	// Добавляем страницы в диапазоне от start до end
 	for i := start; i <= end; i++ {
-		pages = append(pages, addPageLink(i))
+		pages = append(pages, addPageLink(i, i == current))
 	}
 
-	// Если текущая страница меньше чем total-2, добавляем троеточие
+	// Если текущая страница меньше, чем total-2, добавляем троеточие
 	if current < total-2 {
-		pages = append(pages, "...")
+		pages = append(pages, PageLink{Number: "..."})
 	}
 
 	// Добавляем последнюю страницу
-	pages = append(pages, addPageLink(total))
+	pages = append(pages, addPageLink(total, current == total))
 
 	return pages
 }

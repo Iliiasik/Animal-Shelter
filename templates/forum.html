@@ -105,13 +105,17 @@
 
     <div class="pagination">
         {{- range .Pages -}}
-        {{- if eq . "..." -}}
-        <span>...</span>
+        {{- if eq .Number "..." -}}
+        <img src="system_images/paw for pages.png" alt="..." class="pagination-icon">
         {{- else -}}
-        <a href="{{.}}#search-section" class="page-number">{{.}}</a>
+        <a href="{{.URL}}#search-section" class="page-number {{if .IsActive}}active{{end}}">
+            {{.Number}}
+        </a>
         {{- end -}}
         {{- end -}}
     </div>
+
+
 
 
 
