@@ -21,14 +21,14 @@
 <div class="content-wrapper">
     <div class="welcome-wrapper">
         <div class="welcome-message">
-            <img src="system_images/forum welcome cat.jpeg" alt="Welcome Image" class="welcome-image">
+            <img src="system_images/welcome cats.jpeg" alt="Welcome Image" class="welcome-image">
             <div class="welcome-text">
                 <h1>Welcome to the Forum!</h1>
                 <p>Feel free to explore and participate in our discussions.</p>
             </div>
         </div>
     </div>
-
+    <div class="content-with-border">
     <h1>Forum Topics</h1>
     <div class="view-more">
         <a href="/new_topic" class="view-more-button">New Topic</a>
@@ -118,7 +118,7 @@
 
 
 
-
+</div>
 </div>
 
 </body>
@@ -127,10 +127,21 @@
     function searchTopics() {
         const title = titleInput.value;
         const url = new URL(window.location.href);
-        if (title) url.searchParams.set('title', title);
-        else url.searchParams.delete('title');
+
+        // Set search title if exists, otherwise delete it
+        if (title) {
+            url.searchParams.set('title', title);
+        } else {
+            url.searchParams.delete('title');
+        }
+
+        // Always reset page to 1 on search
+        url.searchParams.set('page', '1');
+
+        // Redirect to the modified URL
         window.location.href = url.toString();
     }
+
 
     document.addEventListener("DOMContentLoaded", function() {
         const navbar = document.querySelector('nav');

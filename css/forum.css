@@ -1,10 +1,18 @@
 /* Контент под навбаром */
+body {
+    background-color: #F6F5F1; /* Example background color */
+}
 .content-wrapper {
     margin: 80px auto 0;
     width: 80%;
-
+    background-color: #F6F5F1;
 }
-
+.content-wrapper .content-with-border {
+    padding: 20px; /* Optional: adds padding inside the border */
+    border: 2px solid #F1F0EA; /* The big border around all content */
+    border-radius: 15px; /* Rounded corners */
+    background-color: #FAFAF8;
+}
 .welcome-wrapper {
     display: flex;
     justify-content: center;
@@ -12,11 +20,14 @@
     gap: 30px;
     margin: 20px auto;
 }
+.welcome-wrapper p {
+    font-weight: bold;
+}
 
 .welcome-message {
     text-align: center;
     margin: 0 auto;
-    border: 5px solid #333;
+
     border-radius: 10px;
     width: 100%;
     max-width: 800px;
@@ -39,8 +50,16 @@
     transform: translate(-50%, -50%);
     color: #ffffff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    background-color: rgba(24, 24, 24, 0.5); /* Полупрозрачный фон для текста */
     z-index: 1;
+
+    /* Увеличиваем рамку вокруг текста */
+    padding: 15px; /* Добавляет отступы внутри рамки */
+
+    /* Скругляем углы */
+    border-radius: 15px; /* Увеличьте это значение для более округлых углов */
 }
+
 
 /* Форум стили */
 h1 {
@@ -232,4 +251,8 @@ h1 {
     height: 18px; /* Можно также задать высоту */
     object-fit: contain; /* Чтобы изображение не растягивалось */
     margin: 0 4px; /* Отступы, если нужно */
+}
+.no-results {
+    margin-top: 20px; /* Adds space between the search field and no results message */
+    text-align: center;
 }
