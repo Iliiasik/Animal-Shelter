@@ -31,6 +31,23 @@ body {
     background-color: #000;
     color: #eee;
 }
+.remove-bg-button {
+    float: right;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 240px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #fdc6c6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.remove-bg-button:hover {
+    background-color: #ff0000;
+    color: #eee;
+}
 /*Конец стилей изменения профиля*/
 
 /*начало стиля кнопок изменения профиля*/
@@ -67,6 +84,23 @@ body {
     background-color: #000;
     color: #eee;
 }
+.remove-profile-button {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.remove-profile-button:hover {
+    background-color: #ff0000;
+    color: #eee;
+}
+
 /* конец стиля кнопок изменения профиля */
 
 .profile-image-functions {
@@ -138,32 +172,69 @@ label {
 .modal-content {
     position: relative;
     background-color: #fff;
-    margin: 10% auto;
     padding: 20px;
     border-radius: 5px;
     width: 80%;
     max-width: 800px;
+    max-height: 90vh; /* Ограничение по высоте экрана */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
-
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
-.cropper-container.cropper-bg{
-    height: 700px;
 
-}
 .close {
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
 }
-
 .crop-container {
-    max-width: 100%;
-    height: auto;
+    width: 100%;
+    flex: 1; /* Заполнить оставшееся пространство контейнера */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background-color: #f1f1f1;
 }
+.cropper-container.cropper-bg {
+
+    position: relative;
+    overflow: hidden; /* Чтобы изображение не выходило за пределы */
+    margin-bottom: 10px;
+    background-color: #f1f1f1; /* Цвет фона */
+    background-position: center center;
+    background-size: cover; /* Заполнение контейнера изображением */
+}
+#cropImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Сохранение пропорций изображения */
+    position: relative; /* Изображение остаётся внутри контейнера */
+}
+
+/* Рамка для области обрезки */
+.cropper-crop-box {
+    width: 60%; /* Примерный размер области обрезки */
+    height: 60%; /* Примерный размер области обрезки */
+    border: 2px dashed #00f;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Конец стиля для модального окна */
 
 .button-save {
     width: 50%;
@@ -179,9 +250,10 @@ label {
 }
 
 .button-save:hover {
-    background-color: #000;
-    color: #eee;
+    background-color: #00ff17;
+    color: #ffffff;
 }
+
 .button-cancel {
     font-size: 0.9rem;
     font-weight: 600;
@@ -198,8 +270,6 @@ label {
     background-color: #ff0000;
     color: #eee;
 }
-/* Конец стиля для модального окна */
-
 input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
     width: 100%;
     padding: 10px;
