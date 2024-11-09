@@ -136,7 +136,7 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		imagePath = "" // Если изображение не загружено
+		imagePath = "system_images/default_profile.jpg" // Если изображение не загружено
 	}
 
 	// Генерируем токен подтверждения email
