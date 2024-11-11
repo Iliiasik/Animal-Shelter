@@ -265,3 +265,6 @@ func fetchAnimalInformation(db *sql.DB, animalID int) (AnimalWithImages, error) 
 
 	return animal, nil
 }
+func TermsOfServicePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "templates/user_agreement.html")
+}

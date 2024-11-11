@@ -1,10 +1,21 @@
 /* Контент под навбаром */
+body {
+    background-color: #F6F5F1; /* Example background color */
+}
 .content-wrapper {
     margin: 80px auto 0;
-    width: 80%;
-
+    width: 85%;
+    background-color: #F6F5F1;
 }
-
+.content-wrapper .content-with-border {
+    padding: 20px; /* Optional: adds padding inside the border */
+    border: 2px solid #F1F0EA; /* The big border around all content */
+    border-radius: 15px; /* Rounded corners */
+    background-color: #FAFAF8;
+}
+.content-with-border {
+    margin-bottom: 30px;
+}
 .welcome-wrapper {
     display: flex;
     justify-content: center;
@@ -12,11 +23,14 @@
     gap: 30px;
     margin: 20px auto;
 }
+.welcome-wrapper p {
+    font-weight: bold;
+}
 
 .welcome-message {
     text-align: center;
     margin: 0 auto;
-    border: 5px solid #333;
+
     border-radius: 10px;
     width: 100%;
     max-width: 800px;
@@ -39,8 +53,16 @@
     transform: translate(-50%, -50%);
     color: #ffffff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    background-color: rgba(24, 24, 24, 0.5); /* Полупрозрачный фон для текста */
     z-index: 1;
+
+    /* Увеличиваем рамку вокруг текста */
+    padding: 15px; /* Добавляет отступы внутри рамки */
+
+    /* Скругляем углы */
+    border-radius: 15px; /* Увеличьте это значение для более округлых углов */
 }
+
 
 /* Форум стили */
 h1 {
@@ -66,7 +88,7 @@ h1 {
 }
 
 .topic:hover {
-    transform: scale(1.05); /* Увеличение размера блока при наведении */
+    transform: scale(1.03); /* Увеличение размера блока при наведении */
 }
 
 .user-info {
@@ -135,30 +157,25 @@ h1 {
 }
 
 .hot-discussion h2 {
+    margin-bottom: 10px;
     text-align: center;
 }
 
-.now-discuss {
+.your-topics {
     width: 38%; /* Ширина для Now Discuss (меньшая часть) */
     border: 2px solid #a8a7a7;
     border-radius: 10px;
     background-color: #f9f9f9;
     padding: 15px;
+    height: 300px; /* Устанавливаем фиксированную высоту */
+    overflow-y: auto; /* Включаем вертикальный скролл */
 }
 
-.now-discuss h2 {
+
+.your-topics h2 {
     text-align: center;
 }
-
-.topic-demo {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #fff;
-}
-
-.now-discuss p {
+.your-topics p {
     margin-top: 10px;
     font-size: 0.9em; /* Уменьшение размера текста для демонстрационного контента */
 }
@@ -184,27 +201,168 @@ h1 {
     display: flex;
     justify-content: center; /* Центрирует элементы по горизонтали */
     align-items: center; /* Центрирует элементы по вертикали */
-    margin: 20px 0; /* Отступы сверху и снизу */
+    margin: 15px 0; /* Отступы сверху и снизу */
 }
 
 .pagination a, .pagination span {
     display: inline-block; /* Делает элементы блочными */
-    padding: 10px 15px; /* Внутренние отступы для кнопок */
-    margin: 0 5px; /* Отступы между кнопками */
-    border-radius: 5px; /* Скругленные углы */
-    background-color: #007bff; /* Цвет фона кнопок */
-    color: white; /* Цвет текста */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    margin: 0 4px; /* Отступы между кнопками */
+    border-radius: 8em; /* Уменьшенные скругленные углы */
+    font-size: 14px; /* Уменьшенный размер текста */
+    font-weight: 700; /* Более жирный текст */
+    color: black; /* Цвет текста */
     text-decoration: none; /* Убирает подчеркивание */
-    transition: background-color 0.3s; /* Плавный переход цвета фона */
+    background-color: white; /* Цвет фона */
+    border: 2px solid black; /* Жирная граница */
+    box-shadow: 0 0 0 0 black; /* Тень */
+    transition: all 0.3s ease-in-out; /* Плавный переход */
 }
 
 .pagination a:hover {
-    background-color: #0056b3; /* Цвет фона при наведении */
+    transform: translateY(-3px) translateX(-1px); /* Эффект при наведении */
+    box-shadow: 2px 5px 0 0 black; /* Тень при наведении */
+}
+
+.pagination a:active {
+    transform: translateY(1px) translateX(0px); /* Эффект при нажатии */
+    box-shadow: 0 0 0 0 black; /* Убирает тень при нажатии */
 }
 
 .pagination span {
     background-color: transparent; /* Прозрачный фон для разделителей */
     color: #333; /* Цвет текста для разделителей */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    font-size: 14px; /* Уменьшенный размер текста для разделителей */
+    font-weight: 700; /* Более жирный текст для разделителей */
+}
+.pagination .page-number.active {
+    font-weight: bold;
+    color: #ffffff;
+    background-color: rgb(9, 9, 9);
+}
+.pagination-icon {
+    width: 18px; /* Задайте нужный размер */
+    height: 18px; /* Можно также задать высоту */
+    object-fit: contain; /* Чтобы изображение не растягивалось */
+    margin: 0 4px; /* Отступы, если нужно */
+}
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
 }
 
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
+}
+
+.your-topics .user-profile {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+    height: 200px; /* Высота фона */
+    border-radius: 8px;
+    border: 2px solid #a8a7a7;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    padding: 20px;
+}
+
+.your-topics .profile-inner {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.4); /* Легкий белый фон с уменьшенной прозрачностью */
+    padding: 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px); /* Эффект размытия */
+    -webkit-backdrop-filter: blur(8px); /* Поддержка для Safari */
+}
+
+
+.your-topics .profile-image {
+    width: 70px; /* Увеличен размер иконки */
+    height: 70px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.your-topics .user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.your-topics .username {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.your-topics .topic-count {
+    font-size: 1em;
+    color: #000000;
+    margin-top: 5px; /* Немного отступа для лучшей читаемости */
+}
+.icon {
+    height: 1.7em;
+    width: auto;
+    position: absolute; /* добавлено для корректного поведения */
+    transition: opacity 0.3s ease; /* добавлен переход для плавного исчезновения */
+}
+
+.BtnH {
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.4s, border-radius 0.4s; /* можно объединить transition */
+    cursor: pointer;
+    background-color: rgb(31, 31, 31);
+    overflow: hidden;
+    position: absolute; /* изменено на absolute для позиционирования */
+    top: 2.5%; /* расстояние от верхнего края контейнера в процентах */
+    right: 5%; /* расстояние от правого края контейнера в процентах */
+}
+
+.BtnH:hover {
+    width: 90px;
+    border-radius: 30px;
+}
+
+.BtnH:hover .icon {
+    opacity: 0; /* при наведении на кнопку картинка исчезает */
+}
+
+.BtnH:hover .text {
+    opacity: 1;
+}
+
+.BtnH text {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    width: 90px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.4s ease; /* добавлен переход для текста */
+}
 
