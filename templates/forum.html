@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/animal_list.css">
     <link rel="stylesheet" href="/css/forum.css">
+    <link rel="stylesheet" href="/css/footer.css">
     <title>Forum</title>
 </head>
 <body>
@@ -52,13 +53,26 @@
                 {{end}}
             </ul>
         </div>
-
-        <div class="now-discuss">
+        <div class="your-topics">
             <h2>Your Topics</h2>
             {{if .UserLoggedIn}}
-            {{if .UserTopics}}
+            <div class="user-profile" style="background-image: url('{{.User.BgImage}}');">
+                <button class="BtnH" onclick="window.location.href='/profile';">
+                    <img src="system_images/profile forum.png" alt="Profile button" class="icon">
+                    <span class="text">Profile</span>
+                </button>
+
+                <div class="profile-inner">
+                    <img src="{{.User.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                    <div class="username-info">
+                        <div class="username">{{.User.Username}}</div>
+                        <div class="topic-count">Total topics: {{len .User.Topics}}</div>
+                    </div>
+                </div>
+            </div>
+            {{if .User.Topics}}
             <ul>
-                {{range .UserTopics}}
+                {{range .User.Topics}}
                 <li class="topic">
                     <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
                 </li>
@@ -71,6 +85,7 @@
             <p>You need to <a href="/login">login</a> to see your topics.</p>
             {{end}}
         </div>
+
     </div>
 
     <div class="search-wrapper" id="search-section">
@@ -80,12 +95,12 @@
             <button class="search-button recent-button">Recent</button>
         </div>
     </div>
-
     {{if eq (len .Topics) 0}}
-    <div class="no-results">
-        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-results-image">
-        <p class="no-results-text">Um, sorry, I didn't find anything :(</p>
-        <p class="no-results-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar)</p>
+    <div class="no-result">
+        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-result-image">
+        <p class="no-result-text">Um, sorry, I didn't find anything :(</p>
+        <p class="no-result-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar.
+            Yes, he works two jobs)</p>
     </div>
     {{else}}
     <ul>
@@ -120,6 +135,48 @@
 
 </div>
 </div>
+<!-- Site footer -->
+<footer class="site-footer">
+    <div class="footer-links-container">
+        <div class="footer-links">
+            <h6>About</h6>
+            <p>We are a non-profit organization dedicated to animal rescue and adoption.</p>
+        </div>
+        <div class="footer-links">
+            <h6>Categories</h6>
+            <ul>
+                <li><a href="/animal_list?species=1">Dogs</a></li>
+                <li><a href="/animal_list?species=2">Cats</a></li>
+                <li><a href="/animal_list?species=3">Birds</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <h6>Quick Links</h6>
+            <ul>
+                <li><a href="/register">Register</a></li>
+                <li><a href="#">Adopt</a></li>
+                <li><a href="/forum">Forum</a></li>
+                <li><a href="/terms-of-service">User Agreement</a></li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+        <p>&copy; 2024 Animal Shelter. All rights reserved.</p>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+            <span class="text">Github</span>
+        </button>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M248,8C111.033,8,0,119.033,0,256s111.033,248,248,248s248-111.033,248-248S384.967,8,248,8z M362.235,153.392 L325.716,335.721c-3.948,17.96-14.463,22.394-29.329,13.953l-81.141-59.765l-39.115,37.61c-4.328,4.328-7.957,7.957-16.22,7.957l5.807-82.641 l149.494-134.93c6.537-5.809-1.467-9.071-10.122-3.262L153.299,259.185l-81.126-25.391c-17.589-5.491-17.96-17.589,3.689-26.013 L345.66,133.424C356.071,129.615,366.494,137.046,362.235,153.392z"></path>
+            </svg>
+            <span class="text">Telegram</span>
+        </button>
+
+    </div>
+</footer>
 
 </body>
 <script>

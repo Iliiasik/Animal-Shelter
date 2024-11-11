@@ -26,40 +26,56 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	const topicsPerPage = 16
 	offset := (page - 1) * topicsPerPage
-
+	type User struct {
+		ID           int
+		Username     string
+		ProfileImage string
+		BgImage      string
+		Topics       []struct {
+			ID            int
+			Title         string
+			ResponseCount int
+			CreatedAt     string
+		}
+	}
+	var (
+		user                  User
+		userLoggedIn          bool
+		hottestTopics, topics []struct {
+			ID            int
+			Title         string
+			Username      string
+			ProfileImage  string
+			ResponseCount int
+			CreatedAt     string
+		}
+	)
 	// Получаем ID пользователя из cookie, если он авторизован
 	cookie, err := r.Cookie("session")
-	var userID int
-	var userLoggedIn bool
-	var userTopics, hottestTopics []struct {
-		ID            int
-		Title         string
-		Username      string
-		ProfileImage  string
-		ResponseCount int
-		CreatedAt     string
-	}
-
 	if err == nil {
 		userLoggedIn = true
-		err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+		err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&user.ID)
 		if err != nil {
 			log.Printf("Error fetching user ID: %v", err)
 			return
 		}
 
-		// Запрос для тем пользователя
-		userQuery := `
-		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-		       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-		FROM topics t
-		LEFT JOIN users u ON t.user_id = u.id
-		LEFT JOIN posts p ON t.id = p.topic_id
-		WHERE t.user_id = $1
-		GROUP BY t.id, u.username, u.profile_image
-		ORDER BY t.created_at DESC`
+		// Запрос для получения информации о пользователе и его темах
+		err = db.QueryRow("SELECT username, profile_image, profile_bg_image FROM users WHERE id = $1", user.ID).Scan(&user.Username, &user.ProfileImage, &user.BgImage)
+		if err != nil {
+			log.Printf("Error fetching user info: %v", err)
+			return
+		}
 
-		rows, err := db.Query(userQuery, userID)
+		userQuery := `
+            SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+            FROM topics t
+            LEFT JOIN posts p ON t.id = p.topic_id
+            WHERE t.user_id = $1
+            GROUP BY t.id
+            ORDER BY t.id DESC
+        `
+		rows, err := db.Query(userQuery, user.ID)
 		if err != nil {
 			log.Printf("Error fetching user topics: %v", err)
 			return
@@ -70,30 +86,28 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			var topic struct {
 				ID            int
 				Title         string
-				Username      string
-				ProfileImage  string
 				ResponseCount int
 				CreatedAt     string
 			}
-			if err := rows.Scan(&topic.ID, &topic.Title, &topic.Username, &topic.ProfileImage, &topic.ResponseCount, &topic.CreatedAt); err != nil {
+			if err := rows.Scan(&topic.ID, &topic.Title, &topic.ResponseCount, &topic.CreatedAt); err != nil {
 				log.Printf("Error scanning user topics: %v", err)
 				return
 			}
-			userTopics = append(userTopics, topic)
+			user.Topics = append(user.Topics, topic)
 		}
 	}
 
 	// Запрос для самых популярных тем
 	hottestQuery := `
-	SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-	       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-	FROM topics t
-	LEFT JOIN users u ON t.user_id = u.id
-	LEFT JOIN posts p ON t.id = p.topic_id
-	GROUP BY t.id, u.username, u.profile_image
-	ORDER BY response_count DESC
-	LIMIT 3`
-
+        SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+               TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+        FROM topics t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN posts p ON t.id = p.topic_id
+        GROUP BY t.id, u.username, u.profile_image
+        ORDER BY response_count DESC
+        LIMIT 3
+    `
 	hottestRows, err := db.Query(hottestQuery)
 	if err != nil {
 		log.Printf("Error fetching hottest topics: %v", err)
@@ -139,16 +153,6 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer rows.Close()
-
-	var topics []struct {
-		ID            int
-		Title         string
-		Username      string
-		ProfileImage  string
-		ResponseCount int
-		CreatedAt     string
-	}
-
 	for rows.Next() {
 		var topic struct {
 			ID            int
@@ -201,14 +205,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			ResponseCount int
 			CreatedAt     string
 		}
-		UserTopics []struct {
-			ID            int
-			Title         string
-			Username      string
-			ProfileImage  string
-			ResponseCount int
-			CreatedAt     string
-		}
+		User         User
 		UserLoggedIn bool
 		CurrentPage  int
 		TotalPages   int
@@ -216,7 +213,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}{
 		Topics:        topics,
 		HottestTopics: hottestTopics,
-		UserTopics:    userTopics,
+		User:          user,
 		UserLoggedIn:  userLoggedIn,
 		CurrentPage:   page,
 		TotalPages:    pageCount,

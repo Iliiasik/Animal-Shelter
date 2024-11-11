@@ -144,6 +144,10 @@ func main() {
 	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowTopic(sqlDB, w, r)
 	})
+	mux.HandleFunc("/terms-of-service", func(w http.ResponseWriter, r *http.Request) {
+		handlers.TermsOfServicePage(sqlDB, w, r)
+	})
+
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))

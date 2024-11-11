@@ -4,7 +4,7 @@ body {
 }
 .content-wrapper {
     margin: 80px auto 0;
-    width: 80%;
+    width: 85%;
     background-color: #F6F5F1;
 }
 .content-wrapper .content-with-border {
@@ -12,6 +12,9 @@ body {
     border: 2px solid #F1F0EA; /* The big border around all content */
     border-radius: 15px; /* Rounded corners */
     background-color: #FAFAF8;
+}
+.content-with-border {
+    margin-bottom: 30px;
 }
 .welcome-wrapper {
     display: flex;
@@ -85,7 +88,7 @@ h1 {
 }
 
 .topic:hover {
-    transform: scale(1.05); /* Увеличение размера блока при наведении */
+    transform: scale(1.03); /* Увеличение размера блока при наведении */
 }
 
 .user-info {
@@ -154,10 +157,11 @@ h1 {
 }
 
 .hot-discussion h2 {
+    margin-bottom: 10px;
     text-align: center;
 }
 
-.now-discuss {
+.your-topics {
     width: 38%; /* Ширина для Now Discuss (меньшая часть) */
     border: 2px solid #a8a7a7;
     border-radius: 10px;
@@ -168,19 +172,10 @@ h1 {
 }
 
 
-.now-discuss h2 {
+.your-topics h2 {
     text-align: center;
 }
-
-.topic-demo {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #fff;
-}
-
-.now-discuss p {
+.your-topics p {
     margin-top: 10px;
     font-size: 0.9em; /* Уменьшение размера текста для демонстрационного контента */
 }
@@ -252,7 +247,122 @@ h1 {
     object-fit: contain; /* Чтобы изображение не растягивалось */
     margin: 0 4px; /* Отступы, если нужно */
 }
-.no-results {
-    margin-top: 20px; /* Adds space between the search field and no results message */
-    text-align: center;
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
 }
+
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
+}
+
+.your-topics .user-profile {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+    height: 200px; /* Высота фона */
+    border-radius: 8px;
+    border: 2px solid #a8a7a7;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    padding: 20px;
+}
+
+.your-topics .profile-inner {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.4); /* Легкий белый фон с уменьшенной прозрачностью */
+    padding: 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px); /* Эффект размытия */
+    -webkit-backdrop-filter: blur(8px); /* Поддержка для Safari */
+}
+
+
+.your-topics .profile-image {
+    width: 70px; /* Увеличен размер иконки */
+    height: 70px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.your-topics .user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.your-topics .username {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.your-topics .topic-count {
+    font-size: 1em;
+    color: #000000;
+    margin-top: 5px; /* Немного отступа для лучшей читаемости */
+}
+.icon {
+    height: 1.7em;
+    width: auto;
+    position: absolute; /* добавлено для корректного поведения */
+    transition: opacity 0.3s ease; /* добавлен переход для плавного исчезновения */
+}
+
+.BtnH {
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.4s, border-radius 0.4s; /* можно объединить transition */
+    cursor: pointer;
+    background-color: rgb(31, 31, 31);
+    overflow: hidden;
+    position: absolute; /* изменено на absolute для позиционирования */
+    top: 2.5%; /* расстояние от верхнего края контейнера в процентах */
+    right: 5%; /* расстояние от правого края контейнера в процентах */
+}
+
+.BtnH:hover {
+    width: 90px;
+    border-radius: 30px;
+}
+
+.BtnH:hover .icon {
+    opacity: 0; /* при наведении на кнопку картинка исчезает */
+}
+
+.BtnH:hover .text {
+    opacity: 1;
+}
+
+.BtnH text {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    width: 90px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.4s ease; /* добавлен переход для текста */
+}
+
