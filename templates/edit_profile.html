@@ -82,14 +82,26 @@
 <!-- Боковая панель настроек -->
 <div id="sidebar" class="sidebar">
     <h2>Profile settings</h2>
-    <label>
+    <label class="checkbox-wrapper-31">
         <input type="checkbox" id="showEmail" name="showEmail">
-        Show Email
-    </label><br>
-    <label>
+        <svg viewBox="0 0 35.6 35.6">
+            <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+            <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+            <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+        </svg>
+        <span>Show Email</span>
+    </label>
+    <br>
+    <label class="checkbox-wrapper-31">
         <input type="checkbox" id="showPhone" name="showPhone">
-        Show phone number
-    </label><br>
+        <svg viewBox="0 0 35.6 35.6">
+            <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+            <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+            <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+        </svg>
+        <span>Show phone number</span>
+    </label>
+
     <!-- Добавьте другие настройки по необходимости -->
     <div id="saveConfirmation" style="display: none; color: green;">Settings saved successfully!</div>
     <button onclick="saveSettings()" class="button-save-sidebar ">Save configurations</button>

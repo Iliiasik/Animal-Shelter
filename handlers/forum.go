@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/new_topic.html", "templates/topic.html"))
+var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/topic.html"))
 
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем параметры из запроса
@@ -293,11 +293,6 @@ func min(a, b int) int {
 	return b
 }
 
-// ShowNewTopicForm renders the form to create a new topic
-func ShowNewTopicForm(w http.ResponseWriter, r *http.Request) {
-	forumTemplates.ExecuteTemplate(w, "new_topic.html", nil)
-}
-
 // CreateTopic handles the creation of a new topic
 func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -306,6 +301,7 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := r.FormValue("title")
+	description := r.FormValue("description") // Новое поле
 
 	cookie, err := r.Cookie("session")
 	if err != nil {
@@ -328,12 +324,12 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if topicCount >= 3 { // Ограничение на 3 топика
-		http.Error(w, "You can create a maximum of 3 topics", http.StatusForbidden)
+	if topicCount >= 10 { // Ограничение на 3 топика
+		http.Error(w, "You can create a maximum of 10 topics", http.StatusForbidden)
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO topics (title, user_id) VALUES ($1, $2)", title, userID)
+	_, err = db.Exec("INSERT INTO topics (title, description, user_id) VALUES ($1, $2, $3)", title, description, userID)
 	if err != nil {
 		http.Error(w, "Error creating topic", http.StatusInternalServerError)
 		return

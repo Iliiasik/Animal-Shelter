@@ -66,7 +66,8 @@ body {
 
 /* Форум стили */
 h1 {
-    text-align: center;
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
 }
 
@@ -303,8 +304,11 @@ h1 {
     height: 70px;
     border-radius: 50%;
     margin-right: 15px;
+    transition: transform 0.3s ease;
 }
-
+.your-topics a:hover .profile-image {
+    transform: scale(1.07); /* Увеличение на 10% при наведении */
+}
 .your-topics .user-info {
     display: flex;
     flex-direction: column;
@@ -327,42 +331,134 @@ h1 {
     transition: opacity 0.3s ease; /* добавлен переход для плавного исчезновения */
 }
 
-.BtnH {
+/* Стили для модального окна */
+
+.BtnTopic {
     border: none;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
+    border-radius: 30%;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: width 0.4s, border-radius 0.4s; /* можно объединить transition */
+    transition-duration: .4s;
     cursor: pointer;
-    background-color: rgb(31, 31, 31);
+    position: relative;
+    background-color: #F1F0EA;
     overflow: hidden;
-    position: absolute; /* изменено на absolute для позиционирования */
-    top: 2.5%; /* расстояние от верхнего края контейнера в процентах */
-    right: 5%; /* расстояние от правого края контейнера в процентах */
+    margin-left: 20px;
 }
-
-.BtnH:hover {
-    width: 90px;
+.BtnTopic:hover {
+    width: 110px;
+    transition-duration: .4s;
     border-radius: 30px;
 }
 
-.BtnH:hover .icon {
-    opacity: 0; /* при наведении на кнопку картинка исчезает */
-}
-
-.BtnH:hover .text {
+.BtnTopic:hover .text {
     opacity: 1;
+    transition-duration: .4s;
+    color: #090909;
 }
 
-.BtnH text {
-    position: absolute;
-    color: rgb(255, 255, 255);
-    width: 90px;
-    font-weight: 600;
+.BtnTopic:hover .svgIconT {
     opacity: 0;
-    transition: opacity 0.4s ease; /* добавлен переход для текста */
+    transition-duration: .3s;
+}
+.svgIconT {
+    transition-duration: .3s;
+}
+.BtnTopicT:hover .svgIconT {
+    opacity: 0;
+    transition-duration: .3s;
+}
+/* Общие стили для модального окна */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Полупрозрачный фон для модального окна */
+    padding-top: 60px;
+    font-family: 'Arial', sans-serif;
 }
 
+/* Стили для содержимого модального окна */
+.modal-content {
+    background-color: #f4e1d2; /* Светлый кремовый цвет фона модального окна */
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #d4b49e; /* Легкий коричневый бордер для контента */
+    border-radius: 10px; /* Скругленные углы для контента */
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Мягкая тень для модального окна */
+}
+
+/* Кнопка закрытия модального окна */
+.close {
+    color: #b69a75; /* Цвет кнопки закрытия */
+    font-size: 28px;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #6e4f3b; /* Темный коричневый цвет при наведении */
+    text-decoration: none;
+    outline: none;
+}
+
+/* Заголовок модального окна */
+.modal-content h2 {
+    color: #6e4f3b; /* Темный коричневый цвет заголовка */
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Стили для формы в модальном окне */
+.modal-content label {
+    font-size: 16px;
+    color: #6e4f3b;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Поля ввода в модальном окне */
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #d4b49e;
+    border-radius: 5px;
+    background-color: #f9f2e1; /* Светлый молочный фон для полей */
+    color: #6e4f3b;
+    font-size: 14px;
+}
+
+.modal-content textarea {
+    resize: vertical;
+}
+
+/* Кнопка отправки формы в модальном окне */
+.modal-content button {
+    background-color: #b69a75; /* Молочно-коричневый цвет кнопки */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+    background-color: #6e4f3b; /* Темный коричневый цвет при наведении */
+}

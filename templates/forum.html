@@ -30,12 +30,46 @@
         </div>
     </div>
     <div class="content-with-border">
-    <h1>Forum Topics</h1>
-    <div class="view-more">
-        <a href="/new_topic" class="view-more-button">New Topic</a>
-    </div>
+        <h1>Topics
+            <button class="BtnTopic" onclick="openModal()">
+                <svg class="svgIconT" height="25px" width="25px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" xml:space="preserve" fill="#000000">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                <polygon style="fill:#F7F23E;" points="250.4,444.8 0,500 55.2,249.6 250.4,249.6 "></polygon>
+                        <polygon style="fill:#F9D93D;" points="250.4,444.8 0,500 86.4,253.6 250.4,245.6 "></polygon>
+                        <polyline style="fill:#E2B947;" points="250.4,249.6 250.4,444.8 0,500 "></polyline>
+                        <polygon style="fill:#65CE21;" points="498.4,198.4 498.4,1.6 301.6,1.6 299.2,0 52.8,246.4 252.8,447.2 500,200.8 "></polygon>
+                        <polygon style="fill:#0A597C;" points="85.6,414.4 24.8,388.8 0,500 111.2,475.2 "></polygon>
+                        <polygon style="fill:#4EAF0E;" points="498.4,198.4 498.4,1.6 351.2,1.6 80,273.6 252.8,447.2 500,200.8 "></polygon>
+                        <polygon style="fill:#3F9109;" points="412,1.6 110.4,304 196,389.6 498.4,88 498.4,1.6 "></polygon>
+                        <polyline style="fill:#022B3A;" points="0,500 111.2,475.2 85.6,414.4 "></polyline>
+            </g>
+        </svg>
+                <span class="text">New topic</span>
+            </button>
+        </h1>
 
-    <div class="discussions-wrapper">
+
+
+        <div id="newTopicModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Create New Topic</h2>
+                <form id="newTopicForm" method="POST" action="/create_topic">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" required>
+
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+
+                    <button type="submit">Create Topic</button>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="discussions-wrapper">
         <div class="hot-discussion">
             <h2>Hottest Discussions</h2>
             <ul>
@@ -57,13 +91,10 @@
             <h2>Your Topics</h2>
             {{if .UserLoggedIn}}
             <div class="user-profile" style="background-image: url('{{.User.BgImage}}');">
-                <button class="BtnH" onclick="window.location.href='/profile';">
-                    <img src="system_images/profile forum.png" alt="Profile button" class="icon">
-                    <span class="text">Profile</span>
-                </button>
-
                 <div class="profile-inner">
-                    <img src="{{.User.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                    <a href="/profile">
+                        <img src="{{.User.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                    </a>
                     <div class="username-info">
                         <div class="username">{{.User.Username}}</div>
                         <div class="topic-count">Total topics: {{len .User.Topics}}</div>
@@ -216,5 +247,20 @@
             lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
         });
     });
+    function openModal() {
+        document.getElementById("newTopicModal").style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("newTopicModal").style.display = "none";
+    }
+
+    // Закрытие модального окна при клике вне его
+    window.onclick = function(event) {
+        const modal = document.getElementById("newTopicModal");
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
 </script>
 </html>

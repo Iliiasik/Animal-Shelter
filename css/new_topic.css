@@ -1,6 +1,0 @@
-form {
-    display: flex;
-    flex-direction: column; /* Упорядочивает элементы в колонку */
-    align-items: center; /* Центрирует элементы формы */
-    width: 300px; /* Ширина формы */
-}

@@ -153,9 +153,6 @@ func main() {
 	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowForum(sqlDB, w, r)
 	})
-	mux.HandleFunc("/new_topic", func(w http.ResponseWriter, r *http.Request) {
-		handlers.ShowNewTopicForm(w, r)
-	})
 	mux.HandleFunc("/create_topic", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateTopic(sqlDB, w, r)
 	})
