@@ -76,6 +76,24 @@
         <button id="cropButton" class="button-save">Crop & Save</button>
     </div>
 </div>
+<!-- Кнопка для открытия панели -->
+<button onclick="toggleSidebar()" class="sidebar-toggle-button">Settings</button>
+
+<!-- Боковая панель настроек -->
+<div id="sidebar" class="sidebar">
+    <h2>Profile settings</h2>
+    <label>
+        <input type="checkbox" id="showEmail" name="showEmail">
+        Show Email
+    </label><br>
+    <label>
+        <input type="checkbox" id="showPhone" name="showPhone">
+        Show phone number
+    </label><br>
+    <!-- Добавьте другие настройки по необходимости -->
+    <div id="saveConfirmation" style="display: none; color: green;">Settings saved successfully!</div>
+    <button onclick="saveSettings()" class="button-save-sidebar ">Save configurations</button>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 

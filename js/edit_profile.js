@@ -194,6 +194,113 @@ function sendProfileData(formData) {
         });
 }
 
+
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+
+
+function saveSettings() {
+    const showEmail = document.getElementById("showEmail").checked;
+    const showPhone = document.getElementById("showPhone").checked;
+
+    // Логирование перед отправкой запроса
+    console.log("Sending settings:", { showEmail, showPhone });
+
+    fetch("/save-visibility-settings", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `showEmail=${showEmail}&showPhone=${showPhone}`
+    })
+        .then(response => {
+            console.log("Response status:", response.status); // Логируем статус ответа
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.text(); // Получаем ответ как текст
+        })
+        .then(text => {
+            console.log("Response text:", text); // Логируем текст ответа
+            try {
+                const data = JSON.parse(text); // Пробуем парсить как JSON
+                console.log("Parsed JSON:", data); // Логируем полученные данные
+
+                const confirmationElement = document.getElementById("saveConfirmation");
+                if (data.success) {
+                    confirmationElement.style.display = "block";
+                    confirmationElement.textContent = "Settings saved successfully!";
+                    confirmationElement.style.color = "green";
+                } else {
+                    confirmationElement.style.display = "block";
+                    confirmationElement.textContent = "Failed to save settings.";
+                    confirmationElement.style.color = "red";
+                }
+                setTimeout(() => {
+                    confirmationElement.style.display = "none";
+                }, 3000);
+            } catch (e) {
+                console.error("Invalid JSON response:", e);
+                const confirmationElement = document.getElementById("saveConfirmation");
+                confirmationElement.style.display = "block";
+                confirmationElement.textContent = "Failed to parse server response.";
+                confirmationElement.style.color = "red";
+                setTimeout(() => {
+                    confirmationElement.style.display = "none";
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error("Error updating visibility settings:", error);
+            const confirmationElement = document.getElementById("saveConfirmation");
+            confirmationElement.style.display = "block";
+            confirmationElement.textContent = "An error occurred.";
+            confirmationElement.style.color = "red";
+            setTimeout(() => {
+                confirmationElement.style.display = "none";
+            }, 3000);
+        });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const phoneNumberInput = document.getElementById('phone');
 

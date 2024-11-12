@@ -21,6 +21,9 @@ type User struct {
 	PhoneNumber       string    `json:"phone_number"`                                                     // Номер телефона пользователя
 	DateOfBirth       time.Time `json:"date_of_birth" gorm:"type:date"`                                   // Дата рождения пользователя (формат даты)
 
+	// Новые поля для настройки видимости
+	ShowEmail bool `json:"show_email" gorm:"default:true"`
+	ShowPhone bool `json:"show_phone" gorm:"default:true"`
 }
 
 func (User) TableName() string {

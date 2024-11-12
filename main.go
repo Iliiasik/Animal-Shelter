@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"Animals_Shelter/db"
@@ -129,6 +131,25 @@ func main() {
 	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
 		handlers.SaveProfile(sqlDB, w, r) // Маршрут для сохранения профиля
 	})
+	mux.HandleFunc("/save-visibility-settings", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SaveVisibilitySettings(sqlDB, w, r)
+	})
+	mux.HandleFunc("/profile/{username}", func(w http.ResponseWriter, r *http.Request) {
+		// Извлекаем username из URL с помощью регулярного выражения
+		re := regexp.MustCompile(`/profile/([a-zA-Z0-9_]+)`) // Можно настроить регулярку под ваши требования для username
+		match := re.FindStringSubmatch(r.URL.Path)
+
+		// Если путь соответствует, извлекаем username
+		if len(match) > 1 {
+			username := match[1]
+			// Подключаемся к базе данных (или используем уже подключенную)
+			// Пример обработки маршрута с username:
+			handlers.ShowOtherProfile(sqlDB, w, r, username)
+		} else {
+			http.Error(w, "Invalid URL", http.StatusNotFound)
+		}
+	})
+
 	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowForum(sqlDB, w, r)
 	})
@@ -155,6 +176,10 @@ func main() {
 
 	// Оборачиваем маршрутизатор в middleware логирования
 	loggedMux := LoggerMiddleware(mux)
+
+	port := 8080
+	address := fmt.Sprintf("http://localhost:%d", port)
+	fmt.Printf("Starting server on %s\n", address)
 
 	log.Println("Server started on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", loggedMux))

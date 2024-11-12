@@ -11,7 +11,7 @@
 <div class="profile-background" style="background-image: url('{{.ProfileBgImage}}');">
     <div class="profile">
         <div class="profile-image">
-            <img src="{{.ProfileImage}}" alt="Profile Image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+            <img src="{{.ProfileImage}}" alt="Profile Image" >
         </div>
         <div class="profile-info">
 
@@ -21,8 +21,14 @@
 
             <div class="contact-info">
 
-                <strong>Email:</strong> {{.Email}}<br>
-                <strong>Phone:</strong> {{.PhoneNumber}}<br>
+                <!-- Условное отображение email -->
+                {{if .ShowEmail}}
+                <p><strong>Email:</strong> {{.Email}}</p>
+                {{end}}
+                <!-- Условное отображение телефона -->
+                {{if .ShowPhone}}
+                <p><strong>Phone Number:</strong> {{.PhoneNumber}}</p>
+                {{end}}
                 <strong>Date of Birth:</strong> {{.DateOfBirth}}<br>
 
             </div>

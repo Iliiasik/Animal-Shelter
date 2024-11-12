@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	/*"github.com/gorilla/mux"*/
 	"html/template"
 	"io"
 	"log"
@@ -13,12 +14,19 @@ import (
 	"time"
 )
 
-var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html"))
+var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html", "templates/userProfile.html"))
+
+type Profile struct {
+	ID           string
+	FirstName    string
+	LastName     string
+	Email        string
+	ProfileImage string
+}
 
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
 
-// ShowProfile показывает страницу профиля
 func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем идентификатор сессии (например, из куки)
 	sessionCookie, err := r.Cookie("session")
@@ -28,11 +36,7 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var session models.Session
-	querySession := `
-		SELECT id, session_id, user_id, created_at, expires_at 
-		FROM sessions 
-		WHERE session_id = $1
-	`
+	querySession := `SELECT id, session_id, user_id, created_at, expires_at FROM sessions WHERE session_id = $1`
 	err = db.QueryRow(querySession, sessionCookie.Value).Scan(
 		&session.ID, &session.SessionID, &session.UserID, &session.CreatedAt, &session.ExpiresAt,
 	)
@@ -56,15 +60,13 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Теперь получаем информацию о пользователе по user_id из сессии
 	var user models.User
 	queryUser := `
-		SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, 
-		       date_of_birth, profile_bg_image -- добавляем фоновое изображение
-		FROM users 
-		WHERE id = $1
+		SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, date_of_birth, profile_bg_image, show_email, show_phone
+		FROM users WHERE id = $1
 	`
 	err = db.QueryRow(queryUser, session.UserID).Scan(
 		&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Bio,
-		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth,
-		&user.ProfileBgImage, // добавляем поле для фона
+		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth, &user.ProfileBgImage,
+		&user.ShowEmail, &user.ShowPhone,
 	)
 
 	if err != nil {
@@ -279,4 +281,91 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 	}
 
 	return imagePath, nil
+}
+func SaveVisibilitySettings(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	log.Println("Received request to update visibility settings")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		log.Println("Invalid method:", r.Method)
+		return
+	}
+
+	// Получение данных из формы
+	showEmail := r.FormValue("showEmail") == "true"
+	showPhone := r.FormValue("showPhone") == "true"
+
+	// Логирование данных, полученных из формы
+	log.Printf("Received form values: showEmail=%v, showPhone=%v", showEmail, showPhone)
+
+	// Получение ID пользователя из сессии
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Error(w, "Session not found", http.StatusUnauthorized)
+		log.Println("Error retrieving session cookie:", err)
+		return
+	}
+
+	sessionToken := cookie.Value
+	log.Println("Session token:", sessionToken)
+
+	// Обновление настроек видимости в базе данных
+	query := `UPDATE users SET show_email = $1, show_phone = $2 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $3)`
+	_, err = db.Exec(query, showEmail, showPhone, sessionToken)
+	if err != nil {
+		http.Error(w, "Error updating visibility settings", http.StatusInternalServerError)
+		log.Println("Error executing query:", err)
+		return
+	}
+
+	log.Println("Visibility settings successfully updated")
+
+	// Ответ клиенту об успешном обновлении
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	if err != nil {
+		log.Println("Error encoding JSON response:", err)
+	}
+}
+func ShowOtherProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username string) {
+	// Получаем информацию о пользователе по username
+	var user models.User
+	queryUser := `
+        SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, date_of_birth, profile_bg_image, show_email, show_phone
+        FROM users WHERE username = $1
+    `
+	err := db.QueryRow(queryUser, username).Scan(
+		&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Bio,
+		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth, &user.ProfileBgImage,
+		&user.ShowEmail, &user.ShowPhone,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Преобразуем дату рождения в нужный формат (если она не пустая)
+	if !user.DateOfBirth.IsZero() {
+		// Форматируем дату только при отображении, а не при сохранении в поле типа time.Time
+		formattedDate := user.DateOfBirth.Format("2006-01-02")
+		// Дальше используйте formattedDate в шаблоне, а не user.DateOfBirth
+		err = profileTemplate.Execute(w, map[string]interface{}{
+			"user":          user,
+			"formattedDate": formattedDate,
+		})
+	} else {
+		err = profileTemplate.Execute(w, user)
+	}
+
+	if err != nil {
+		log.Println("Template rendering error:", err)
+		http.Error(w, "Error rendering profile", http.StatusInternalServerError)
+	}
 }

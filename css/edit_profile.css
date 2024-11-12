@@ -236,6 +236,63 @@ label {
 
 /* Конец стиля для модального окна */
 
+/* Основной стиль панели */
+.sidebar {
+    position: fixed;
+    top: 300px;
+    left: -250px; /* по умолчанию скрыта за пределами экрана */
+    width: 250px;
+    height: 100%;
+    background-color: #f4f4f4;
+    padding: 20px;
+    transition: left 0.3s;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 2; /* Профиль выше фона */
+}
+
+/* Стиль открытой панели */
+.sidebar.open {
+    left: 0; /* при открытии сдвигаем в область видимости */
+}
+
+/* Кнопка для открытия панели */
+.sidebar-toggle-button {
+    position: fixed;
+    top: 800px;
+    left: 10px;
+    z-index: 1001;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #6b7280;
+    padding: 8px 24px;
+    cursor: pointer;
+    margin: 12px 0 24px;
+    border-radius: 5px;
+    transition: all 0.5s;
+}
+.sidebar-toggle-button:hover {
+    background-color: #000;
+    color: #eee;
+}
+.button-save-sidebar {
+
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.button-save-sidebar:hover {
+    background-color: #00ff17;
+    color: #ffffff;
+}
+
 .button-save {
     width: 50%;
     font-size: 0.9rem;
