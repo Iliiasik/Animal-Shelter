@@ -37,6 +37,8 @@ type User struct {
 	PhoneNumber       string
 	DateOfBirth       string
 	ProfileBgImage    string
+	ShowEmail         bool
+	ShowPhone         bool
 }
 
 // ShowRegisterForm renders the registration form

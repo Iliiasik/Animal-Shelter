@@ -123,7 +123,7 @@ func main() {
 	})
 	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.EditProfile(sqlDB, w, r) // Маршрут для редактирования профиля
+			handlers.RenderEditTemplate(sqlDB, w, r) // Маршрут для редактирования профиля
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
