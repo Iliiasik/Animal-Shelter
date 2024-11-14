@@ -144,7 +144,7 @@ func main() {
 			username := match[1]
 			// Подключаемся к базе данных (или используем уже подключенную)
 			// Пример обработки маршрута с username:
-			handlers.ShowOtherProfile(sqlDB, w, r, username)
+			handlers.ViewProfile(sqlDB, w, r, username)
 		} else {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
 		}

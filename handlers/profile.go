@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html", "templates/userProfile.html"))
+var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html"))
+var userProfile = template.Must(template.ParseFiles("templates/userProfile.html"))
 
 type Profile struct {
 	ID           string
@@ -181,9 +182,13 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 // Получение данных из формы
 func getFormData(r *http.Request) (string, string, string, string, string, bool, bool) {
-	return r.FormValue("firstName"), r.FormValue("lastName"), r.FormValue("bio"),
-		r.FormValue("phone"), r.FormValue("dob"),
-		r.FormValue("removeProfileImage") == "true", r.FormValue("removeBackgroundImage") == "true"
+	return r.FormValue("firstName"),
+		r.FormValue("lastName"),
+		r.FormValue("bio"),
+		r.FormValue("phone"),
+		r.FormValue("dob"),
+		r.FormValue("removeProfileImage") == "true",
+		r.FormValue("removeBackgroundImage") == "true"
 }
 
 // Получение токена сессии
@@ -330,7 +335,7 @@ func SaveVisibilitySettings(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 		log.Println("Error encoding JSON response:", err)
 	}
 }
-func ShowOtherProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username string) {
+func ViewProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username string) {
 	// Получаем информацию о пользователе по username
 	var user models.User
 	queryUser := `
@@ -342,6 +347,8 @@ func ShowOtherProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, userna
 		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth, &user.ProfileBgImage,
 		&user.ShowEmail, &user.ShowPhone,
 	)
+	log.Println("Profile image path:", user.ProfileImage)
+	log.Println("Background image path:", user.ProfileBgImage)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -358,12 +365,12 @@ func ShowOtherProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, userna
 		// Форматируем дату только при отображении, а не при сохранении в поле типа time.Time
 		formattedDate := user.DateOfBirth.Format("2006-01-02")
 		// Дальше используйте formattedDate в шаблоне, а не user.DateOfBirth
-		err = profileTemplate.Execute(w, map[string]interface{}{
+		err = userProfile.Execute(w, map[string]interface{}{
 			"user":          user,
 			"formattedDate": formattedDate,
 		})
 	} else {
-		err = profileTemplate.Execute(w, user)
+		err = userProfile.Execute(w, user)
 	}
 
 	if err != nil {
