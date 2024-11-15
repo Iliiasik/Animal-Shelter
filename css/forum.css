@@ -122,11 +122,14 @@ h1 {
     font-weight: bold;
     text-align: center;
     transition: transform 0.3s ease; /* Добавляем плавный переход для трансформации */
+    white-space: nowrap;       /* Запрещаем перенос строки */
+    overflow: hidden;          /* Скрываем текст, выходящий за пределы */
+    text-overflow: ellipsis;   /* Добавляем многоточие */
 }
 
 .topic-title:hover {
     text-decoration: none;
-    transform: scale(1.1);
+    transform: scale(1.03);
     color: #53a232;
 }
 
@@ -150,6 +153,7 @@ h1 {
 
 .hot-discussion {
     width: 62%; /* Ширина для Hot Discussions (большая часть) */
+    height: 300px;
     margin-right: 20px; /* Отступ справа */
     border: 2px solid #a8a7a7;
     border-radius: 10px;
@@ -382,15 +386,14 @@ h1 {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4); /* Полупрозрачный фон для модального окна */
     padding-top: 60px;
-    font-family: 'Arial', sans-serif;
 }
 
 /* Стили для содержимого модального окна */
 .modal-content {
-    background-color: #f4e1d2; /* Светлый кремовый цвет фона модального окна */
+    background-color: #F6F5F1;
     margin: 5% auto;
     padding: 20px;
-    border: 1px solid #d4b49e; /* Легкий коричневый бордер для контента */
+    border: none;
     border-radius: 10px; /* Скругленные углы для контента */
     width: 80%;
     max-width: 500px;
@@ -399,23 +402,24 @@ h1 {
 
 /* Кнопка закрытия модального окна */
 .close {
-    color: #b69a75; /* Цвет кнопки закрытия */
-    font-size: 28px;
+    color: #6F4E37;
+    font-size: 32px;
     font-weight: bold;
     float: right;
     cursor: pointer;
+    transition: all 0.3s ease; /* Плавный переход для всех изменений */
 }
 
 .close:hover,
 .close:focus {
-    color: #6e4f3b; /* Темный коричневый цвет при наведении */
+    color: #57381c;
     text-decoration: none;
     outline: none;
 }
 
 /* Заголовок модального окна */
 .modal-content h2 {
-    color: #6e4f3b; /* Темный коричневый цвет заголовка */
+    color: #543f30; /* Белый цвет заголовка */
     text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
@@ -424,7 +428,7 @@ h1 {
 /* Стили для формы в модальном окне */
 .modal-content label {
     font-size: 16px;
-    color: #6e4f3b;
+    color: #543f30;
     margin-bottom: 8px;
     display: block;
 }
@@ -435,30 +439,229 @@ h1 {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
-    border: 1px solid #d4b49e;
+    border: 1px solid #b7b7b7; /* Темный голубой цвет границы */
     border-radius: 5px;
-    background-color: #f9f2e1; /* Светлый молочный фон для полей */
-    color: #6e4f3b;
+    background-color: #FAFAF8; /* Светло-голубой фон для полей */
+    color: #543f30; /* Navy blue цвет текста */
     font-size: 14px;
 }
 
-.modal-content textarea {
-    resize: vertical;
-}
 
-/* Кнопка отправки формы в модальном окне */
-.modal-content button {
-    background-color: #b69a75; /* Молочно-коричневый цвет кнопки */
-    color: white;
-    padding: 10px 20px;
+.createTopic {
+    width: 40%;
+
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 8px 24px;
     border: none;
     border-radius: 5px;
+    background-color: #EADDCA;
     cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-    transition: background-color 0.3s ease;
+    transition: all 0.5s;
+    color: #6F4E37;
+    text-decoration: none; /* Убирает подчеркивание */
+    text-align: center;
+    display: block;
+    margin: 0 auto;
 }
 
-.modal-content button:hover {
-    background-color: #6e4f3b; /* Темный коричневый цвет при наведении */
+.createTopic:hover {
+    background-color: #6F4E37;
+    color: #EADDCA;
 }
+.modal input {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+    border: 1.5px solid #543f30;
+    border-radius: 0.5rem;
+    box-shadow: 2.5px 3px 0 #6F4E37;
+    outline: none;
+    transition: ease 0.25s;
+}
+
+.modal input:focus {
+    box-shadow: 5.5px 7px 0 #543f30;
+}
+#errorMessage {
+    color: red;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+
+.checkbox-wrapper-31 {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+    vertical-align: middle;
+}
+
+.checkbox-wrapper-31 svg {
+    width: 30px;
+    height: 30px;
+}
+
+.checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #6cbe45;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
+}
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Отступы между чекбоксом и заголовком */
+.checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+.topics-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.delete-button {
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border: none;
+    position: relative;
+    border-radius: 10px;
+    -webkit-box-shadow: 1px 1px 5px .2px #00000035;
+    box-shadow: 1px 1px 5px .2px #00000035;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+    transition-delay: .2s;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: space-between;
+}
+
+.delete-button:hover {
+    width: 150px;
+    transition-delay: .2s;
+}
+
+.delete-button:hover > .paragraph {
+    visibility: visible;
+    opacity: 1;
+    -webkit-transition-delay: .4s;
+    transition-delay: .4s;
+}
+
+.delete-button:hover > .icon-wrapper .icon {
+    transform: scale(1.1);
+}
+
+.delete-button:hover > .icon-wrapper .icon path {
+    stroke: black;
+}
+
+.delete-button .paragraph {
+    color: black;
+    visibility: hidden;
+    opacity: 0;
+    font-size: 18px;
+    margin-right: 20px;
+    padding-left: 20px;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.delete-button .icon-wrapper {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+
+}
+
+.delete-button .icon {
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.delete-button .icon path {
+    stroke: #000;
+    stroke-width: 2px;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+}
+
+.topic-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.topic-wrapper .topic {
+    width: 100%;
+    height: 40px;
+}
+#error-message {
+    color: red;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+

@@ -12,7 +12,15 @@
 <body>
 <nav>
     <div class="wrapper">
-        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <img src="system_images/лого2.svg" alt="Logo Image" class="logo-image">
+                <span class="logo-text">Animal Shelter</span>
+            </a>
+        </div>
+
+
+
         <ul class="nav-links">
             <li><a href="#">Feedback</a></li>
         </ul>
@@ -55,18 +63,44 @@
         <div id="newTopicModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
-                <h2>Create New Topic</h2>
+                <h2 style="display: flex; align-items: center;">
+                    Create New Topic
+                    <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="#000000" width="34" height="34" style="margin-left: 8px;">
+                        <g id="color">
+                            <path fill="#6A462F" stroke="none" d="M24.7544,17.9188l-6.6667-5.3333l-8.1667,1l-3,4.6667l0.5,6.6667l3.8333,5.8333 c0,0,1.8333,1.1667,2.6667,1.6667l-2.5,7.6667l-0.3333,6.3333l1.5,5.5l2.8333,3.6667l5.5,3.8333c0,0,15.6667,9,30.6667,0.1667 l5.8333-4.8333l3.1667-6l0.6667-4.6667l-1.3333-8.8333l-1.6667-2.5l2.8333-2.1667l2.5-4.8333l1.6667-5.3333l-1.6667-5l-4.3333-3 l-4.1667-0.1667l-6,3.8333l-1.3333,1.5l-8.3333-1.6667h-8.1667L24.7544,17.9188z"></path>
+                            <path fill="#A57939" stroke="none" d="M29.5877,37.7521l-2,5l-0.8333,6.6667l2,3.1667l0.3333,4.3333l2.8333,2.1667l8.6667-0.3333l2.3333-1 l0.1667-5.1667l2-3.1667l-1.1667-6.6667l-2.5-5.5C41.421,37.2521,34.421,32.4188,29.5877,37.7521z"></path>
+                            <path fill="#3F3F3F" stroke="none" d="M30.7544,47.7521c0,0,4.3333-4.6667,9.8333-0.3333l-1.8333,2.8333l-6-0.1667L30.7544,47.7521z"></path>
+                            <path fill="#A57939" stroke="none" d="M47.7544,18.4188c0,0,12.8333-4,15.1667,8l2-4l-0.1667-5.5l-3.5-3.8333l-5.5-1.3333l-5.5,3.6667 L47.7544,18.4188z"></path>
+                            <path fill="#A57939" stroke="none" d="M24.2544,18.4188c0,0-12.8333-4-15.1667,8l-2-4l0.1667-5.5l3.5-3.8333l5.5-1.3333l5.5,3.6667 L24.2544,18.4188z"></path>
+                        </g>
+                        <g id="line">
+                            <circle cx="28.6339" cy="36.999" r="2" fill="#000000" stroke="none"></circle>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M26.0089,19.8949c0,0-7.6875-11.625-14.9375-6.8125c-6.6011,4.3818-3.9113,13.9584,0.603,16.915"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M21.0714,58.5824c-15.9375-6.3125-7.8506-24.0133-7.8506-24.0133s3.645-9.3586,9.3416-11.6086"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M51.0978,58.5824c15.9375-6.3125,7.8506-24.0133,7.8506-24.0133s-3.645-9.3586-9.3416-11.6086"></path>
+                            <circle cx="43.3661" cy="36.999" r="2" fill="#000000" stroke="none"></circle>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M43.495,43.3313l1.5607,4.8039c0.2196,0.8168,0.0853,1.6816-0.3675,2.3961c-1.2194,1.924-4.0542,5.1185-8.2597,2.2386h-0.8572 c-4.2055,2.8798-7.0402-0.3147-8.2597-2.2386c-0.4528-0.7144-0.5871-1.5793-0.3675-2.3961l1.5607-4.8039"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M40.172,47.9243c-0.1014,3.008-2.8052,1.6561-2.8052,1.6561L36,48.9038l-1.3667,0.6766c0,0-2.7039,1.3519-2.8052-1.6561"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M45.9911,19.8949c0,0,7.6875-11.625,14.9375-6.8125c6.6011,4.3818,3.9113,13.9584-0.603,16.915"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M29.9464,57.1478c0,0,5.1875,6.6013,12.1072,0.5625"></path>
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M24.6652,17.9512c0,0,8.7098-4.9304,22.3259,0"></path>
+                            <line x1="36" x2="36" y1="52.7699" y2="49.5804" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></line>
+                        </g>
+                    </svg>
+                </h2>
+
                 <form id="newTopicForm" method="POST" action="/create_topic">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" name="title" required>
+                    <input type="text" id="title" name="title" required maxlength="50" placeholder="Enter the topic title">
 
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="4" required></textarea>
+                    <input type="text" id="description" name="description" rows="4" required maxlength="500" placeholder="Enter the description">
 
-                    <button type="submit">Create Topic</button>
+                    <div id="errorMessage" style="color: red; display: none;">You can create a maximum of 10 topics.</div>
+                    <button class="createTopic" type="submit">Create Topic</button>
                 </form>
             </div>
         </div>
+
+
 
 
         <div class="discussions-wrapper">
@@ -87,37 +121,87 @@
                 {{end}}
             </ul>
         </div>
-        <div class="your-topics">
-            <h2>Your Topics</h2>
-            {{if .UserLoggedIn}}
-            <div class="user-profile" style="background-image: url('{{.User.BgImage}}');">
-                <div class="profile-inner">
-                    <a href="/profile">
-                        <img src="{{.User.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
-                    </a>
-                    <div class="username-info">
-                        <div class="username">{{.User.Username}}</div>
-                        <div class="topic-count">Total topics: {{len .User.Topics}}</div>
+            <div class="your-topics">
+                <h2>Your Topics</h2>
+                {{if .UserLoggedIn}}
+                <div class="user-profile" style="background-image: url('{{.User.BgImage}}');">
+                    <div class="profile-inner">
+                        <a href="/profile">
+                            <img src="{{.User.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        </a>
+                        <div class="username-info">
+                            <div class="username">{{.User.Username}}</div>
+                            <div class="topic-count">Total topics: {{len .User.Topics}}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {{if .User.Topics}}
-            <ul>
-                {{range .User.Topics}}
-                <li class="topic">
-                    <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
-                </li>
+                <button onclick="openModalTopic()">View Topics</button>
+                {{if .User.Topics}}
+                <ul>
+                    {{range .User.Topics}}
+                    <li class="topic">
+                        <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
+                    </li>
+                    {{end}}
+                </ul>
+                {{else}}
+                <p>You have no topics created yet.</p>
                 {{end}}
-            </ul>
-            {{else}}
-            <p>You have no topics created yet.</p>
-            {{end}}
-            {{else}}
-            <p>You need to <a href="/login">login</a> to see your topics.</p>
-            {{end}}
-        </div>
+                {{else}}
+                <p>You need to <a href="/login">login</a> to see your topics.</p>
+                {{end}}
+            </div>
 
-    </div>
+            <div id="topicsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModalTopic()">&times;</span>
+                    <h2>Select topics to delete</h2>
+
+                    {{if .User.Topics}}
+                    <!-- Форма для удаления топиков с чекбоксами -->
+                    <form method="POST" action="/delete-topics" onsubmit="return validateForm()">
+                        <div class="topics-list">
+                            <div class="column">
+                                {{range .User.Topics}}
+                                <div class="topic-wrapper">
+                                    <label class="checkbox-wrapper-31">
+                                        <input type="checkbox" name="topic_ids[]" value="{{.ID}}">
+                                        <svg viewBox="0 0 35.6 35.6">
+                                            <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                                            <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                                            <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+                                        </svg>
+                                    </label>
+                                    <li class="topic">
+                                        <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
+                                    </li>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+
+                        <!-- Сообщение об ошибке, если не выбран ни один чекбокс -->
+                        <div id="error-message" style="color: red; display: none;">
+                            Please select at least one topic to delete
+                        </div>
+
+                        <!-- Кнопка подтверждения удаления -->
+                        <button class="delete-button" type="submit">
+                            <p class="paragraph"> delete </p>
+                            <span class="icon-wrapper">
+                    <svg class="icon" width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 7V18C6 19.1046 6.89543 20 8 20H16C17.1046 20 18 19.1046 18 18V7M6 7H5M6 7H8M18 7H19M18 7H16M10 11V16M14 11V16M8 7V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V7M8 7H16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </span>
+                        </button>
+                    </form>
+                    {{else}}
+                    <p>You have no topics created yet.</p>
+                    {{end}}
+                </div>
+            </div>
+
+        </div>
 
     <div class="search-wrapper" id="search-section">
         <div class="search-field">
@@ -262,5 +346,56 @@
             closeModal();
         }
     }
+    document.getElementById("newTopicForm").onsubmit = async function (event) {
+        event.preventDefault(); // Предотвращает отправку формы
+
+        const response = await fetch('/create_topic', {
+            method: 'POST',
+            body: new FormData(this)
+        });
+
+        if (response.status === 403) { // Если достигнут лимит
+            document.getElementById("errorMessage").style.display = 'block';
+        } else {
+            window.location.href = '/forum'; // Переход на страницу форума при успехе
+        }
+    };
+    function openModalTopic() {
+        document.getElementById('topicsModal').style.display = 'block';
+    }
+
+    // Функция для закрытия модального окна
+    function closeModalTopic() {
+        document.getElementById('topicsModal').style.display = 'none';
+    }
+
+    // Закрыть модальное окно при нажатии вне его
+    window.onclick = function(event) {
+        const modal = document.getElementById('topicsModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+    function validateForm() {
+        // Проверяем, что хотя бы один чекбокс выбран
+        const checkboxes = document.querySelectorAll('input[name="topic_ids[]"]:checked');
+        if (checkboxes.length === 0) {
+            // Показываем сообщение об ошибке
+            document.getElementById('error-message').style.display = 'block';
+            return false; // Отправка формы не произойдет
+        }
+        // Скрываем сообщение об ошибке, если чекбокс выбран
+        document.getElementById('error-message').style.display = 'none';
+        return true; // Форма будет отправлена
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const topicTitles = document.querySelectorAll(".topic-title");
+
+        topicTitles.forEach(title => {
+            if (title.textContent.length > 18) {
+                title.textContent = title.textContent.slice(0, 18) + "...";
+            }
+        });
+    });
 </script>
 </html>

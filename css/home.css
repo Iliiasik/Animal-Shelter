@@ -276,7 +276,6 @@ nav .wrapper {
     .nav-links .mobile-item:hover {
         background: #3A3B3C;
     }
-
     .drop-menu li {
         margin: 0;
     }
@@ -705,4 +704,28 @@ nav .wrapper {
     font-size: 20px;
     color: #4CAF50;
     margin-top: 20px;
+}
+.logo {
+    display: flex; /* Используем Flexbox */
+    align-items: center; /* Выравниваем логотип и текст по вертикали */
+    gap: 5px; /* Расстояние между логотипом и текстом */
+}
+
+.logo-link {
+    display: flex; /* Flexbox внутри ссылки */
+    align-items: center; /* Центрируем логотип и текст внутри ссылки */
+    text-decoration: none; /* Убираем подчеркивание */
+    color: #333; /* Цвет текста */
+}
+
+.logo-image {
+    width: 55px; /* Уменьшенный размер логотипа */
+    height: auto;
+    margin-right: 10px;
+}
+
+.logo-text {
+    font-size: 30px; /* Размер текста */
+    font-weight: bold; /* Выделение текста */
+    margin: 0; /* Убираем лишние отступы */
 }

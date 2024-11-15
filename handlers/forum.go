@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 	"html/template"
 	"log"
 	"math"
@@ -301,7 +302,7 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := r.FormValue("title")
-	description := r.FormValue("description") // Новое поле
+	description := r.FormValue("description")
 
 	cookie, err := r.Cookie("session")
 	if err != nil {
@@ -316,7 +317,6 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем, сколько топиков уже создал пользователь
 	var topicCount int
 	err = db.QueryRow("SELECT COUNT(*) FROM topics WHERE user_id = $1", userID).Scan(&topicCount)
 	if err != nil {
@@ -324,7 +324,7 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if topicCount >= 10 { // Ограничение на 3 топика
+	if topicCount >= 10 {
 		http.Error(w, "You can create a maximum of 10 topics", http.StatusForbidden)
 		return
 	}
@@ -335,7 +335,7 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+	w.WriteHeader(http.StatusOK) // Возвращает 200 при успешном создании
 }
 
 // ShowTopic displays the messages in a topic
@@ -436,4 +436,68 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/topic?id="+topicID, http.StatusSeeOther)
+}
+
+func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверка метода запроса
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Парсим форму
+	if err := r.ParseForm(); err != nil {
+		log.Println("Error parsing form:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Получаем список ID топиков из формы
+	topicIDs := r.Form["topic_ids[]"] // Обрати внимание на использование topic_ids[]
+
+	// Выводим полученные значения для отладки
+	//log.Println("Received topic IDs: ", topicIDs)
+
+	// Если не выбраны никакие топики
+	if len(topicIDs) == 0 {
+		http.Error(w, "Please select at least one topic to delete", http.StatusBadRequest)
+		return
+	}
+
+	// Начинаем транзакцию
+	tx := db.Begin()
+	if tx.Error != nil {
+		log.Println("Error starting transaction:", tx.Error)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Выполняем каскадное удаление для каждого ID
+	for _, id := range topicIDs {
+		// Удаляем связанные записи из таблицы posts
+		if err := tx.Exec("DELETE FROM posts WHERE topic_id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting related records:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Удаляем сам топик
+		if err := tx.Exec("DELETE FROM topics WHERE id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting topic:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Подтверждаем транзакцию
+	if err := tx.Commit().Error; err != nil {
+		log.Println("Error committing transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Перенаправляем пользователя после успешного удаления
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }

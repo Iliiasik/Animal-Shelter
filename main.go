@@ -162,6 +162,10 @@ func main() {
 	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowTopic(sqlDB, w, r)
 	})
+	mux.HandleFunc("/delete-topics", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DeleteTopics(gormDB, w, r)
+	})
+
 	mux.HandleFunc("/terms-of-service", func(w http.ResponseWriter, r *http.Request) {
 		handlers.TermsOfServicePage(sqlDB, w, r)
 	})
