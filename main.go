@@ -123,7 +123,7 @@ func main() {
 	})
 	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.EditProfile(sqlDB, w, r) // Маршрут для редактирования профиля
+			handlers.RenderEditTemplate(sqlDB, w, r) // Маршрут для редактирования профиля
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -144,7 +144,7 @@ func main() {
 			username := match[1]
 			// Подключаемся к базе данных (или используем уже подключенную)
 			// Пример обработки маршрута с username:
-			handlers.ShowOtherProfile(sqlDB, w, r, username)
+			handlers.ViewProfile(sqlDB, w, r, username)
 		} else {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
 		}

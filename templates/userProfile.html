@@ -3,33 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile of {{.Username}}</title>
+  <title>Profile of {{.user.Username}}</title>
   <link rel="stylesheet" type="text/css" href="/css/profile.css">
   <link rel="stylesheet" type="text/css" href="/css/home.css">
 </head>
 <body>
-<div class="profile-background" style="background-image: url('{{.ProfileBgImage}}');">
+<div class="profile-background" style="background-image: url('/{{.user.ProfileBgImage}}');">
   <div class="profile">
     <div class="profile-image">
-      <img src="{{.ProfileImage}}" alt="Profile Image" >
+      <img src="/{{.user.ProfileImage}}" alt="Profile Image" >
     </div>
     <div class="profile-info">
 
-      <h1> {{.Username}}</h1>
-      <h3>{{.FirstName}} {{.LastName}}</h3>
-      <p>{{.Bio}}</p>
+      <h1> {{.user.Username}}</h1>
+      <h3>{{.user.FirstName}} {{.user.LastName}}</h3>
+      <p>{{.user.Bio}}</p>
 
       <div class="contact-info">
 
         <!-- Условное отображение email -->
-        {{if .ShowEmail}}
-        <p><strong>Email:</strong> {{.Email}}</p>
+        {{if .user.ShowEmail}}
+        <p><strong>Email:</strong> {{.user.Email}}</p>
         {{end}}
         <!-- Условное отображение телефона -->
-        {{if .ShowPhone}}
-        <p><strong>Phone Number:</strong> {{.PhoneNumber}}</p>
+        {{if .user.ShowPhone}}
+        <p><strong>Phone Number:</strong> {{.user.PhoneNumber}}</p>
         {{end}}
-        <strong>Date of Birth:</strong> {{.DateOfBirth}}<br>
+        <strong>Date of Birth:</strong> {{.formattedDate}}<br>
 
       </div>
     </div>

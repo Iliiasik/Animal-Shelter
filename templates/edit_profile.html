@@ -83,7 +83,7 @@
 <div id="sidebar" class="sidebar">
     <h2>Profile settings</h2>
     <label class="checkbox-wrapper-31">
-        <input type="checkbox" id="showEmail" name="showEmail">
+        <input type="checkbox" id="showEmail" name="showEmail" {{if .ShowEmail}}checked{{end}}>
         <svg viewBox="0 0 35.6 35.6">
             <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
             <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
@@ -93,7 +93,7 @@
     </label>
     <br>
     <label class="checkbox-wrapper-31">
-        <input type="checkbox" id="showPhone" name="showPhone">
+        <input type="checkbox" id="showPhone" name="showPhone" {{if .ShowPhone}}checked{{end}}>
         <svg viewBox="0 0 35.6 35.6">
             <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
             <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
