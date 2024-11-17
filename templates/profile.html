@@ -6,6 +6,8 @@
     <title>Profile of {{.Username}}</title>
     <link rel="stylesheet" type="text/css" href="/css/profile.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <script src="/js/profile.js"></script>
+
 </head>
 <body>
 <div class="profile-background" style="background-image: url('{{.ProfileBgImage}}');">
@@ -29,7 +31,7 @@
                 {{if .ShowPhone}}
                 <p><strong>Phone Number:</strong> {{.PhoneNumber}}</p>
                 {{end}}
-                <strong>Date of Birth:</strong> {{.DateOfBirth}}<br>
+                <strong>Date of Birth:</strong> <span id="dob-display">{{.DateOfBirth}}</span><br>
 
             </div>
         </div>

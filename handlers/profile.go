@@ -360,18 +360,7 @@ func ViewProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username st
 		return
 	}
 
-	// Преобразуем дату рождения в нужный формат (если она не пустая)
-	if !user.DateOfBirth.IsZero() {
-		// Форматируем дату только при отображении, а не при сохранении в поле типа time.Time
-		formattedDate := user.DateOfBirth.Format("2006-01-02")
-		// Дальше используйте formattedDate в шаблоне, а не user.DateOfBirth
-		err = userProfile.Execute(w, map[string]interface{}{
-			"user":          user,
-			"formattedDate": formattedDate,
-		})
-	} else {
-		err = userProfile.Execute(w, user)
-	}
+	err = userProfile.Execute(w, user)
 
 	if err != nil {
 		log.Println("Template rendering error:", err)
