@@ -563,7 +563,7 @@ label {
 
 .button-save .button-text {
     position: absolute;
-    color: rgb(255, 255, 255);
+    color: rgb(53, 53, 53);
     width: 120px;
     font-weight: 600;
     opacity: 0; /* Изначально текст скрыт */
@@ -574,7 +574,7 @@ label {
 }
 
 .button-save:hover {
-    width: 200px; /* Кнопка расширяется при наведении */
+    width: 100px; /* Кнопка расширяется при наведении */
     border-radius: 30px; /* Углы округляются */
 }
 
@@ -589,7 +589,7 @@ label {
 }
 
 .button-save:hover {
-    background-color: rgb(0, 255, 23);
+    background-color: rgb(134, 204, 134);
     color: rgb(255, 255, 255);
 }
 
@@ -620,7 +620,7 @@ label {
     position: absolute;
     color: rgb(255, 255, 255);
     width: 120px;
-    font-weight: 600;
+    font-weight: 800;
     opacity: 0; /* Изначально текст скрыт */
     transition-duration: .4s;
     white-space: nowrap; /* Запрещаем перенос текста */
@@ -629,7 +629,7 @@ label {
 }
 
 .button-cancel:hover {
-    width: 200px; /* Кнопка расширяется при наведении */
+    width: 100px; /* Кнопка расширяется при наведении */
     border-radius: 30px; /* Углы округляются */
 }
 
