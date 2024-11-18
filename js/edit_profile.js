@@ -1,4 +1,6 @@
 let cropper;
+const sidebar = document.getElementById('sidebar'); // Боковая панель
+const toggleButton = document.getElementById('toggleButton'); // Кнопка открытия/закрытия
 const customUploadButton=document.getElementById('customUploadButton')
 const profileImage = document.getElementById('profileImage');
 const uploadImage = document.getElementById('uploadImage');
@@ -128,6 +130,15 @@ window.addEventListener('click', function (e) {
             cropper = null;
         }
     }
+
+    // Проверяем клик вне боковой панели и кнопки
+    if (
+        !sidebar.contains(e.target) && // Клик вне боковой панели
+        !toggleButton.contains(e.target) && // Клик не по кнопке
+        sidebar.classList.contains('open') // Панель открыта
+    ) {
+        sidebar.classList.remove('open'); // Закрываем боковую панель
+    }
 });
 // Обработчик для отправки данных профиля
 document.querySelector('.button-save').addEventListener('click', function (e) {
@@ -196,8 +207,11 @@ function sendProfileData(formData) {
 
 
 
+
+
+
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
+    sidebar.classList.toggle('open');
 }
 
 
@@ -267,6 +281,23 @@ function saveSettings() {
 }
 
 
+const originalContainer = document.getElementById('original-container');
+const targetContainer = document.getElementById('target-container');
+
+// Функция для перемещения кнопки
+const mediaQuery = window.matchMedia('(max-width: 990px)');
+
+function handleMediaChange(e) {
+    if (e.matches) {
+        targetContainer.appendChild(toggleButton);
+    } else {
+        originalContainer.appendChild(toggleButton);
+    }
+}
+
+// Слушаем изменения
+mediaQuery.addListener(handleMediaChange);
+handleMediaChange(mediaQuery);
 
 
 

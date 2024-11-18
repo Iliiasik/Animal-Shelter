@@ -11,18 +11,21 @@
 </head>
 <body>
 <div class="profile-background" style="background-image: url('{{.ProfileBgImage}}');">
+
     <div class="profile">
+
         <div class="profile-image">
             <img src="{{.ProfileImage}}" alt="Profile Image" >
         </div>
+
         <div class="profile-info">
 
             <h1> {{.Username}}</h1>
             <h3>{{.FirstName}} {{.LastName}}</h3>
-            <p>{{.Bio}}</p>
+
 
             <div class="contact-info">
-
+                <p>{{.Bio}}</p>
                 <!-- Условное отображение email -->
                 {{if .ShowEmail}}
                 <p><strong>Email:</strong> {{.Email}}</p>
@@ -34,8 +37,11 @@
                 <strong>Date of Birth:</strong> <span id="dob-display">{{.DateOfBirth}}</span><br>
 
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 <!-- Кнопка Home (слева) -->

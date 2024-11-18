@@ -26,6 +26,7 @@ body {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тень */
+    flex-direction: row;
 }
 
 .profile-image {
@@ -113,4 +114,15 @@ body {
 .button-home:hover, .button-edit:hover {
     background-color: #000;
     color: #eee;
+}
+@media (max-width: 767px) {
+    .profile {
+        flex-direction: column;
+        align-items: center;
+    }
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 }
