@@ -18,8 +18,8 @@ body {
     margin: 240px 0 24px;
     display: flex;
     align-items: flex-end;
-    flex-direction: row-reverse;
-    width: 300px;
+    flex-direction: row;
+
 }
 .upload-bg-button {
 
@@ -46,7 +46,7 @@ body {
 .upload-bg-button .button-text {
     position: absolute;
     color: rgb(255, 255, 255);
-    width: 120px;
+    width: unset;
     font-weight: 600;
     opacity: 0; /* Изначально текст скрыт */
     transition-duration: .4s;
@@ -98,7 +98,7 @@ body {
 .remove-bg-button .button-text {
     position: absolute;
     color: rgb(255, 255, 255);
-    width: 120px;
+    width: unset;
     font-weight: 600;
     opacity: 0; /* Изначально текст скрыт */
     transition-duration: .4s;
@@ -263,7 +263,7 @@ body {
 .remove-profile-button .button-text {
     position: absolute;
     color: rgb(255, 255, 255);
-    width: 120px;
+    width: unset;
     font-weight: 600;
     opacity: 0; /* Изначально текст скрыт */
     transition-duration: .4s;
@@ -307,6 +307,8 @@ body {
     align-items: flex-start;
     flex-direction: row;
     width: 300px;
+    margin-left: 8px;
+    margin-top: 10px;
 }
 
 .profile {
@@ -437,6 +439,7 @@ label {
 
 /* Основной стиль панели */
 .sidebar {
+
     position: fixed;
     top: 300px;
     left: -250px; /* по умолчанию скрыта за пределами экрана */
@@ -454,13 +457,15 @@ label {
 .sidebar.open {
     left: 0; /* при открытии сдвигаем в область видимости */
 }
-
-/* Кнопка для открытия панели */
-.sidebar-toggle-button {
+.sidebar-button-container{
     position: fixed;
     top: 800px;
     left: 10px;
     z-index: 1001;
+}
+/* Кнопка для открытия панели */
+.sidebar-toggle-button {
+
     border: 2px solid #6b7280;
     border-radius: 50%; /* Кнопка будет круглой, как в Btn */
     width: 45px; /* Начальная ширина кнопки */
@@ -644,7 +649,7 @@ label {
 }
 .form-buttons{
     display: flex;
-    align-items: flex-start;
+    justify-content: flex-end;
     flex-direction: row;
     width: 400px;
 }
@@ -726,4 +731,34 @@ textarea {
 
 .checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
     stroke-dashoffset: 0;
+}
+
+@media (max-width: 990px) {
+    .profile{
+        width:500px;
+        flex-direction: column;
+        align-items: center;
+        z-index: 0;
+        margin-top: 300px;
+    }
+    .profile-background{
+        z-index: 0;
+        align-items: center;
+    }
+    form{
+        width: 400px;
+    }
+
+}
+@media (max-width: 1300px) {
+    .sidebar{
+        border: 2px solid #6b7280;
+    }
+
+    .sidebar-toggle-button .button-text {
+        position:relative;
+    }
+    .sidebar-toggle-button .icon {
+        position: absolute;
+    }
 }
