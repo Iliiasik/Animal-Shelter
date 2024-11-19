@@ -1,6 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
 /* Общие стили */
 *,
 *::before,
@@ -276,7 +274,6 @@ nav .wrapper {
     .nav-links .mobile-item:hover {
         background: #3A3B3C;
     }
-
     .drop-menu li {
         margin: 0;
     }
@@ -705,4 +702,44 @@ nav .wrapper {
     font-size: 20px;
     color: #4CAF50;
     margin-top: 20px;
+}
+.logo {
+    display: flex; /* Используем Flexbox */
+    align-items: center; /* Выравниваем логотип и текст по вертикали */
+    gap: 5px; /* Расстояние между логотипом и текстом */
+    transition: color 0.5s ease, text-shadow 0.5s ease; /* Плавный переход цвета и тени */
+}
+
+.logo-link {
+    display: flex; /* Flexbox внутри ссылки */
+    align-items: center; /* Центрируем логотип и текст внутри ссылки */
+    text-decoration: none; /* Убираем подчеркивание */
+    color: #333; /* Цвет текста */
+}
+
+/* Стиль для изображения */
+.logo-image {
+    width: 45px; /* Уменьшенный размер логотипа */
+    height: auto;
+    margin-right: 10px;
+    transition: transform 0.3s ease; /* Плавный переход для трансформации и фильтра */
+}
+
+/* Стиль для анимации при наведении */
+.logo-image:hover {
+    transform: scale(1.08); /* Увеличение масштаба логотипа при наведении */
+}
+
+
+/* Стиль для текста */
+.logo-text {
+    font-size: 28px; /* Размер текста */
+    margin: 0; /* Убираем лишние отступы */
+    color: #ffffff; /* Исходный цвет текста */
+    transition: color 0.5s ease; /* Плавный переход цвета и тени */
+}
+
+/* Стиль для текста при наведении */
+.logo-text:hover {
+    color: lightblue; /* Голубой цвет текста */
 }

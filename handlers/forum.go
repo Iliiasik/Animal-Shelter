@@ -1,8 +1,10 @@
 package handlers
 
+// Importing libraries ---------------------------------------------------------
 import (
 	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 	"html/template"
 	"log"
 	"math"
@@ -11,6 +13,7 @@ import (
 	"strconv"
 )
 
+// Templates ---------------------------------------------------------
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/topic.html"))
 
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -67,15 +70,23 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Запрос для получения тем пользователя
 		userQuery := `
-            SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-            FROM topics t
-            LEFT JOIN posts p ON t.id = p.topic_id
-            WHERE t.user_id = $1
-            GROUP BY t.id
-            ORDER BY t.id DESC
-        `
-		rows, err := db.Query(userQuery, user.ID)
+			SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+			FROM topics t
+			LEFT JOIN posts p ON t.id = p.topic_id
+			WHERE t.user_id = $1
+			GROUP BY t.id
+			ORDER BY t.id DESC
+		`
+		stmt, err := db.Prepare(userQuery)
+		if err != nil {
+			log.Printf("Error preparing user query: %v", err)
+			return
+		}
+		defer stmt.Close()
+
+		rows, err := stmt.Query(user.ID)
 		if err != nil {
 			log.Printf("Error fetching user topics: %v", err)
 			return
@@ -99,16 +110,23 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Запрос для самых популярных тем
 	hottestQuery := `
-        SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-               TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-        FROM topics t
-        LEFT JOIN users u ON t.user_id = u.id
-        LEFT JOIN posts p ON t.id = p.topic_id
-        GROUP BY t.id, u.username, u.profile_image
-        ORDER BY response_count DESC
-        LIMIT 3
-    `
-	hottestRows, err := db.Query(hottestQuery)
+		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+			TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN posts p ON t.id = p.topic_id
+		GROUP BY t.id, u.username, u.profile_image
+		ORDER BY response_count DESC
+		LIMIT 3
+	`
+	hottestStmt, err := db.Prepare(hottestQuery)
+	if err != nil {
+		log.Printf("Error preparing hottest query: %v", err)
+		return
+	}
+	defer hottestStmt.Close()
+
+	hottestRows, err := hottestStmt.Query()
 	if err != nil {
 		log.Printf("Error fetching hottest topics: %v", err)
 		return
@@ -133,19 +151,34 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Основной SQL-запрос для тем форума
 	query := `
-	SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-	       TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-	FROM topics t
-	LEFT JOIN users u ON t.user_id = u.id
-	LEFT JOIN posts p ON t.id = p.topic_id`
+		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
+			TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN posts p ON t.id = p.topic_id
+	`
 
 	var rows *sql.Rows
 	if title != "" {
 		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $2 OFFSET $3`
-		rows, err = db.Query(query, "%"+title+"%", topicsPerPage, offset)
+		stmt, err := db.Prepare(query)
+		if err != nil {
+			log.Printf("Error preparing query for topics: %v", err)
+			return
+		}
+		defer stmt.Close()
+
+		rows, err = stmt.Query("%"+title+"%", topicsPerPage, offset)
 	} else {
 		query += ` GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $1 OFFSET $2`
-		rows, err = db.Query(query, topicsPerPage, offset)
+		stmt, err := db.Prepare(query)
+		if err != nil {
+			log.Printf("Error preparing query for topics: %v", err)
+			return
+		}
+		defer stmt.Close()
+
+		rows, err = stmt.Query(topicsPerPage, offset)
 	}
 
 	if err != nil {
@@ -174,9 +207,23 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	countQuery := `SELECT COUNT(*) FROM topics`
 	if title != "" {
 		countQuery += ` WHERE title ILIKE $1`
-		err = db.QueryRow(countQuery, "%"+title+"%").Scan(&totalTopics)
+		stmt, err := db.Prepare(countQuery)
+		if err != nil {
+			log.Printf("Error preparing count query: %v", err)
+			return
+		}
+		defer stmt.Close()
+
+		err = stmt.QueryRow("%" + title + "%").Scan(&totalTopics)
 	} else {
-		err = db.QueryRow(countQuery).Scan(&totalTopics)
+		stmt, err := db.Prepare(countQuery)
+		if err != nil {
+			log.Printf("Error preparing count query: %v", err)
+			return
+		}
+		defer stmt.Close()
+
+		err = stmt.QueryRow().Scan(&totalTopics)
 	}
 	if err != nil {
 		log.Printf("Error fetching total topic count: %v", err)
@@ -225,7 +272,8 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// compactPagination формирует список страниц в компактном виде
+// Functions for pagination ---------------------------------------------------------
+
 type PageLink struct {
 	URL      string
 	Number   string // текст для отображения на ссылке
@@ -278,14 +326,12 @@ func compactPagination(current, total int, title string) []PageLink {
 
 	return pages
 }
-
 func max(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
-
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -293,7 +339,7 @@ func min(a, b int) int {
 	return b
 }
 
-// CreateTopic handles the creation of a new topic
+// CreateTopic handles the creation of a new topic ---------------------------------------------------------
 func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -301,56 +347,97 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := r.FormValue("title")
-	description := r.FormValue("description") // Новое поле
+	description := r.FormValue("description")
 
+	// Получаем cookie сессии
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
+	// Подготавливаем запрос для извлечения user_id из сессии
+	stmt, err := db.Prepare("SELECT user_id FROM sessions WHERE session_id = $1")
+	if err != nil {
+		http.Error(w, "Error preparing statement for session", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
 	var userID int
-	err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+	err = stmt.QueryRow(cookie.Value).Scan(&userID)
 	if err != nil {
 		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
 		return
 	}
 
-	// Проверяем, сколько топиков уже создал пользователь
+	// Подготавливаем запрос для подсчета количества тем
+	stmtCount, err := db.Prepare("SELECT COUNT(*) FROM topics WHERE user_id = $1")
+	if err != nil {
+		http.Error(w, "Error preparing statement for topic count", http.StatusInternalServerError)
+		return
+	}
+	defer stmtCount.Close()
+
 	var topicCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM topics WHERE user_id = $1", userID).Scan(&topicCount)
+	err = stmtCount.QueryRow(userID).Scan(&topicCount)
 	if err != nil {
 		http.Error(w, "Error counting topics", http.StatusInternalServerError)
 		return
 	}
 
-	if topicCount >= 10 { // Ограничение на 3 топика
+	if topicCount >= 10 {
 		http.Error(w, "You can create a maximum of 10 topics", http.StatusForbidden)
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO topics (title, description, user_id) VALUES ($1, $2, $3)", title, description, userID)
+	// Подготавливаем запрос для вставки новой темы
+	stmtInsert, err := db.Prepare("INSERT INTO topics (title, description, user_id) VALUES ($1, $2, $3)")
+	if err != nil {
+		http.Error(w, "Error preparing statement for topic insertion", http.StatusInternalServerError)
+		return
+	}
+	defer stmtInsert.Close()
+
+	// Выполняем вставку
+	_, err = stmtInsert.Exec(title, description, userID)
 	if err != nil {
 		http.Error(w, "Error creating topic", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+	// Отправляем ответ об успешном создании
+	w.WriteHeader(http.StatusOK) // Возвращает 200 при успешном создании
 }
 
-// ShowTopic displays the messages in a topic
+// ShowTopic displays the messages in a topic ---------------------------------------------------------
 func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	topicID := r.URL.Query().Get("id")
 
-	// Получаем заголовок темы
+	// Подготавливаем запрос для получения заголовка темы
+	stmtTitle, err := db.Prepare("SELECT title FROM topics WHERE id = $1")
+	if err != nil {
+		http.Error(w, "Error preparing statement for topic title", http.StatusInternalServerError)
+		return
+	}
+	defer stmtTitle.Close()
+
 	var title string
-	err := db.QueryRow("SELECT title FROM topics WHERE id = $1", topicID).Scan(&title)
+	err = stmtTitle.QueryRow(topicID).Scan(&title)
 	if err != nil {
 		http.Error(w, "Error fetching topic title", http.StatusInternalServerError)
 		return
 	}
 
-	rows, err := db.Query("SELECT id, content, user_id, created_at FROM posts WHERE topic_id = $1 ORDER BY created_at", topicID)
+	// Подготавливаем запрос для получения постов по ID темы
+	stmtPosts, err := db.Prepare("SELECT id, content, user_id, created_at FROM posts WHERE topic_id = $1 ORDER BY created_at")
+	if err != nil {
+		http.Error(w, "Error preparing statement for posts", http.StatusInternalServerError)
+		return
+	}
+	defer stmtPosts.Close()
+
+	rows, err := stmtPosts.Query(topicID)
 	if err != nil {
 		http.Error(w, "Error fetching posts", http.StatusInternalServerError)
 		return
@@ -406,7 +493,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreatePost handles adding a new post to a topic
+// CreatePost handles adding a new post to a topic ---------------------------------------------------------
 func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -423,17 +510,100 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userID int
-	err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+	// Подготавливаем запрос для получения user_id по session_id
+	stmtSession, err := db.Prepare("SELECT user_id FROM sessions WHERE session_id = $1")
+	if err != nil {
+		http.Error(w, "Error preparing statement for session", http.StatusInternalServerError)
+		return
+	}
+	defer stmtSession.Close()
+
+	// Выполняем подготовленный запрос для получения user_id
+	err = stmtSession.QueryRow(cookie.Value).Scan(&userID)
 	if err != nil {
 		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO posts (topic_id, user_id, content) VALUES ($1, $2, $3)", topicID, userID, content)
+	// Подготавливаем запрос для вставки нового поста
+	stmtInsertPost, err := db.Prepare("INSERT INTO posts (topic_id, user_id, content) VALUES ($1, $2, $3)")
+	if err != nil {
+		http.Error(w, "Error preparing statement for inserting post", http.StatusInternalServerError)
+		return
+	}
+	defer stmtInsertPost.Close()
+
+	// Выполняем подготовленный запрос для вставки поста
+	_, err = stmtInsertPost.Exec(topicID, userID, content)
 	if err != nil {
 		http.Error(w, "Error creating post", http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, "/topic?id="+topicID, http.StatusSeeOther)
+}
+
+// DeleteTopics handles delete topics ---------------------------------------------------------
+func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверка метода запроса
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Парсим форму
+	if err := r.ParseForm(); err != nil {
+		log.Println("Error parsing form:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Получаем список ID топиков из формы
+	topicIDs := r.Form["topic_ids[]"] // Обрати внимание на использование topic_ids[]
+
+	// Выводим полученные значения для отладки
+	//log.Println("Received topic IDs: ", topicIDs)
+
+	// Если не выбраны никакие топики
+	if len(topicIDs) == 0 {
+		http.Error(w, "Please select at least one topic to delete", http.StatusBadRequest)
+		return
+	}
+
+	// Начинаем транзакцию
+	tx := db.Begin()
+	if tx.Error != nil {
+		log.Println("Error starting transaction:", tx.Error)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Выполняем каскадное удаление для каждого ID
+	for _, id := range topicIDs {
+		// Удаляем связанные записи из таблицы posts
+		if err := tx.Exec("DELETE FROM posts WHERE topic_id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting related records:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Удаляем сам топик
+		if err := tx.Exec("DELETE FROM topics WHERE id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting topic:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Подтверждаем транзакцию
+	if err := tx.Commit().Error; err != nil {
+		log.Println("Error committing transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Перенаправляем пользователя после успешного удаления
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
