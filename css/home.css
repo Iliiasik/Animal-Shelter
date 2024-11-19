@@ -1,6 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
 /* Общие стили */
 *,
 *::before,
@@ -709,6 +707,7 @@ nav .wrapper {
     display: flex; /* Используем Flexbox */
     align-items: center; /* Выравниваем логотип и текст по вертикали */
     gap: 5px; /* Расстояние между логотипом и текстом */
+    transition: color 0.5s ease, text-shadow 0.5s ease; /* Плавный переход цвета и тени */
 }
 
 .logo-link {
@@ -718,14 +717,29 @@ nav .wrapper {
     color: #333; /* Цвет текста */
 }
 
+/* Стиль для изображения */
 .logo-image {
-    width: 55px; /* Уменьшенный размер логотипа */
+    width: 45px; /* Уменьшенный размер логотипа */
     height: auto;
     margin-right: 10px;
+    transition: transform 0.3s ease; /* Плавный переход для трансформации и фильтра */
 }
 
+/* Стиль для анимации при наведении */
+.logo-image:hover {
+    transform: scale(1.08); /* Увеличение масштаба логотипа при наведении */
+}
+
+
+/* Стиль для текста */
 .logo-text {
-    font-size: 30px; /* Размер текста */
-    font-weight: bold; /* Выделение текста */
+    font-size: 28px; /* Размер текста */
     margin: 0; /* Убираем лишние отступы */
+    color: #ffffff; /* Исходный цвет текста */
+    transition: color 0.5s ease; /* Плавный переход цвета и тени */
+}
+
+/* Стиль для текста при наведении */
+.logo-text:hover {
+    color: lightblue; /* Голубой цвет текста */
 }

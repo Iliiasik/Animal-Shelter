@@ -14,7 +14,7 @@
     <div class="wrapper">
         <div class="logo">
             <a href="/" class="logo-link">
-                <img src="system_images/лого2.svg" alt="Logo Image" class="logo-image">
+                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
                 <span class="logo-text">Animal Shelter</span>
             </a>
         </div>
@@ -110,7 +110,9 @@
                 {{range $index, $topic := .HottestTopics}}
                 <li class="topic">
                     <div class="user-info">
-                        <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        <a href="/profile/{{$topic.Username}}">
+                            <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        </a>
                         <span class="username">{{$topic.Username}}</span>
                         <span class="created-at">{{$topic.CreatedAt}}</span>
                     </div>
@@ -122,7 +124,6 @@
             </ul>
         </div>
             <div class="your-topics">
-                <h2>Your Topics</h2>
                 {{if .UserLoggedIn}}
                 <div class="user-profile" style="background-image: url('{{.User.BgImage}}');">
                     <div class="profile-inner">
@@ -135,7 +136,7 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="openModalTopic()">View Topics</button>
+                <button class="createTopic" onclick="openModalTopic()">Delete menu</button>
                 {{if .User.Topics}}
                 <ul>
                     {{range .User.Topics}}
@@ -151,8 +152,7 @@
                 <p>You need to <a href="/login">login</a> to see your topics.</p>
                 {{end}}
             </div>
-
-            <div id="topicsModal" class="modal">
+            <div id="topicsModal" class="modal delete-topics">
                 <div class="modal-content">
                     <span class="close" onclick="closeModalTopic()">&times;</span>
                     <h2>Select topics to delete</h2>
@@ -161,11 +161,13 @@
                     <!-- Форма для удаления топиков с чекбоксами -->
                     <form method="POST" action="/delete-topics" onsubmit="return validateForm()">
                         <div class="topics-list">
-                            <div class="column">
-                                {{range .User.Topics}}
+                            <!-- Первый столбец -->
+                            <div class="topics-column">
+                                {{range $index, $topic := .User.Topics}}
+                                {{if lt $index 5}}
                                 <div class="topic-wrapper">
                                     <label class="checkbox-wrapper-31">
-                                        <input type="checkbox" name="topic_ids[]" value="{{.ID}}">
+                                        <input type="checkbox" name="topic_ids[]" value="{{$topic.ID}}">
                                         <svg viewBox="0 0 35.6 35.6">
                                             <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
                                             <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
@@ -173,41 +175,71 @@
                                         </svg>
                                     </label>
                                     <li class="topic">
-                                        <a href="/topic?id={{.ID}}" class="topic-title">{{.Title}}</a>
+                                        <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
                                     </li>
                                 </div>
+                                {{end}}
+                                {{end}}
+                            </div>
+
+                            <!-- Второй столбец -->
+                            <div class="topics-column">
+                                {{range $index, $topic := .User.Topics}}
+                                {{if ge $index 5}}
+                                <div class="topic-wrapper">
+                                    <label class="checkbox-wrapper-31">
+                                        <input type="checkbox" name="topic_ids[]" value="{{$topic.ID}}">
+                                        <svg viewBox="0 0 35.6 35.6">
+                                            <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                                            <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                                            <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+                                        </svg>
+                                    </label>
+                                    <li class="topic">
+                                        <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
+                                    </li>
+                                </div>
+                                {{end}}
                                 {{end}}
                             </div>
                         </div>
 
                         <!-- Сообщение об ошибке, если не выбран ни один чекбокс -->
-                        <div id="error-message" style="color: red; display: none;">
+                        <div id="error-message" style="display: none;">
                             Please select at least one topic to delete
                         </div>
+                        <div class="selectLabel" id="selected-count" style="display: none;">
+                            You have selected <span id="count">0</span> topics.
+                        </div>
 
-                        <!-- Кнопка подтверждения удаления -->
-                        <button class="delete-button" type="submit">
-                            <p class="paragraph"> delete </p>
-                            <span class="icon-wrapper">
-                    <svg class="icon" width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 7V18C6 19.1046 6.89543 20 8 20H16C17.1046 20 18 19.1046 18 18V7M6 7H5M6 7H8M18 7H19M18 7H16M10 11V16M14 11V16M8 7V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V7M8 7H16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </span>
-                        </button>
+                        <!-- Кнопки для выбора всех и отмены выбора -->
+                        <div class="select-buttons">
+                            <button class="createTopic" type="button" onclick="selectAllCheckboxes()">Select All</button>
+                            <button class="createTopic" type="button" onclick="unselectAllCheckboxes()">Unselect All</button>
+                            <button class="delete-button" type="submit">
+                                <p class="paragraph"> delete </p>
+                                <span class="icon-wrapper">
+            <svg class="icon" width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 7V18C6 19.1046 6.89543 20 8 20H16C17.1046 20 18 19.1046 18 18V7M6 7H5M6 7H8M18 7H19M18 7H16M10 11V16M14 11V16M8 7V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V7M8 7H16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </span>
+                            </button>
+                        </div>
+
                     </form>
                     {{else}}
                     <p>You have no topics created yet.</p>
                     {{end}}
                 </div>
             </div>
-
         </div>
 
     <div class="search-wrapper" id="search-section">
         <div class="search-field">
             <input type="text" id="topic-search" class="search-input" placeholder="Search by topic title...">
             <button class="search-button" onclick="searchTopics()">Search</button>
-            <button class="search-button recent-button">Recent</button>
+            <a class="search-button" href="/forum?page=1#search-section">All</a>
+
         </div>
     </div>
     {{if eq (len .Topics) 0}}
@@ -218,11 +250,13 @@
             Yes, he works at two jobs)</p>
     </div>
     {{else}}
-    <ul>
+        <ul>
         {{range $topic := .Topics}}
         <li class="topic">
             <div class="user-info">
-                <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                <a href="/profile/{{$topic.Username}}">
+                    <img src="{{$topic.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                </a>
                 <span class="username">{{$topic.Username}}</span>
                 <span class="created-at">{{$topic.CreatedAt}}</span>
             </div>
@@ -309,10 +343,18 @@
 
         // Always reset page to 1 on search
         url.searchParams.set('page', '1');
-
+        url.hash = 'search-section';
         // Redirect to the modified URL
         window.location.href = url.toString();
     }
+    function restoreSearchParam() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const title = urlParams.get('title');
+        if (title) {
+            titleInput.value = title; // Вставляем значение в поле ввода
+        }
+    }
+
 
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -376,18 +418,6 @@
             modal.style.display = 'none';
         }
     }
-    function validateForm() {
-        // Проверяем, что хотя бы один чекбокс выбран
-        const checkboxes = document.querySelectorAll('input[name="topic_ids[]"]:checked');
-        if (checkboxes.length === 0) {
-            // Показываем сообщение об ошибке
-            document.getElementById('error-message').style.display = 'block';
-            return false; // Отправка формы не произойдет
-        }
-        // Скрываем сообщение об ошибке, если чекбокс выбран
-        document.getElementById('error-message').style.display = 'none';
-        return true; // Форма будет отправлена
-    }
     document.addEventListener("DOMContentLoaded", function() {
         const topicTitles = document.querySelectorAll(".topic-title");
 
@@ -397,5 +427,83 @@
             }
         });
     });
+
+    window.onload = function() {
+        restoreSearchParam();
+        var topicsCount = document.querySelectorAll('.delete-topics .topic-wrapper').length; // Считаем количество топиков
+        var modalContent = document.querySelector('.delete-topics .modal-content'); // Получаем элемент .modal-content
+        var topicColumn = document.querySelector('.delete-topics .topics-column');
+
+        if (topicsCount < 6) {
+            modalContent.classList.add('narrow'); // Добавляем класс narrow к .modal-content
+            topicColumn.classList.add('narrow'); // Добавляем класс narrow к .modal-content
+        }
+
+    }
+    function validateForm() {
+        // Проверяем, что хотя бы один чекбокс выбран
+        const checkboxes = document.querySelectorAll('input[name="topic_ids[]"]:checked');
+        if (checkboxes.length === 0) {
+            // Показываем сообщение об ошибке
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('selected-count').style.display = 'none'; // Скрываем сообщение о выбранных топиках
+            return false; // Отправка формы не произойдет
+        }
+        // Скрываем сообщение об ошибке, если чекбокс выбран
+        document.getElementById('error-message').style.display = 'none';
+        // Показываем сообщение с количеством выбранных топиков
+        updateSelectedCount();
+        return true; // Форма будет отправлена
+    }
+
+    // Функция для обновления текста о выбранных топиках
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('input[name="topic_ids[]"]:checked'); // Находим все отмеченные чекбоксы
+        const selectedCount = checkboxes.length; // Получаем их количество
+
+        // Обновляем текст в элементе #count
+        document.getElementById('count').textContent = selectedCount;
+
+        // Показываем или скрываем сообщение о количестве выбранных топиков
+        const selectedCountMessage = document.getElementById('selected-count');
+        if (selectedCount > 0) {
+            selectedCountMessage.style.display = 'block'; // Показываем сообщение
+            document.getElementById('error-message').style.display = 'none'; // Скрываем сообщение об ошибке, если выбраны топики
+        } else {
+            selectedCountMessage.style.display = 'none'; // Скрываем сообщение
+        }
+    }
+
+    // Функция для обработки изменения состояния чекбоксов
+    document.querySelectorAll('input[name="topic_ids[]"]').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            updateSelectedCount(); // Обновляем количество выбранных топиков при изменении состояния чекбоксов
+            validateForm(); // Проверяем, есть ли выбранные топики для формы
+        });
+    });
+
+    // Функция для выбора всех чекбоксов
+    function selectAllCheckboxes() {
+        let checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = true;
+        });
+        updateSelectedCount(); // Обновляем количество выбранных топиков после выбора всех чекбоксов
+        validateForm(); // Проверяем, есть ли выбранные топики для формы
+    }
+
+    // Функция для отмены выбора всех чекбоксов
+    function unselectAllCheckboxes() {
+        let checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = false;
+        });
+        updateSelectedCount(); // Обновляем количество выбранных топиков после отмены выбора всех чекбоксов
+        validateForm(); // Проверяем, есть ли выбранные топики для формы
+    }
+
+    // Инициализация при загрузке страницы
+    updateSelectedCount();
+
 </script>
 </html>

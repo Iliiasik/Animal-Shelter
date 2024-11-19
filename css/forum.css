@@ -108,6 +108,12 @@ h1 {
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
+    object-fit: cover;
+    transition: transform 0.3s ease; /* Плавный переход при изменении масштаба */
+}
+
+.profile-image:hover {
+    transform: scale(1.1); /* Увеличение на 20% при наведении */
 }
 
 .username {
@@ -198,10 +204,6 @@ h1 {
 .search-button {
     margin-left: 10px;
 }
-
-.recent-button:hover {
-    background-color: #45a049; /* Более темный зеленый при наведении */
-}
 .pagination {
     display: flex;
     justify-content: center; /* Центрирует элементы по горизонтали */
@@ -287,8 +289,8 @@ h1 {
     height: 200px; /* Высота фона */
     border-radius: 8px;
     border: 2px solid #a8a7a7;
-    margin-bottom: 20px;
-    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-top: 5px;
     padding: 20px;
 }
 
@@ -327,6 +329,15 @@ h1 {
     font-size: 1em;
     color: #000000;
     margin-top: 5px; /* Немного отступа для лучшей читаемости */
+}
+.your-topics p {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    color: #2C6B2F;
+}
+.your-topics a {
+    text-decoration: none;
 }
 .icon {
     height: 1.7em;
@@ -664,4 +675,83 @@ h1 {
     text-align: center; /* Центрирование текста */
     margin: 10px 0; /* Отступы сверху и снизу */
 }
+.selectLabel {
+    color: #496c33;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+.delete-topics .modal-content{
+    max-width: 800px;
+}
+.delete-topics .topics-list {
+    display: flex;
+    justify-content: space-between; /* Разделяет на два столбца */
+}
 
+
+.delete-topics .topics-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Расстояние между элементами в столбце */
+    width: 48%; /* Каждый столбец занимает 48% ширины */
+}
+
+.delete-topics .topics-column.narrow {
+    width: 100%;
+}
+
+.delete-topics .topics-column.narrow ~ .topics-column {
+    width: auto; /* Стиль отключается */
+}
+
+.delete-topics .modal-content.narrow {
+    max-width: 420px; /* Уменьшаем ширину, если топиков меньше 6 */
+    box-sizing: border-box;
+}
+.select-buttons {
+    position: relative; /* Относительное позиционирование */
+    left: 50%; /* Смещаем контейнер на 50% по горизонтали */
+    transform: translateX(-50%); /* Сдвигаем контейнер на 50% влево, чтобы центрировать его */
+    display: flex; /* Располагаем кнопки в одну строку */
+    gap: 5px; /* Расстояние между кнопками */
+    justify-content: center; /* Центрируем кнопки внутри контейнера */
+    padding: 10px; /* Добавляем внутренние отступы */
+    width: max-content; /* Ширина зависит от содержимого */
+    box-sizing: border-box; /* Учитываем отступы и границы в общей ширине и высоте */
+}
+
+.delete-topics .createTopic {
+    width: 120px; /* Устанавливаем фиксированную ширину */
+    font-size: 14px; /* Уменьшаем размер шрифта */
+}
+.delete-topics .topic {
+    background-color: #F6F5F1;
+}
+.your-topics .createTopic {
+    margin-bottom: 10px;
+}
+.your-topics::-webkit-scrollbar {
+    display: none; /* Скрыть скроллбар */
+}
+.hot-discussion h2 {
+    font-size: 1.5em;
+    background: linear-gradient(45deg, #ff4500, #ff6347, #ff6a00, #ff8c00, #ff0000);
+    background-size: 400% 400%;
+    color: transparent;
+    background-clip: text; /* Применяет градиент только к тексту */
+    -webkit-background-clip: text; /* Для браузеров на основе WebKit (например, Chrome) */
+    animation: fireEffect 15s ease infinite; /* Делаем анимацию медленной */
+}
+
+@keyframes fireEffect {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
