@@ -177,6 +177,7 @@ document.querySelector('.button-save').addEventListener('click', function (e) {
 
 // Функция отправки данных FormData`  и логирование перед отправкой
 function sendProfileData(formData) {
+    saveSettings()
     console.log('FormData being sent:');
     for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
@@ -279,7 +280,17 @@ function saveSettings() {
             }, 3000);
         });
 }
-
+document.getElementById('logout').addEventListener('click', function () {
+    const confirmLogout = confirm('This action will redirect you to the Home Page and will log you out. ' +
+        'Are you sure?');
+    if (confirmLogout) {
+        // Действие при подтверждении
+        window.location.href = '/logout'; // Ссылка на выход
+    } else {
+        // Действие при отмене (если нужно)
+        console.log('Пользователь отменил выход');
+    }
+});
 
 const originalContainer = document.getElementById('original-container');
 const targetContainer = document.getElementById('target-container');
