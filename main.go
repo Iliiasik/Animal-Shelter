@@ -116,23 +116,23 @@ func main() {
 	})
 	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.ShowProfile(sqlDB, w, r) // Маршрут для профиля
+			handlers.ShowProfile(gormDB, w, r) // Маршрут для профиля
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.RenderEditTemplate(sqlDB, w, r) // Маршрут для редактирования профиля
+			handlers.RenderEditTemplate(gormDB, w, r) // Маршрут для редактирования профиля
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SaveProfile(sqlDB, w, r) // Маршрут для сохранения профиля
+		handlers.SaveProfile(gormDB, w, r) // Маршрут для сохранения профиля
 	})
 	mux.HandleFunc("/save-visibility-settings", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SaveVisibilitySettings(sqlDB, w, r)
+		handlers.SaveVisibilitySettings(gormDB, w, r)
 	})
 	mux.HandleFunc("/profile/{username}", func(w http.ResponseWriter, r *http.Request) {
 		// Извлекаем username из URL с помощью регулярного выражения
@@ -144,7 +144,7 @@ func main() {
 			username := match[1]
 			// Подключаемся к базе данных (или используем уже подключенную)
 			// Пример обработки маршрута с username:
-			handlers.ViewProfile(sqlDB, w, r, username)
+			handlers.ViewProfile(gormDB, w, username)
 		} else {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
 		}

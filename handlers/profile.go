@@ -2,9 +2,13 @@ package handlers
 
 import (
 	"Animals_Shelter/models" // Путь к модели User и Session
-	"database/sql"
+	_ "database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"gorm.io/gorm"
+	"mime/multipart"
+
 	/*"github.com/gorilla/mux"*/
 	"html/template"
 	"io"
@@ -28,9 +32,8 @@ type Profile struct {
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
 
-// Handles rendering the profile of current user
-func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-
+// ShowProfile Handles rendering the profile of current user
+func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	sessionCookie, err := r.Cookie("session")
 	if err != nil || sessionCookie.Value == "" {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -38,13 +41,8 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var session models.Session
-	querySession := `SELECT id, session_id, user_id, created_at, expires_at FROM sessions WHERE session_id = $1`
-	err = db.QueryRow(querySession, sessionCookie.Value).Scan(
-		&session.ID, &session.SessionID, &session.UserID, &session.CreatedAt, &session.ExpiresAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if err := db.Where("session_id = ?", sessionCookie.Value).First(&session).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Session not found", http.StatusUnauthorized)
 		} else {
 			log.Println("Database error:", err)
@@ -59,18 +57,8 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user models.User
-	queryUser := `
-		SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, date_of_birth, profile_bg_image, show_email, show_phone
-		FROM users WHERE id = $1
-	`
-	err = db.QueryRow(queryUser, session.UserID).Scan(
-		&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Bio,
-		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth, &user.ProfileBgImage,
-		&user.ShowEmail, &user.ShowPhone,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if err := db.First(&user, session.UserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
 			log.Println("Database error:", err)
@@ -86,9 +74,8 @@ func ShowProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Rendering the Edit template of current user with his existing info
-func RenderEditTemplate(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Получите ID пользователя из сессии или куки
+// RenderEditTemplate Rendering the Edit template of current user with his existing info
+func RenderEditTemplate(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -97,25 +84,30 @@ func RenderEditTemplate(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	sessionToken := cookie.Value
 
-	var user User
-	err = db.QueryRow(`
-        SELECT id, username, first_name, last_name, phone_number, bio, profile_image, date_of_birth, profile_bg_image,show_email, show_phone
-        FROM users 
-        WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)`, sessionToken).
-		Scan(&user.ID, &user.Username, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Bio, &user.ProfileImage, &user.DateOfBirth, &user.ProfileBgImage, &user.ShowEmail, &user.ShowPhone)
-
-	if err != nil {
-		http.Error(w, "Error fetching user data", http.StatusInternalServerError)
+	var session models.Session
+	if err := db.Where("session_id = ?", sessionToken).First(&session).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Session not found", http.StatusUnauthorized)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
-	if user.DateOfBirth != "" {
-		parsedDate, err := time.Parse("2006-01-02T15:04:05Z", user.DateOfBirth)
-		if err == nil {
-			user.DateOfBirth = parsedDate.Format("2006-01-02") // Преобразуем в формат yyyy-MM-dd
+	var user models.User
+	if err := db.First(&user, session.UserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
-			log.Printf("Error parsing date of birth: %v", err)
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
+		return
+	}
+
+	if !user.DateOfBirth.IsZero() {
+		user.FormattedDateOfBirth = user.DateOfBirth.Format("2006-01-02")
 	}
 
 	log.Printf("Profile background image URL: %s", user.ProfileBgImage)
@@ -128,12 +120,13 @@ func RenderEditTemplate(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 // SaveProfile handles saving the updated user profile including the cropped image
-func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		log.Println("Invalid method:", r.Method)
 		return
 	}
+
 	firstName, lastName, bio, phone, dob, removeProfileImage, removeBackgroundImage := getFormData(r)
 	log.Printf("Form data: firstName=%s, lastName=%s, bio=%s, phone=%s, dob=%s, removeProfileImage=%t, removeBackgroundImage=%t\n",
 		firstName, lastName, bio, phone, dob, removeProfileImage, removeBackgroundImage)
@@ -156,7 +149,7 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	backgroundImagePath := handleImageUpdate(r, "backgroundImage", "uploads/profile_images/background", removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
 
-	//Updating profile
+	// Updating profile
 	err = updateUserProfile(db, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
@@ -167,8 +160,15 @@ func SaveProfile(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	log.Println("Profile successfully updated")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	err = json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	if err != nil {
+		log.Println("Error encoding JSON response:", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
 }
+
 func getFormData(r *http.Request) (string, string, string, string, string, bool, bool) {
 	return r.FormValue("firstName"),
 		r.FormValue("lastName"),
@@ -185,18 +185,20 @@ func getSessionToken(r *http.Request) (string, error) {
 	}
 	return cookie.Value, nil
 }
-func getUserImages(db *sql.DB, sessionToken string) (string, string, error) {
-	var profileImagePath, backgroundImagePath string
-	err := db.QueryRow(`
-        SELECT profile_image, profile_bg_image 
-        FROM users 
-        WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)`, sessionToken).
-		Scan(&profileImagePath, &backgroundImagePath)
-	if err == sql.ErrNoRows {
-		return "", "", nil
+func getUserImages(db *gorm.DB, sessionToken string) (string, string, error) {
+	var userID uint
+	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
+		return "", "", err
 	}
-	return profileImagePath, backgroundImagePath, err
+
+	var user User
+	if err := db.First(&user, userID).Error; err != nil {
+		return "", "", err
+	}
+
+	return user.ProfileImage, user.ProfileBgImage, nil
 }
+
 func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string) string {
 	if removeFlag {
 		//Delete image if it is not system image
@@ -223,23 +225,45 @@ func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bo
 
 	return oldImagePath
 }
-func updateUserProfile(db *sql.DB, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken string) error {
-	query := `UPDATE users SET first_name = $1, last_name = $2, bio = $3, phone_number = $4, date_of_birth = $5, profile_image = $6, profile_bg_image = $7 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $8)`
-	params := []interface{}{firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken}
+func updateUserProfile(db *gorm.DB, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken string) error {
+	// Find user ID from session token
+	var userID uint
+	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
+		return err
+	}
 
-	_, err := db.Exec(query, params...)
-	return err
+	// Update user profile using GORM
+	if err := db.Model(&User{}).Where("id = ?", userID).Updates(User{
+		FirstName:      firstName,
+		LastName:       lastName,
+		Bio:            bio,
+		PhoneNumber:    phone,
+		DateOfBirth:    dob,
+		ProfileImage:   profileImagePath,
+		ProfileBgImage: backgroundImagePath,
+	}).Error; err != nil {
+		return err
+	}
+
+	return nil
+
 }
+
 func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 	file, handler, err := r.FormFile(formFieldName)
 	if err != nil {
-		if err == http.ErrMissingFile {
+		if errors.Is(err, http.ErrMissingFile) {
 			return "", nil
 		}
 		log.Println("Error uploading image:", err)
 		return "", err
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println("Error closing file:", err)
+		}
+	}(file)
 
 	uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
 	imagePath := fmt.Sprintf("%s/%s", dir, uniqueFileName)
@@ -255,7 +279,12 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 		log.Println("Error saving image:", err)
 		return "", err
 	}
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			log.Println("Error closing file:", err)
+		}
+	}(out)
 
 	_, err = io.Copy(out, file)
 	if err != nil {
@@ -268,8 +297,8 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 
 //ALl above are functions handling the update
 
-// Handles saving visibility settings from edit template (email,phone number)
-func SaveVisibilitySettings(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// SaveVisibilitySettings Handles saving visibility settings from edit template (email,phone number)
+func SaveVisibilitySettings(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to update visibility settings")
 
 	if r.Method != http.MethodPost {
@@ -293,9 +322,21 @@ func SaveVisibilitySettings(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 	sessionToken := cookie.Value
 	log.Println("Session token:", sessionToken)
 
-	query := `UPDATE users SET show_email = $1, show_phone = $2 WHERE id = (SELECT user_id FROM sessions WHERE session_id = $3)`
-	_, err = db.Exec(query, showEmail, showPhone, sessionToken)
-	if err != nil {
+	var session models.Session
+	if err := db.Where("session_id = ?", sessionToken).First(&session).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Session not found", http.StatusUnauthorized)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if err := db.Model(&models.User{}).Where("id = ?", session.UserID).Updates(map[string]interface{}{
+		"show_email": showEmail,
+		"show_phone": showPhone,
+	}).Error; err != nil {
 		http.Error(w, "Error updating visibility settings", http.StatusInternalServerError)
 		log.Println("Error executing query:", err)
 		return
@@ -311,24 +352,11 @@ func SaveVisibilitySettings(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// Handles rendering profiles of other users
-func ViewProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username string) {
-
+// ViewProfile Handles rendering profiles of other users
+func ViewProfile(db *gorm.DB, w http.ResponseWriter, username string) {
 	var user models.User
-	queryUser := `
-        SELECT id, username, email, first_name, last_name, bio, profile_image, phone_number, date_of_birth, profile_bg_image, show_email, show_phone
-        FROM users WHERE username = $1
-    `
-	err := db.QueryRow(queryUser, username).Scan(
-		&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.Bio,
-		&user.ProfileImage, &user.PhoneNumber, &user.DateOfBirth, &user.ProfileBgImage,
-		&user.ShowEmail, &user.ShowPhone,
-	)
-	log.Println("Profile image path:", user.ProfileImage)
-	log.Println("Background image path:", user.ProfileBgImage)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
 			log.Println("Database error:", err)
@@ -337,8 +365,10 @@ func ViewProfile(db *sql.DB, w http.ResponseWriter, r *http.Request, username st
 		return
 	}
 
-	err = userProfile.Execute(w, user)
+	log.Println("Profile image path:", user.ProfileImage)
+	log.Println("Background image path:", user.ProfileBgImage)
 
+	err := userProfile.Execute(w, user)
 	if err != nil {
 		log.Println("Template rendering error:", err)
 		http.Error(w, "Error rendering profile", http.StatusInternalServerError)
