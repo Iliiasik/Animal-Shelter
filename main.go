@@ -1,19 +1,28 @@
 package main
 
 import (
+	"Animals_Shelter/admin"
+	"Animals_Shelter/admin/auth"
+	"Animals_Shelter/admin/db_old"
+	"Animals_Shelter/admin/middleware"
+	"Animals_Shelter/db"
+	"Animals_Shelter/handlers"
 	"fmt"
+
 	"log"
 	"net/http"
 	"regexp"
 	"time"
-
-	"Animals_Shelter/db"
-	"Animals_Shelter/handlers"
 )
 
 func main() {
 	// Подключение к базе данных через GORM
 	gormDB := db.ConnectDB()
+
+	oldGormDB := db_old.ConnectOldDB()
+	// Initialize QOR Admin
+	// Инициализация админки
+	Admin := admin.InitAdmin(oldGormDB)
 
 	// Получаем *sql.DB из *gorm.DB
 	sqlDB, err := gormDB.DB()
@@ -25,6 +34,12 @@ func main() {
 
 	// Создаем новый маршрутизатор
 	mux := http.NewServeMux()
+
+	// Оборачиваем админку в Middleware
+
+	// Оборачиваем админку в Middleware
+	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
+	mux.Handle("/admin/", adminHandler)
 
 	// Настройка маршрутов с использованием *sql.DB
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -100,16 +115,6 @@ func main() {
 	mux.HandleFunc("/registration_success", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			http.ServeFile(w, r, "templates/registration_success.html")
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
-		handlers.AdminPanel(sqlDB, w, r)
-	})
-	mux.HandleFunc("/admin/delete", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodDelete {
-			handlers.DeleteRecord(sqlDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
