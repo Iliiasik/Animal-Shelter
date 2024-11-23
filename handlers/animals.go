@@ -55,7 +55,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error fetching species", http.StatusInternalServerError)
 		return
 	}
-	animal.Species = speciesID
+	animal.SpeciesID = speciesID
 
 	// Получаем или создаем запись о статусе
 	statusName := r.FormValue("status_id")
@@ -77,7 +77,6 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Остальные данные животного
 	animal.Breed = r.FormValue("breed")
 	animal.Age, _ = strconv.Atoi(r.FormValue("age"))
-	animal.Gender = r.FormValue("gender")
 	animal.ArrivalDate = r.FormValue("arrival_date")
 	animal.Description = r.FormValue("description")
 
@@ -146,7 +145,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
         RETURNING id
     `
 	var animalID int
-	err = db.QueryRow(query, animal.Name, animal.Species, animal.Breed, animal.Age, animal.Gender, animal.StatusID, animal.ArrivalDate, animal.Description).Scan(&animalID)
+	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.Gender, animal.StatusID, animal.ArrivalDate, animal.Description).Scan(&animalID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,7 +171,7 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 // ShowAddMedicalRecordForm displays the form to add a new medical record
 func ShowAddMedicalRecordForm(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Fetch animals from the database to populate the dropdown
-	rows, err := db.Query("SELECT id, name FROM Animals")
+	rows, err := db.Query("SELECT id, name FROM animals")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -210,8 +209,8 @@ func AddMedicalRecord(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	vetName := r.FormValue("vet_name")
 
 	query := `
-		INSERT INTO MedicalRecords (animal_id, checkup_date, notes, vet_name)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO medicalrecords (animal_id, checkup_date, notes, vet_id)
+		VALUES ($1, $2, $3, (SELECT id FROM users WHERE name = $4))
 	`
 	_, err = db.Exec(query, animalID, checkupDate, notes, vetName)
 	if err != nil {
@@ -241,45 +240,36 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
         SELECT a.id, a.name, a.species, t.type_name, a.breed, a.age, a.gender, a.status_id, s.status_name, a.arrival_date, a.description
         FROM animals a
         JOIN animalstatus s ON a.status_id = s.id
-        JOIN animaltypes t ON a.species = t.id
+        JOIN animaltypes t ON a.species_id = t.id
         WHERE a.id = $1
     `
-	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.Species, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
+	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.SpeciesID, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Animal not found", http.StatusNotFound)
-		} else {
-			log.Printf("Error fetching animal information: %v\n", err)
-			http.Error(w, "Failed to fetch animal information", http.StatusInternalServerError)
+			http.NotFound(w, r)
+			return
 		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Fetch animal images
-	imageQuery := `
-        SELECT id, animal_id, image_url
-        FROM postimages
-        WHERE animal_id = $1
-    `
-	rows, err := db.Query(imageQuery, animalID)
+	query = `SELECT image_url FROM postimages WHERE animal_id = $1`
+	rows, err := db.Query(query, animalID)
 	if err != nil {
-		log.Printf("Error fetching animal images: %v\n", err)
-		http.Error(w, "Failed to fetch animal images", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var image models.PostImage
-		if err := rows.Scan(&image.ID, &image.AnimalID, &image.ImageURL); err != nil {
-			log.Printf("Error scanning image row: %v\n", err)
-			http.Error(w, "Failed to scan image row", http.StatusInternalServerError)
+		if err := rows.Scan(&image.ImageURL); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		animal.Images = append(animal.Images, image)
 	}
-
-	// Render template with animal data
 	tmpl, err := template.ParseFiles("templates/animal_information.html")
 	if err != nil {
 		log.Printf("Error parsing template: %v\n", err)

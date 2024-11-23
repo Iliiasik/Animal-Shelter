@@ -27,7 +27,7 @@ func InitAdmin(db *gorm.DB) *admin.Admin {
 
 	// Добавляем кастомный дашборд в меню
 	Admin.AddMenu(&admin.Menu{
-		Name: "Дашборд",
+		Name: "Dashboard",
 		Link: "/admin/dashboard",
 	})
 

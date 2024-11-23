@@ -29,17 +29,25 @@ func ConnectDB() *gorm.DB {
 
 	// Автоматическое создание таблиц на основе ваших моделей
 	db.AutoMigrate(
+		&models.Animal{},
 		&models.AnimalStatus{},
 		&models.AnimalType{},
-		&models.Animal{},
+		&models.Gender{},
 		&models.MedicalRecord{},
 		&models.PostImage{},
-		&models.Session{},
 		&models.Adoption{},
+		&models.AdoptionStatus{},
 		&models.Topic{},
 		&models.Post{},
 		&models.Like{},
+		&models.Feedback{},
 		&models.User{},
+		&models.Role{},
+		&models.UserDetail{},
+		&models.UserPrivacy{},
+		&models.UserImage{},
+		&models.UserEmailConfirmation{},
+		&models.Session{},
 	)
 
 	return db
