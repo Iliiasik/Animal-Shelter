@@ -1,61 +1,195 @@
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Edit Profile of {{.Username}}</title>
+        <title>Edit Profile of {{.User.Username}}</title>
         <link rel="stylesheet" type="text/css" href="/css/edit_profile.css">
         <link rel="stylesheet" type="text/css" href="/css/home.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+        <script src="/js/edit_profile.js" defer></script>
     </head>
-    <body>
-    <div class="profile-background">
+<body>
+    <div class="profile-background" style="background-image: url('{{.UserImage.ProfileBgImage}}');">
 
-        <input type="file" class="edit-bg-button">
-        <button class="custom-button" id="fileButton"> Сhange profile background</button>
+        <div class="bg-buttons" id="target-container">
 
+            <input type="file" id="uploadBg" accept="image/*" style="display: none">
 
-        <div class="profile">
-            
-            <div class="profile-image">
-                <img src="{{.ProfileImage}}" alt="Profile Image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
-            </div>
+            <button type="button" id="customBgButton" class="upload-bg-button">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M13.0344 14.0062C13.0361 14.5585 12.5898 15.0076 12.0375 15.0093C11.4853 15.0111 11.0361 14.5647 11.0344 14.0125L13.0344 14.0062Z" fill="#000000"/>
+                    <path d="M9.71867 6.72364L11.0075 5.42672L11.0344 14.0125L13.0344 14.0062L13.0075 5.42045L14.3044 6.70926C14.6961 7.09856 15.3293 7.09659 15.7186 6.70484C16.1079 6.3131 16.1059 5.67993 15.7142 5.29064L11.9955 1.59518L8.30003 5.31387L9.71867 6.72364Z" fill="#000000"/>
+                    <path d="M8.30003 5.31387C7.91073 5.70562 7.9127 6.3388 8.30445 6.7281C8.69619 7.1174 9.32938 7.11539 9.71867 6.72364L8.30003 5.31387Z" fill="#000000"/>
+                    <path d="M4 12C4 10.8954 4.89543 10 6 10C6.55228 10 7 9.55229 7 9C7 8.44772 6.55228 8 6 8C3.79086 8 2 9.79086 2 12V18C2 20.2091 3.79086 22 6 22H17C19.7614 22 22 19.7614 22 17V12C22 9.79086 20.2091 8 18 8C17.4477 8 17 8.44772 17 9C17 9.55229 17.4477 10 18 10C19.1046 10 20 10.8954 20 12V17C20 18.6569 18.6569 20 17 20H6C4.89543 20 4 19.1046 4 18V12Z" fill="#000000"/>
+                </svg>
+                <span class="button-text">Upload background image</span>
+            </button>
 
-            <div class="profile-info">
-                <form action="/save-profile" method="POST">
-                    <h1>Edit Profile: {{.Username}}</h1>
-                    
-                    <!-- First Name -->
-                    <label for="firstName"><strong>First Name:</strong></label><br>
-                    <input type="text" id="firstName" name="firstName" value="{{.FirstName}}" required><br><br>
+            <button type="button" id="removeBg" class="remove-bg-button">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M5.16565 10.1534C5.07629 8.99181 5.99473 8 7.15975 8H16.8402C18.0053 8 18.9237 8.9918 18.8344 10.1534L18.142 19.1534C18.0619 20.1954 17.193 21 16.1479 21H7.85206C6.80699 21 5.93811 20.1954 5.85795 19.1534L5.16565 10.1534Z" stroke="#000000" stroke-width="2"/>
+                    <path d="M19.5 5H4.5" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10 3C10 2.44772 10.4477 2 11 2H13C13.5523 2 14 2.44772 14 3V5H10V3Z" stroke="#000000" stroke-width="2"/>
+                    <path d="M14 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span class="button-text">Remove</span>
+            </button>
 
-                    <!-- Last Name -->
-                    <label for="lastName"><strong>Last Name:</strong></label><br>
-                    <input type="text" id="lastName" name="lastName" value="{{.LastName}}" required><br><br>
-
-                    <!-- Bio -->
-                    <label for="bio"><strong>Bio:</strong></label><br>
-                    <textarea id="bio" name="bio" rows="4" required>{{.Bio}}</textarea><br><br>
-
-
-
-                    <!-- Phone Number -->
-                    <label for="phone"><strong>Phone:</strong></label><br>
-                    <input type="tel" id="phone" name="phone" value="{{.PhoneNumber}}" required><br><br>
-
-                    <!-- Date of Birth -->
-                    <label for="dob"><strong>Date of Birth:</strong></label><br>
-                    <input type="date" id="dob" name="dob" value="{{.DateOfBirth}}" required><br><br>
-
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="button-save">Save Profile</button>
-                </form>
-            </div>
         </div>
     </div>
 
-    <!-- Кнопка Home (слева) -->
-    <a href="/home" class="button-home">Home</a>
+    <div class="profile">
 
-    </body>
-    </html>
+        <div class="profile-image-functions">
+
+            <div class="profile-image">
+                <img id="profileImage" src="{{.UserImage.ProfileImage}}" alt="Profile Image">
+            </div>
+
+            <div class="buttons">
+
+                <input type="file" id="uploadImage" accept="image/*" style="display: none;">
+
+                <button type="button" id="customUploadButton" class="upload-button">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M13.0344 14.0062C13.0361 14.5585 12.5898 15.0076 12.0375 15.0093C11.4853 15.0111 11.0361 14.5647 11.0344 14.0125L13.0344 14.0062Z" fill="#000000"/>
+                        <path d="M9.71867 6.72364L11.0075 5.42672L11.0344 14.0125L13.0344 14.0062L13.0075 5.42045L14.3044 6.70926C14.6961 7.09856 15.3293 7.09659 15.7186 6.70484C16.1079 6.3131 16.1059 5.67993 15.7142 5.29064L11.9955 1.59518L8.30003 5.31387L9.71867 6.72364Z" fill="#000000"/>
+                        <path d="M8.30003 5.31387C7.91073 5.70562 7.9127 6.3388 8.30445 6.7281C8.69619 7.1174 9.32938 7.11539 9.71867 6.72364L8.30003 5.31387Z" fill="#000000"/>
+                        <path d="M4 12C4 10.8954 4.89543 10 6 10C6.55228 10 7 9.55229 7 9C7 8.44772 6.55228 8 6 8C3.79086 8 2 9.79086 2 12V18C2 20.2091 3.79086 22 6 22H17C19.7614 22 22 19.7614 22 17V12C22 9.79086 20.2091 8 18 8C17.4477 8 17 8.44772 17 9C17 9.55229 17.4477 10 18 10C19.1046 10 20 10.8954 20 12V17C20 18.6569 18.6569 20 17 20H6C4.89543 20 4 19.1046 4 18V12Z" fill="#000000"/>
+                    </svg>
+                    <span class="button-text">Upload Image</span>
+                </button>
+
+                <button type="button" id="editCropButton" class="crop-button">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 3V14.8C6 15.9201 6 16.4802 6.21799 16.908C6.40973 17.2843 6.71569 17.5903 7.09202 17.782C7.51984 18 8.0799 18 9.2 18H15M21 18H18M18 21V9.2C18 8.0799 18 7.51984 17.782 7.09202C17.5903 6.71569 17.2843 6.40973 16.908 6.21799C16.4802 6 15.9201 6 14.8 6H9M3 6H6" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="button-text">Edit / Crop Image</span>
+                </button>
+
+                <button type="button" id="removeProfileImage" class="remove-profile-button">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M5.16565 10.1534C5.07629 8.99181 5.99473 8 7.15975 8H16.8402C18.0053 8 18.9237 8.9918 18.8344 10.1534L18.142 19.1534C18.0619 20.1954 17.193 21 16.1479 21H7.85206C6.80699 21 5.93811 20.1954 5.85795 19.1534L5.16565 10.1534Z" stroke="#000000" stroke-width="2"/>
+                        <path d="M19.5 5H4.5" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M10 3C10 2.44772 10.4477 2 11 2H13C13.5523 2 14 2.44772 14 3V5H10V3Z" stroke="#000000" stroke-width="2"/>
+                        <path d="M14 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="button-text">Remove</span>
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="form-container">
+
+            <form action="/save-profile" method="POST" enctype="multipart/form-data">
+
+                <label for="firstName"><strong>First Name:</strong></label><br>
+                <input type="text" id="firstName" name="firstName" value="{{.UserDetail.FirstName}}" required><br><br>
+
+                <label for="lastName"><strong>Last Name:</strong></label><br>
+                <input type="text" id="lastName" name="lastName" value="{{.UserDetail.LastName}}" required><br><br>
+
+                <label for="bio"><strong>Bio:</strong></label><br>
+                <textarea id="bio" name="bio" rows="4" required>{{.UserDetail.Bio}}</textarea><br><br>
+
+                <label for="phone"><strong>Phone:</strong></label><br>
+                <input type="tel" id="phone" name="phone" value="{{.UserDetail.PhoneNumber}}" required><br><br>
+
+                <label for="dob"><strong>Date of Birth:</strong></label><br>
+                <input type="date" id="dob" name="dob" value="{{.UserDetail.FormattedDateOfBirth}}" required><br><br>
+
+            </form>
+
+            <div class="form-buttons">
+
+                <button type="submit" class="button-save">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.1716 1C18.702 1 19.2107 1.21071 19.5858 1.58579L22.4142 4.41421C22.7893 4.78929 23 5.29799 23 5.82843V20C23 21.6569 21.6569 23 20 23H4C2.34315 23 1 21.6569 1 20V4C1 2.34315 2.34315 1 4 1H18.1716ZM4 3C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21L5 21L5 15C5 13.3431 6.34315 12 8 12L16 12C17.6569 12 19 13.3431 19 15V21H20C20.5523 21 21 20.5523 21 20V6.82843C21 6.29799 20.7893 5.78929 20.4142 5.41421L18.5858 3.58579C18.2107 3.21071 17.702 3 17.1716 3H17V5C17 6.65685 15.6569 8 14 8H10C8.34315 8 7 6.65685 7 5V3H4ZM17 21V15C17 14.4477 16.5523 14 16 14L8 14C7.44772 14 7 14.4477 7 15L7 21L17 21ZM9 3H15V5C15 5.55228 14.5523 6 14 6H10C9.44772 6 9 5.55228 9 5V3Z" fill="#0F0F0F"/>
+                    </svg>
+                    <span class="button-text">Save</span>
+                </button>
+
+                <button type="button" onclick="window.location.href='/profile'" class="button-cancel">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M16 8L8 16M8 8L16 16" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="button-text">Cancel</span>
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="cropModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Crop Your Image</h2>
+                <span class="close">&times;</span>
+            </div>
+            <img id="cropImage" src="" alt="Crop Image" class="crop-container">
+            <button id="cropButton" class="button-crop">Crop & Save</button>
+        </div>
+    </div>
+
+    <div class="sidebar-button-container" id="original-container">
+        <!-- Кнопка для открытия панели -->
+        <button id="toggleButton" onclick="toggleSidebar()" class="sidebar-toggle-button">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M10.5213 3.62368C11.3147 2.75255 12.6853 2.75255 13.4787 3.62368L14.2142 4.43128C14.6151 4.87154 15.1914 5.11025 15.7862 5.08245L16.8774 5.03146C18.0543 4.97645 19.0236 5.94568 18.9685 7.12264L18.9176 8.21377C18.8898 8.80859 19.1285 9.38487 19.5687 9.78582L20.3763 10.5213C21.2475 11.3147 21.2475 12.6853 20.3763 13.4787L19.5687 14.2142C19.1285 14.6151 18.8898 15.1914 18.9176 15.7862L18.9685 16.8774C19.0236 18.0543 18.0543 19.0236 16.8774 18.9685L15.7862 18.9176C15.1914 18.8898 14.6151 19.1285 14.2142 19.5687L13.4787 20.3763C12.6853 21.2475 11.3147 21.2475 10.5213 20.3763L9.78582 19.5687C9.38487 19.1285 8.80859 18.8898 8.21376 18.9176L7.12264 18.9685C5.94568 19.0236 4.97645 18.0543 5.03146 16.8774L5.08245 15.7862C5.11025 15.1914 4.87154 14.6151 4.43128 14.2142L3.62368 13.4787C2.75255 12.6853 2.75255 11.3147 3.62368 10.5213L4.43128 9.78582C4.87154 9.38487 5.11025 8.80859 5.08245 8.21376L5.03146 7.12264C4.97645 5.94568 5.94568 4.97645 7.12264 5.03146L8.21376 5.08245C8.80859 5.11025 9.38487 4.87154 9.78583 4.43128L10.5213 3.62368Z" stroke="#000000" stroke-width="2"/>
+                <circle cx="12" cy="12" r="3" stroke="#000000" stroke-width="2"/>
+            </svg>
+            <span class="button-text">Settings</span>
+        </button>
+    </div>
+
+    <!-- Боковая панель настроек -->
+    <div id="sidebar" class="sidebar">
+        <h2>Profile settings</h2>
+        <label class="checkbox-wrapper-31">
+            <input type="checkbox" id="showEmail" name="showEmail" {{if .UserPrivacy.ShowEmail}}checked{{end}}>
+            <svg viewBox="0 0 35.6 35.6">
+                <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+            </svg>
+            <span>Show Email</span>
+        </label>
+        <br>
+        <label class="checkbox-wrapper-31">
+            <input type="checkbox" id="showPhone" name="showPhone" {{if .UserPrivacy.ShowPhone}}checked{{end}}>
+            <svg viewBox="0 0 35.6 35.6">
+                <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+            </svg>
+            <span>Show phone number</span>
+        </label>
+
+
+        <div id="saveConfirmation" style="display: none; color: green;">Settings saved successfully!</div>
+        <button onclick="saveSettings()" class="button-save-sidebar ">Save configurations</button>
+
+
+        <button href="/logout" class="button-logout" id="logout">
+        <span class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.9999 2C10.2385 2 7.99991 4.23858 7.99991 7C7.99991 7.55228 8.44762 8 8.99991 8C9.55219 8 9.99991 7.55228 9.99991 7C9.99991 5.34315 11.3431 4 12.9999 4H16.9999C18.6568 4 19.9999 5.34315 19.9999 7V17C19.9999 18.6569 18.6568 20 16.9999 20H12.9999C11.3431 20 9.99991 18.6569 9.99991 17C9.99991 16.4477 9.55219 16 8.99991 16C8.44762 16 7.99991 16.4477 7.99991 17C7.99991 19.7614 10.2385 22 12.9999 22H16.9999C19.7613 22 21.9999 19.7614 21.9999 17V7C21.9999 4.23858 19.7613 2 16.9999 2H12.9999Z" fill="#000000"/>
+                <path d="M13.9999 11C14.5522 11 14.9999 11.4477 14.9999 12C14.9999 12.5523 14.5522 13 13.9999 13V11Z" fill="#000000"/>
+                <path d="M5.71783 11C5.80685 10.8902 5.89214 10.7837 5.97282 10.682C6.21831 10.3723 6.42615 10.1004 6.57291 9.90549C6.64636 9.80795 6.70468 9.72946 6.74495 9.67492L6.79152 9.61162L6.804 9.59454L6.80842 9.58848C6.80846 9.58842 6.80892 9.58778 5.99991 9L6.80842 9.58848C7.13304 9.14167 7.0345 8.51561 6.58769 8.19098C6.14091 7.86637 5.51558 7.9654 5.19094 8.41215L5.18812 8.41602L5.17788 8.43002L5.13612 8.48679C5.09918 8.53682 5.04456 8.61033 4.97516 8.7025C4.83623 8.88702 4.63874 9.14542 4.40567 9.43937C3.93443 10.0337 3.33759 10.7481 2.7928 11.2929L2.08569 12L2.7928 12.7071C3.33759 13.2519 3.93443 13.9663 4.40567 14.5606C4.63874 14.8546 4.83623 15.113 4.97516 15.2975C5.04456 15.3897 5.09918 15.4632 5.13612 15.5132L5.17788 15.57L5.18812 15.584L5.19045 15.5872C5.51509 16.0339 6.14091 16.1336 6.58769 15.809C7.0345 15.4844 7.13355 14.859 6.80892 14.4122L5.99991 15C6.80892 14.4122 6.80897 14.4123 6.80892 14.4122L6.804 14.4055L6.79152 14.3884L6.74495 14.3251C6.70468 14.2705 6.64636 14.1921 6.57291 14.0945C6.42615 13.8996 6.21831 13.6277 5.97282 13.318C5.89214 13.2163 5.80685 13.1098 5.71783 13H13.9999V11H5.71783Z" fill="#000000"/>
+            </svg>
+        </span>
+            <span class="button-text">Logout</span>
+        </button>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+</body>
+</html>

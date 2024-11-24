@@ -17,7 +17,7 @@ type PageData struct {
 	CurrentCategory string
 }
 
-// HomePage renders the home page
+// HomePage handles rendering the homepage
 func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Проверяем статус входа пользователя
 	loggedIn := false
@@ -29,7 +29,7 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		// Check if the user is admin
 		userID, err := getUserIDFromSession(db, session.Value)
 		if err == nil {
-			isAdmin, err = isUserAdmin(db, userID)
+			isAdmin, err = isUserInRole(db, userID, "Admin")
 			if err != nil {
 				http.Error(w, "Error checking admin status", http.StatusInternalServerError)
 				return
@@ -61,6 +61,16 @@ func HomePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl := template.Must(template.ParseFiles("templates/home.html"))
 	tmpl.Execute(w, data)
+}
+
+// isUserInRole checks if the user has a specific role
+func isUserInRole(db *sql.DB, userID int, roleName string) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM Users u
+              JOIN Roles r ON u.role_id = r.id
+              WHERE u.id = $1 AND r.name = $2`
+	err := db.QueryRow(query, userID, roleName).Scan(&count)
+	return count > 0, err
 }
 
 func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -264,4 +274,7 @@ func fetchAnimalInformation(db *sql.DB, animalID int) (AnimalWithImages, error) 
 	}
 
 	return animal, nil
+}
+func TermsOfServicePage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "templates/user_agreement.html")
 }

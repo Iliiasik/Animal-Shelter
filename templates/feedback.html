@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оставить отзыв</title>
+</head>
+<body>
+<h1>Оставьте свой отзыв</h1>
+<form id="feedbackForm">
+  <textarea id="feedbackText" name="feedback" rows="4" cols="50" placeholder="Напишите свой отзыв..." required></textarea><br><br>
+  <button type="submit">Отправить отзыв</button>
+</form>
+
+<script>
+  document.getElementById('feedbackForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const feedbackText = document.getElementById('feedbackText').value;
+
+    fetch('/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: feedbackText
+      })
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.message) {
+                alert(data.message); // Показываем сообщение об успешной отправке
+              } else {
+                alert('Ошибка при отправке отзыва');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Ошибка при отправке отзыва');
+            });
+  });
+</script>
+</body>
+</html>

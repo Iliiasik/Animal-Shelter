@@ -1,0 +1,145 @@
+.site-footer {
+    background-color: #26272b;
+    padding: 45px 0 30px; /* Увеличено расстояние снизу */
+    font-size: 15px;
+    line-height: 24px;
+    color: #737373;
+    text-align: center; /* Центрирование футера */
+}
+
+.site-footer h6 {
+    color: #fff;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-top: 5px;
+    letter-spacing: 2px;
+    text-align: center; /* Центрирование заголовков */
+}
+
+.site-footer p {
+    color: #737373;
+    text-align: left; /* Текст About теперь слева */
+}
+
+.site-footer .footer-links-container {
+    display: flex;
+    justify-content: space-evenly; /* Равномерное распределение секций */
+    align-items: flex-start;
+    margin-bottom: 30px; /* Расстояние между секциями и линией */
+    flex-wrap: wrap; /* Поддержка адаптивного дизайна */
+}
+
+.site-footer .footer-links {
+    flex: 1;
+    padding: 0 15px;
+    margin-bottom: 20px; /* Расстояние между секциями внизу */
+}
+
+.site-footer .footer-links ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+.site-footer .footer-links li {
+    display: block;
+}
+
+.site-footer .footer-links a {
+    color: #737373;
+    text-decoration: none;
+}
+
+.site-footer .footer-links a:hover {
+    color: #3366cc;
+    text-decoration: none;
+}
+
+/* Styling for the horizontal line */
+.site-footer hr {
+    border-top-color: #bbb;
+    opacity: 0.5;
+    margin-top: 40px; /* Увеличено расстояние между линией и копирайтом */
+}
+
+/* Copyright Text */
+.site-footer .copyright-text {
+    text-align: center;
+    color: #737373;
+    font-size: 14px;
+    margin-top: 15px; /* Добавлен отступ сверху, чтобы выровнять с текстом About */
+}
+
+/* Responsive styling */
+@media (max-width: 767px) {
+    .site-footer .footer-links-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .site-footer .footer-links {
+        margin-bottom: 20px;
+    }
+
+    .site-footer .footer-links h6 {
+        text-align: center;
+    }
+
+    /* Для списков внутри .footer-links */
+    .site-footer .footer-links ul {
+        text-align: left; /* Выравнивание списка по левому краю */
+    }
+}
+.Btn {
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition-duration: .4s;
+    cursor: pointer;
+    position: relative;
+    background-color: rgb(31, 31, 31);
+    overflow: hidden;
+}
+
+.svgIcon {
+    transition-duration: .3s;
+}
+
+.svgIcon path {
+    fill: white;
+}
+
+.text {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    width: 120px;
+    font-weight: 600;
+    opacity: 0;
+    transition-duration: .4s;
+}
+
+.Btn:hover {
+    width: 110px;
+    transition-duration: .4s;
+    border-radius: 30px;
+}
+
+.Btn:hover .text {
+    opacity: 1;
+    transition-duration: .4s;
+}
+
+.Btn:hover .svgIcon {
+    opacity: 0;
+    transition-duration: .3s;
+}
+.footer-bottom {
+    margin-top: 10px;
+    display: flex;
+    align-items: center; /* Выравнивание по вертикали */
+    justify-content: center; /* Выравнивание по горизонтали */
+    gap: 15px; /* Расстояние между копирайтом и кнопкой */
+}
