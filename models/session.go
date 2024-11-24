@@ -11,7 +11,6 @@ type Session struct {
 	CreatedAt *time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 	ExpiresAt *time.Time `json:"expires_at" gorm:"not null"`
 
-	// Relationships
 	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE"`
 }
 

@@ -14,32 +14,28 @@ body {
     padding: 0;
     font-family: "Quicksand", sans-serif;
 }
-
-nav {
-    position: fixed;
-    height: 70px; /* Adjust this value as needed */
-    z-index: 99;
-    width: 100%;
-    background: #242526;
-}
-
 main {
     display: grid;
-    grid-template-columns: 55% 55%;
+    grid-template-columns: 1fr; /* Один столбец для мобильных устройств */
     place-items: center;
-    justify-content: center; /* Центрирование содержимого по горизонтали */
-    width: min(700px, 95%);
+    max-width: 1200px; /* Ограничение максимальной ширины */
     border-radius: 20px;
-    background-color: #fff; /* Добавьте фон для видимости */
-    padding: 20px; /* Добавьте отступы для лучшего вида */
-    padding-top: calc(20px + 70px); /* Add padding-top to ensure the content does not overlap with nav */
-    margin-left: 555px;
+    background-color: #fff;
+    padding: 20px;
+    padding-top: calc(20px + 70px); /* Чтобы содержимое не перекрывало навигацию */
+    margin: 0 auto; /* Центрирование по горизонтали */
 }
 
+/* Стили для больших экранов (ноутбуков) */
+@media (min-width: 1024px) {
+    main {
+        grid-template-columns: 1fr 1fr; /* Две колонки для более широких экранов */
+    }
+}
 .left-side {
     height: 100%;
-    width: 100%;
-    background-image: url(https://i.pinimg.com/564x/6b/02/7f/6b027fbd3cfbd30667790c3f6a512912.jpg);
+    width: 85%;
+    background-image: url(https://i.pinimg.com/736x/d9/2f/4b/d92f4bcb48490537df8ec764899e2aae.jpg);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
