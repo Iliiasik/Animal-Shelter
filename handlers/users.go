@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"regexp"
@@ -145,7 +146,12 @@ func Register(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("profile_image")
 	var profileImagePath string
 	if err == nil && file != nil {
-		defer file.Close()
+		defer func(file multipart.File) {
+			err := file.Close()
+			if err != nil {
+				log.Println("Error closing file:", err)
+			}
+		}(file)
 
 		uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
 		profileImagePath = fmt.Sprintf("uploads/profile_images/%s", uniqueFileName)
@@ -163,7 +169,12 @@ func Register(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 			renderError(w, r, "Error saving profile image")
 			return
 		}
-		defer out.Close()
+		defer func(out *os.File) {
+			err := out.Close()
+			if err != nil {
+				log.Println("Error closing file:", err)
+			}
+		}(out)
 
 		_, err = io.Copy(out, file)
 		if err != nil {
@@ -434,5 +445,11 @@ func renderError(w http.ResponseWriter, r *http.Request, message string) {
 		tmpl = "register.html"
 	}
 
-	templates.ExecuteTemplate(w, tmpl, data)
+	err := templates.ExecuteTemplate(w, tmpl, data)
+	if err != nil {
+		errWrapped := errors.Wrap(err, "error executing register template")
+		log.Printf("ShowRegisterForm error: %+v\n", errWrapped)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 }
