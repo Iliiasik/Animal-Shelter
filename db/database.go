@@ -2,6 +2,7 @@ package db
 
 import (
 	"Animals_Shelter/models"
+	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -50,5 +51,33 @@ func ConnectDB() *gorm.DB {
 		&models.Session{},
 	)
 
+	// Инициализация ролей
+	initializeRoles(db)
+
 	return db
+}
+
+// Инициализация ролей в базе данных
+func initializeRoles(db *gorm.DB) {
+	roles := []models.Role{
+		{Name: "User"},
+		{Name: "Veterinarian"},
+		{Name: "Moderator"},
+		{Name: "Admin"},
+	}
+
+	for _, role := range roles {
+		var existingRole models.Role
+		if err := db.Where("name = ?", role.Name).First(&existingRole).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := db.Create(&role).Error; err != nil {
+					log.Printf("Error creating role %s: %v\n", role.Name, err)
+				} else {
+					log.Printf("Role %s created successfully.\n", role.Name)
+				}
+			} else {
+				log.Printf("Error fetching role %s: %v\n", role.Name, err)
+			}
+		}
+	}
 }

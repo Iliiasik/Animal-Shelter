@@ -3,38 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile of {{.Username}}</title>
+    <title>Profile of {{.User.Username}}</title>
     <link rel="stylesheet" type="text/css" href="/css/profile.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
     <script src="/js/profile.js"></script>
 
 </head>
 <body>
-<div class="profile-background" style="background-image: url('{{.ProfileBgImage}}');">
+<div class="profile-background" style="background-image: url('{{.UserImage.ProfileBgImage}}');">
 
     <div class="profile">
 
         <div class="profile-image">
-            <img src="{{.ProfileImage}}" alt="Profile Image" >
+            <img src="{{.UserImage.ProfileImage}}" alt="Profile Image" >
         </div>
 
         <div class="profile-info">
 
-            <h1> {{.Username}}</h1>
-            <h3>{{.FirstName}} {{.LastName}}</h3>
-
+            <h1> {{.User.Username}}</h1>
+            <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
 
             <div class="contact-info">
-                <p>{{.Bio}}</p>
+                <p>{{.UserDetail.Bio}}</p>
                 <!-- Условное отображение email -->
-                {{if .ShowEmail}}
-                <p><strong>Email:</strong> {{.Email}}</p>
+                {{if .UserPrivacy.ShowEmail}}
+                <p><strong>Email:</strong> {{.User.Email}}</p>
                 {{end}}
                 <!-- Условное отображение телефона -->
-                {{if .ShowPhone}}
-                <p><strong>Phone Number:</strong> {{.PhoneNumber}}</p>
+                {{if .UserPrivacy.ShowPhone}}
+                <p><strong>Phone Number:</strong> {{.UserDetail.PhoneNumber}}</p>
                 {{end}}
-                <strong>Date of Birth:</strong> <span id="dob-display">{{.DateOfBirth}}</span><br>
+                <strong>Date of Birth:</strong> <span id="dob-display">{{.UserDetail.DateOfBirth}}</span><br>
 
             </div>
 

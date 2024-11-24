@@ -8,10 +8,10 @@ import (
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
 	"fmt"
+	"regexp"
 
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 )
 
@@ -81,9 +81,9 @@ func main() {
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			handlers.ShowRegisterForm(w, r)
+			handlers.ShowRegisterForm(w)
 		case "POST":
-			handlers.Register(sqlDB, w, r)
+			handlers.Register(gormDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -91,23 +91,23 @@ func main() {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			handlers.ShowLoginForm(w, r)
+			handlers.ShowLoginForm(w)
 		case "POST":
-			handlers.Login(sqlDB, w, r)
+			handlers.Login(gormDB, w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.Logout(sqlDB, w, r)
+			handlers.Logout(gormDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	mux.HandleFunc("/confirm", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.ConfirmEmail(sqlDB, w, r)
+			handlers.ConfirmEmail(gormDB, w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

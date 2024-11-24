@@ -14,7 +14,6 @@ type User struct {
 	Email    string `json:"email" gorm:"unique;not null"`                                                 // Уникальный email
 	RoleID   uint   `json:"role_id"`                                                                      // Внешний ключ для роли
 	Role     Role   `json:"role" gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Связь с таблицей ролей
-	IsAdmin  bool   `json:"is_admin" gorm:"default:false"`                                                // Флаг администратора
 }
 
 type UserDetail struct {

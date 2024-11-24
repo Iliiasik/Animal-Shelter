@@ -1,123 +1,34 @@
 package handlers
 
 import (
-	"Animals_Shelter/models" // Путь к модели User и Session
+	"Animals_Shelter/models"
 	_ "database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
-	"mime/multipart"
-
-	/*"github.com/gorilla/mux"*/
-	"html/template"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
+
+	/*"github.com/gorilla/mux"*/
+	"html/template"
 )
 
 var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html"))
-var userProfile = template.Must(template.ParseFiles("templates/userProfile.html"))
 
-type Profile struct {
-	ID           string
-	FirstName    string
-	LastName     string
-	Email        string
-	ProfileImage string
+type UserProfile struct {
+	User        models.User
+	UserDetail  models.UserDetail
+	UserImage   models.UserImage
+	UserPrivacy models.UserPrivacy
 }
 
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
-
-// ShowProfile Handles rendering the profile of current user
-func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	sessionCookie, err := r.Cookie("session")
-	if err != nil || sessionCookie.Value == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	var session models.Session
-	if err := db.Where("session_id = ?", sessionCookie.Value).First(&session).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "Session not found", http.StatusUnauthorized)
-		} else {
-			log.Println("Database error:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	if session.ExpiresAt != nil && session.ExpiresAt.Before(time.Now()) {
-		http.Error(w, "Session expired", http.StatusUnauthorized)
-		return
-	}
-
-	var user models.User
-	if err := db.First(&user, session.UserID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "User not found", http.StatusNotFound)
-		} else {
-			log.Println("Database error:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	err = profileTemplate.Execute(w, user)
-	if err != nil {
-		log.Println("Template rendering error:", err)
-		http.Error(w, "Error rendering profile", http.StatusInternalServerError)
-	}
-}
-
-// RenderEditTemplate Rendering the Edit template of current user with his existing info
-func RenderEditTemplate(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	sessionToken := cookie.Value
-
-	var session models.Session
-	if err := db.Where("session_id = ?", sessionToken).First(&session).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "Session not found", http.StatusUnauthorized)
-		} else {
-			log.Println("Database error:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	var user models.User
-	if err := db.First(&user, session.UserID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "User not found", http.StatusNotFound)
-		} else {
-			log.Println("Database error:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	if !user.DateOfBirth.IsZero() {
-		user.FormattedDateOfBirth = user.DateOfBirth.Format("2006-01-02")
-	}
-
-	log.Printf("Profile background image URL: %s", user.ProfileBgImage)
-
-	err = templates.ExecuteTemplate(w, "edit_profile.html", user)
-	if err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Error rendering template", http.StatusInternalServerError)
-	}
-}
 
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -138,19 +49,36 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get existing images
-	oldProfileImagePath, oldBackgroundImagePath, err := getUserImages(db, sessionToken)
-	if err != nil {
-		log.Println("Error fetching old images:", err)
+	// Get user ID from session
+	var userID uint
+	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
+		http.Error(w, "Session error", http.StatusInternalServerError)
+		log.Println("Error getting user ID from session:", err)
 		return
 	}
 
-	profileImagePath := handleImageUpdate(r, "croppedImage", "uploads/profile_images", removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
+	// Get existing images and user details
+	var userDetail models.UserDetail
+	var userImage models.UserImage
+	if err := db.First(&userDetail, "user_id = ?", userID).Error; err != nil {
+		log.Println("Error fetching user details:", err)
+		return
+	}
 
+	if err := db.First(&userImage, "user_id = ?", userID).Error; err != nil {
+		log.Println("Error fetching user images:", err)
+		return
+	}
+
+	oldProfileImagePath := userImage.ProfileImage
+	oldBackgroundImagePath := userImage.ProfileBgImage
+
+	// Handle image updates
+	profileImagePath := handleImageUpdate(r, "croppedImage", "uploads/profile_images", removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
 	backgroundImagePath := handleImageUpdate(r, "backgroundImage", "uploads/profile_images/background", removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
 
-	// Updating profile
-	err = updateUserProfile(db, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken)
+	// Update user details and images
+	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
 		log.Println("Error executing query:", err)
@@ -166,7 +94,6 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func getFormData(r *http.Request) (string, string, string, string, string, bool, bool) {
@@ -178,25 +105,13 @@ func getFormData(r *http.Request) (string, string, string, string, string, bool,
 		r.FormValue("removeProfileImage") == "true",
 		r.FormValue("removeBackgroundImage") == "true"
 }
+
 func getSessionToken(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		return "", err
 	}
 	return cookie.Value, nil
-}
-func getUserImages(db *gorm.DB, sessionToken string) (string, string, error) {
-	var userID uint
-	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
-		return "", "", err
-	}
-
-	var user User
-	if err := db.First(&user, userID).Error; err != nil {
-		return "", "", err
-	}
-
-	return user.ProfileImage, user.ProfileBgImage, nil
 }
 
 func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string) string {
@@ -225,20 +140,22 @@ func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bo
 
 	return oldImagePath
 }
-func updateUserProfile(db *gorm.DB, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath, sessionToken string) error {
-	// Find user ID from session token
-	var userID uint
-	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
+
+func updateUserProfile(db *gorm.DB, userID uint, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath string) error {
+	// Update user detail fields
+	dateOfBirth, _ := time.Parse("2006-01-02", dob)
+	if err := db.Model(&models.UserDetail{}).Where("user_id = ?", userID).Updates(models.UserDetail{
+		FirstName:   firstName,
+		LastName:    lastName,
+		Bio:         bio,
+		PhoneNumber: phone,
+		DateOfBirth: dateOfBirth,
+	}).Error; err != nil {
 		return err
 	}
 
-	// Update user profile using GORM
-	if err := db.Model(&User{}).Where("id = ?", userID).Updates(User{
-		FirstName:      firstName,
-		LastName:       lastName,
-		Bio:            bio,
-		PhoneNumber:    phone,
-		DateOfBirth:    dob,
+	// Update user image fields
+	if err := db.Model(&models.UserImage{}).Where("user_id = ?", userID).Updates(models.UserImage{
 		ProfileImage:   profileImagePath,
 		ProfileBgImage: backgroundImagePath,
 	}).Error; err != nil {
@@ -246,7 +163,6 @@ func updateUserProfile(db *gorm.DB, firstName, lastName, bio, phone, dob, profil
 	}
 
 	return nil
-
 }
 
 func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
@@ -312,6 +228,7 @@ func SaveVisibilitySettings(db *gorm.DB, w http.ResponseWriter, r *http.Request)
 
 	log.Printf("Received form values: showEmail=%v, showPhone=%v", showEmail, showPhone)
 
+	// Извлечение сессионного токена
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		http.Error(w, "Session not found", http.StatusUnauthorized)
@@ -321,6 +238,166 @@ func SaveVisibilitySettings(db *gorm.DB, w http.ResponseWriter, r *http.Request)
 
 	sessionToken := cookie.Value
 	log.Println("Session token:", sessionToken)
+
+	var session models.Session
+	// Поиск сессии по токену
+	if err := db.Where("session_id = ?", sessionToken).First(&session).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Session not found", http.StatusUnauthorized)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Проверка существования настроек конфиденциальности для пользователя
+	var privacy models.UserPrivacy
+	if err := db.Where("user_id = ?", session.UserID).First(&privacy).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Если настройки конфиденциальности не найдены, создаем их
+			privacy = models.UserPrivacy{
+				UserID:    uint(session.UserID),
+				ShowEmail: showEmail,
+				ShowPhone: showPhone,
+			}
+			if err := db.Create(&privacy).Error; err != nil {
+				http.Error(w, "Error saving visibility settings", http.StatusInternalServerError)
+				log.Println("Error creating privacy settings:", err)
+				return
+			}
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// Обновляем существующие настройки конфиденциальности
+		if err := db.Model(&privacy).Updates(map[string]interface{}{
+			"show_email": showEmail,
+			"show_phone": showPhone,
+		}).Error; err != nil {
+			http.Error(w, "Error updating visibility settings", http.StatusInternalServerError)
+			log.Println("Error executing query:", err)
+			return
+		}
+	}
+
+	log.Println("Visibility settings successfully updated")
+
+	// Возвращаем успешный ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	if err != nil {
+		log.Println("Error encoding JSON response:", err)
+	}
+}
+
+// ShowProfile handles rendering the profile of the current user
+func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверяем наличие cookie сессии
+	sessionCookie, err := r.Cookie("session")
+	if err != nil || sessionCookie.Value == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Ищем сессию в базе данных
+	var session models.Session
+	if err := db.Where("session_id = ?", sessionCookie.Value).First(&session).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Session not found", http.StatusUnauthorized)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Проверка на истечение срока действия сессии
+	if session.ExpiresAt != nil && session.ExpiresAt.Before(time.Now()) {
+		http.Error(w, "Session expired", http.StatusUnauthorized)
+		return
+	}
+
+	// Ищем пользователя по UserID из сессии
+	var user models.User
+	if err := db.Preload("Role").First(&user, session.UserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Загружаем дополнительные данные о пользователе (детали, изображения, конфиденциальность)
+	var userDetail models.UserDetail
+	if err := db.First(&userDetail, "user_id = ?", user.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User details not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var userImage models.UserImage
+	if err := db.First(&userImage, "user_id = ?", user.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User images not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var userPrivacy models.UserPrivacy
+	if err := db.First(&userPrivacy, "user_id = ?", user.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User privacy settings not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Формируем структурированные данные для шаблона
+	profileData := struct {
+		User        models.User
+		UserDetail  models.UserDetail
+		UserImage   models.UserImage
+		UserPrivacy models.UserPrivacy
+	}{
+		User:        user,
+		UserDetail:  userDetail,
+		UserImage:   userImage,
+		UserPrivacy: userPrivacy,
+	}
+
+	// Отправляем данные в шаблон для рендеринга
+	err = profileTemplate.Execute(w, profileData)
+	if err != nil {
+		log.Println("Template rendering error:", err)
+		http.Error(w, "Error rendering profile", http.StatusInternalServerError)
+	}
+}
+
+// RenderEditTemplate Rendering the Edit template of current user with his existing info
+// RenderEditTemplate Rendering the Edit template of current user with his existing info
+func RenderEditTemplate(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	sessionToken := cookie.Value
 
 	var session models.Session
 	if err := db.Where("session_id = ?", sessionToken).First(&session).Error; err != nil {
@@ -333,24 +410,73 @@ func SaveVisibilitySettings(db *gorm.DB, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := db.Model(&models.User{}).Where("id = ?", session.UserID).Updates(map[string]interface{}{
-		"show_email": showEmail,
-		"show_phone": showPhone,
-	}).Error; err != nil {
-		http.Error(w, "Error updating visibility settings", http.StatusInternalServerError)
-		log.Println("Error executing query:", err)
+	var user models.User
+	if err := db.First(&user, session.UserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
-	log.Println("Visibility settings successfully updated")
+	// Загрузите дополнительные данные о пользователе
+	var userDetail models.UserDetail
+	if err := db.Where("user_id = ?", user.ID).First(&userDetail).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			userDetail = models.UserDetail{}
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	var userImage models.UserImage
+	if err := db.Where("user_id = ?", user.ID).First(&userImage).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			userImage = models.UserImage{}
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var userPrivacy models.UserPrivacy
+	if err := db.Where("user_id = ?", user.ID).First(&userPrivacy).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			userPrivacy = models.UserPrivacy{}
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Форматирование даты
+	if !userDetail.DateOfBirth.IsZero() {
+		userDetail.FormattedDateOfBirth = userDetail.DateOfBirth.Format("2006-01-02")
+	}
+
+	// Создание структуры для передачи в шаблон
+	profile := UserProfile{
+		User:        user,
+		UserDetail:  userDetail,
+		UserImage:   userImage,
+		UserPrivacy: userPrivacy,
+	}
+
+	// Отправка данных в шаблон
+	err = templates.ExecuteTemplate(w, "edit_profile.html", profile)
 	if err != nil {
-		log.Println("Error encoding JSON response:", err)
+		log.Printf("Error rendering template: %v", err)
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}
 }
+
+var userProfile = template.Must(template.ParseFiles("templates/userProfile.html"))
 
 // ViewProfile Handles rendering profiles of other users
 func ViewProfile(db *gorm.DB, w http.ResponseWriter, username string) {
@@ -365,10 +491,40 @@ func ViewProfile(db *gorm.DB, w http.ResponseWriter, username string) {
 		return
 	}
 
-	log.Println("Profile image path:", user.ProfileImage)
-	log.Println("Background image path:", user.ProfileBgImage)
+	var userDetails models.UserDetail
+	if err := db.First(&userDetails, "user_id = ?", user.ID).Error; err != nil {
+		log.Println("Error fetching user details:", err)
+		return
+	}
 
-	err := userProfile.Execute(w, user)
+	var userImage models.UserImage
+	if err := db.First(&userImage, "user_id = ?", user.ID).Error; err != nil {
+		log.Println("Error fetching user images:", err)
+		return
+	}
+
+	var userPrivacy models.UserPrivacy
+	if err := db.First(&userPrivacy, "user_id = ?", user.ID).Error; err != nil {
+		log.Println("Error fetching user privacy settings:", err)
+		return
+	}
+
+	profile := struct {
+		User        models.User
+		UserDetail  models.UserDetail
+		UserImage   models.UserImage
+		UserPrivacy models.UserPrivacy
+	}{
+		User:        user,
+		UserDetail:  userDetails,
+		UserImage:   userImage,
+		UserPrivacy: userPrivacy,
+	}
+
+	log.Println("Profile image path:", userImage.ProfileImage)
+	log.Println("Background image path:", userImage.ProfileBgImage)
+
+	err := userProfile.Execute(w, profile)
 	if err != nil {
 		log.Println("Template rendering error:", err)
 		http.Error(w, "Error rendering profile", http.StatusInternalServerError)

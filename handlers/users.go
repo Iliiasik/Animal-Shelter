@@ -1,15 +1,18 @@
 package handlers
 
 import (
+	"Animals_Shelter/models"
 	"crypto/rand"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
+	"gorm.io/gorm"
 	"html/template"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"regexp"
@@ -27,32 +30,55 @@ type User struct {
 	Username          string
 	Password          string
 	Email             string
-	IsAdmin           bool
 	EmailConfirmed    bool
 	ConfirmationToken string
-	FirstName         string
-	LastName          string
-	Bio               string
-	ProfileImage      string
-	PhoneNumber       string
-	DateOfBirth       string
-	ProfileBgImage    string
-	ShowEmail         bool
-	ShowPhone         bool
+}
+
+type UserDetails struct {
+	UserID      int
+	FirstName   string
+	LastName    string
+	Bio         string
+	PhoneNumber string
+	DateOfBirth string
+}
+
+type UserImages struct {
+	UserID         int
+	ProfileImage   string
+	ProfileBgImage string
+}
+
+type UserPrivacy struct {
+	UserID    int
+	ShowEmail bool
+	ShowPhone bool
 }
 
 // ShowRegisterForm renders the registration form
-func ShowRegisterForm(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "register.html", nil)
+func ShowRegisterForm(w http.ResponseWriter) {
+	err := templates.ExecuteTemplate(w, "register.html", nil)
+	if err != nil {
+		errWrapped := errors.Wrap(err, "error executing register template")
+		log.Printf("ShowRegisterForm error: %+v\n", errWrapped)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 // ShowLoginForm renders the login form
-func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "login.html", nil)
+func ShowLoginForm(w http.ResponseWriter) {
+	err := templates.ExecuteTemplate(w, "login.html", nil)
+	if err != nil {
+		errWrapped := errors.Wrap(err, "error executing login template")
+		log.Printf("ShowLoginForm error: %+v\n", errWrapped)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
-func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+
+// Register handles user registration using GORM and prepared statements
+func Register(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		renderError(w, r, "Method not allowed")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -65,182 +91,269 @@ func Register(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
 	email := r.FormValue("email")
-	dateOfBirth := r.FormValue("date_of_birth")
+	dateOfBirthStr := r.FormValue("date_of_birth")
+	showEmail := r.FormValue("show_email") == "true"
+	showPhone := r.FormValue("show_phone") == "true"
 
 	// Проверяем корректность полей
 	if !emailRegex.MatchString(email) {
-		renderError(w, r, "Invalid email format")
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
 	if len(password) < 8 {
-		renderError(w, r, "Password must be at least 8 characters long")
+		http.Error(w, "Password must be at least 8 characters long", http.StatusBadRequest)
 		return
 	}
 
 	if password != confirmPassword {
-		renderError(w, r, "Passwords do not match")
+		http.Error(w, "Passwords do not match", http.StatusBadRequest)
 		return
 	}
 
-	// Проверяем, существует ли уже пользователь с таким email
-	var existingEmail string
-	err := db.QueryRow("SELECT email FROM users WHERE email = $1", email).Scan(&existingEmail)
-	if err != nil && err != sql.ErrNoRows {
+	// Проверяем уникальность email
+	var existingUser models.User
+	if err := db.Where("email = ?", email).First(&existingUser).Error; err == nil {
+		http.Error(w, "Email is already taken", http.StatusBadRequest)
+		return
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("Error checking for existing email: %v", err)
-		renderError(w, r, "Error checking email")
-		return
-	}
-
-	if existingEmail != "" {
-		renderError(w, r, "Email is already taken")
+		http.Error(w, "Error checking email", http.StatusInternalServerError)
 		return
 	}
 
 	// Хэшируем пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		renderError(w, r, fmt.Sprintf("Error generating hashed password: %v", err))
+		log.Printf("Error hashing password: %v", err)
+		http.Error(w, "Error generating hashed password", http.StatusInternalServerError)
 		return
 	}
+
+	// Преобразуем строку даты рождения в time.Time
+	dateOfBirth, err := time.Parse("2006-01-02", dateOfBirthStr)
+	if err != nil {
+		http.Error(w, "Invalid date of birth format", http.StatusBadRequest)
+		return
+	}
+
 	// Обрабатываем загрузку изображения
 	file, header, err := r.FormFile("profile_image")
-	if err != nil && err != http.ErrMissingFile {
-		renderError(w, r, "Error uploading profile image")
-		return
-	}
-	var imagePath string
-	if file != nil {
-		defer file.Close()
+	var profileImagePath string
+	if err == nil && file != nil {
+		defer func(file multipart.File) {
+			err := file.Close()
+			if err != nil {
+				log.Println("Error closing file:", err)
+			}
+		}(file)
 
-		// Генерация уникального имени файла
 		uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
-		imagePath = fmt.Sprintf("uploads/profile_images/%s", uniqueFileName)
+		profileImagePath = fmt.Sprintf("uploads/profile_images/%s", uniqueFileName)
 
-		// Создаем директорию, если она не существует
 		err := os.MkdirAll("uploads/profile_images", os.ModePerm)
 		if err != nil {
-			renderError(w, r, "Unable to create directory")
+			log.Printf("Error creating directory: %v", err)
+			http.Error(w, "Unable to create directory", http.StatusInternalServerError)
 			return
 		}
 
-		// Сохраняем изображение на диск
-		out, err := os.Create(imagePath)
+		out, err := os.Create(profileImagePath)
 		if err != nil {
-			renderError(w, r, "Error saving profile image")
+			log.Printf("Error saving profile image: %v", err)
+			http.Error(w, "Error saving profile image", http.StatusInternalServerError)
 			return
 		}
-		defer out.Close()
+		defer func(out *os.File) {
+			err := out.Close()
+			if err != nil {
+				log.Println("Error closing file:", err)
+			}
+		}(out)
 
 		_, err = io.Copy(out, file)
 		if err != nil {
-			renderError(w, r, "Error saving profile image")
+			log.Printf("Error saving profile image: %v", err)
+			http.Error(w, "Error saving profile image", http.StatusInternalServerError)
 			return
 		}
 	} else {
-		imagePath = "system_images/default_profile.jpg" // Если изображение не загружено
+		profileImagePath = "system_images/default_profile.jpg"
 	}
 
 	// Генерируем токен подтверждения email
-	token := generateToken()
-
-	// Логируем запрос на вставку
-	log.Println("Inserting new user into the database...")
-
-	// Добавляем пользователя в базу данных
-	_, err = db.Exec(`
-		INSERT INTO users 
-		(username, password, email, email_confirmed, role, confirmation_token, first_name, last_name, bio, phone_number, profile_image, date_of_birth) 
-		VALUES 
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-		username, string(hashedPassword), email, false, "User", token, firstName, lastName, bio, phoneNumber, imagePath, dateOfBirth)
-
+	token, err := generateToken()
 	if err != nil {
-		log.Printf("Error inserting user: %v", err) // Логирование ошибки
-		renderError(w, r, "Username or email is already taken")
+		log.Printf("Error generating token: %+v\n", err)
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return
 	}
 
-	// Отправляем подтверждение на email
+	log.Printf("generated token: %s", token)
+
+	// Начинаем транзакцию
+	err = db.Transaction(func(tx *gorm.DB) error {
+		// Вставляем данные в таблицу `users`
+		user := models.User{
+			Username: username,
+			Password: string(hashedPassword),
+			Email:    email,
+			RoleID:   1, // Роль "User"
+		}
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		// Вставляем данные в таблицу `user_details`
+		userDetail := models.UserDetail{
+			UserID:      user.ID,
+			FirstName:   firstName,
+			LastName:    lastName,
+			Bio:         bio,
+			PhoneNumber: phoneNumber,
+			DateOfBirth: dateOfBirth,
+		}
+		if err := tx.Create(&userDetail).Error; err != nil {
+			return err
+		}
+
+		// Вставляем данные в таблицу `user_images`
+		userImage := models.UserImage{
+			UserID:         user.ID,
+			ProfileImage:   profileImagePath,
+			ProfileBgImage: "system_images/default_bg.jpg",
+		}
+		if err := tx.Create(&userImage).Error; err != nil {
+			return err
+		}
+
+		// Вставляем данные в таблицу `user_privacy`
+		userPrivacy := models.UserPrivacy{
+			UserID:    user.ID,
+			ShowEmail: showEmail,
+			ShowPhone: showPhone,
+		}
+		if err := tx.Create(&userPrivacy).Error; err != nil {
+			return err
+		}
+
+		// Вставляем данные в таблицу `user_email_confirmations`
+		emailConfirmation := models.UserEmailConfirmation{
+			UserID:            user.ID,
+			ConfirmationToken: token,
+			EmailConfirmed:    false,
+		}
+		if err := tx.Create(&emailConfirmation).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Printf("Error registering user: %v", err)
+		http.Error(w, "Error registering user", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем email для подтверждения
 	if err := sendConfirmationEmail(email, token); err != nil {
-		renderError(w, r, fmt.Sprintf("Error sending confirmation email: %v", err))
+		log.Printf("Error sending confirmation email: %v", err)
+		http.Error(w, "Error sending confirmation email", http.StatusInternalServerError)
 		return
 	}
 
-	// Перенаправляем пользователя на страницу успешной регистрации
+	// Перенаправляем на страницу успешной регистрации
 	http.Redirect(w, r, "/registration_success", http.StatusSeeOther)
 }
 
-// Login handles user login
-func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// Login handles user login using GORM and prepared statements
+func Login(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		renderError(w, r, "Method not allowed")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	var user User
-	err := db.QueryRow("SELECT id, password, email_confirmed FROM users WHERE username = $1", username).Scan(&user.ID, &user.Password, &user.EmailConfirmed)
+	// Извлекаем данные пользователя
+	var user models.User
+	err := db.Where("username = ?", username).First(&user).Error
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			renderError(w, r, "Invalid username or password")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		} else {
-			renderError(w, r, "Internal server error")
+			errWrapped := fmt.Errorf("failed to query user data: %w", err)
+			log.Printf("Login error: %+v\n", errWrapped)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 		return
 	}
 
-	if !user.EmailConfirmed {
-		renderError(w, r, "Please confirm your email address first")
+	// Проверка на подтверждение email
+	var emailConfirmation models.UserEmailConfirmation
+	err = db.Where("user_id = ?", user.ID).First(&emailConfirmation).Error
+
+	if err != nil {
+		errWrapped := fmt.Errorf("failed to query email confirmation status: %w", err)
+		log.Printf("Login error: %+v\n", errWrapped)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	// Проверка на подтверждение email
+	if !emailConfirmation.EmailConfirmed {
+		http.Error(w, "Please confirm your email address first", http.StatusForbidden)
+		return
+	}
+
+	// Сравнение пароля с сохраненным хешем
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		renderError(w, r, "Invalid username or password")
+		errWrapped := fmt.Errorf("failed to compare password hash: %w", err)
+		log.Printf("Login error: %+v\n", errWrapped)
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
-	sessionToken := generateToken()
-
-	// Save session token to the database
-	_, err = db.Exec("INSERT INTO sessions (session_id, user_id, expires_at) VALUES ($1, $2, $3)", sessionToken, user.ID, time.Now().Add(24*time.Hour))
+	// Генерация сессионного токена
+	sessionToken, err := generateToken()
 	if err != nil {
-		renderError(w, r, fmt.Sprintf("Error creating session: %v", err))
+		log.Printf("Error generating token: %+v\n", err)
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return
 	}
 
+	expiresAt := time.Now().Add(24 * time.Hour)
+
+	// Сохраняем сессионный токен в базу данных
+	session := models.Session{
+		SessionID: sessionToken,
+		UserID:    int(user.ID),
+		ExpiresAt: &expiresAt,
+	}
+	if err := db.Create(&session).Error; err != nil {
+		errWrapped := fmt.Errorf("failed to insert session into database: %w", err)
+		log.Printf("Login error: %+v\n", errWrapped)
+		http.Error(w, fmt.Sprintf("Error creating session: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Устанавливаем cookie с сессионным токеном
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session",
 		Value:   sessionToken,
-		Expires: time.Now().Add(24 * time.Hour),
+		Expires: expiresAt,
 	})
 
+	// Перенаправляем на главную страницу после успешного логина
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func renderError(w http.ResponseWriter, r *http.Request, message string) {
-	w.WriteHeader(http.StatusBadRequest)
-	data := struct {
-		ErrorMessage string
-	}{
-		ErrorMessage: message,
-	}
-
-	// Определяем какой шаблон использовать в зависимости от URL
-	tmpl := "login.html"
-	if r.URL.Path == "/register" {
-		tmpl = "register.html"
-	}
-
-	templates.ExecuteTemplate(w, tmpl, data)
-}
-
-// Logout handles user logout
-func Logout(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Get the session token from the cookie
+// Logout handles user logout using GORM
+func Logout(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем сессионный токен из cookie
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -249,28 +362,34 @@ func Logout(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	sessionToken := cookie.Value
 
-	// Remove the session from the database
-	_, err = db.Exec("DELETE FROM sessions WHERE session_id = $1", sessionToken)
-	if err != nil {
+	// Удаляем сессию из базы данных
+	if err := db.Where("session_id = ?", sessionToken).Delete(&models.Session{}).Error; err != nil {
+		errWrapped := errors.Wrap(err, "failed to delete session from database")
+		log.Printf("Logout error: %+v\n", errWrapped)
 		http.Error(w, "Error removing session", http.StatusInternalServerError)
 		return
 	}
 
-	// Remove cookie
+	// Удаляем cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session",
 		Value:   "",
-		Expires: time.Now().Add(-1 * time.Hour), // Set an expired time to delete the cookie
+		Expires: time.Now().Add(-1 * time.Hour), // Устанавливаем истекшее время для удаления cookie
 	})
 
-	// Redirect to the homepage
+	// Перенаправляем на главную страницу
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func generateToken() string {
+// generateToken generates a secure token and handles any potential errors
+func generateToken() (string, error) {
 	b := make([]byte, 32)
-	rand.Read(b)
-	return hex.EncodeToString(b)
+	if _, err := rand.Read(b); err != nil {
+		errWrapped := errors.Wrap(err, "error generating token")
+		log.Printf("generateToken error: %+v\n", errWrapped)
+		return "", errWrapped
+	}
+	return hex.EncodeToString(b), nil
 }
 
 func sendConfirmationEmail(email, token string) error {
@@ -284,38 +403,47 @@ func sendConfirmationEmail(email, token string) error {
 	return d.DialAndSend(m)
 }
 
-// ConfirmEmail handles email confirmation
-func ConfirmEmail(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+// ConfirmEmail handles email confirmation using GORM and prepared statements
+func ConfirmEmail(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	if token == "" {
+		err := errors.New("invalid token provided")
+		log.Printf("Error: %v", err)
 		http.Error(w, "Invalid token", http.StatusBadRequest)
 		return
 	}
 
-	result, err := db.Exec("UPDATE users SET email_confirmed = true WHERE confirmation_token = $1", token)
-	if err != nil {
+	// Выполняем обновление подтверждения email
+	result := db.Model(&models.UserEmailConfirmation{}).Where("confirmation_token = ?", token).Update("email_confirmed", true)
+	if result.Error != nil {
+		err := errors.Wrap(result.Error, "error executing update query for email confirmation")
+		log.Printf("Error: %v", err)
 		http.Error(w, "Error confirming email", http.StatusInternalServerError)
 		return
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		http.Error(w, "Error confirming email", http.StatusInternalServerError)
-		return
-	}
-
-	if rowsAffected == 0 {
+	// Проверка количества затронутых строк
+	if result.RowsAffected == 0 {
+		err := errors.New("no rows affected, invalid token")
+		log.Printf("Error: %v", err)
 		http.Error(w, "Invalid token", http.StatusBadRequest)
 		return
 	}
+
+	// Парсим шаблон
 	tmpl, err := template.ParseFiles("templates/confirm.html")
 	if err != nil {
+		err = errors.Wrap(err, "error parsing confirmation template")
+		log.Printf("Error: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
+	// Отправляем шаблон пользователю
 	err = tmpl.Execute(w, nil)
 	if err != nil {
+		err = errors.Wrap(err, "error executing confirmation template")
+		log.Printf("Error: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
