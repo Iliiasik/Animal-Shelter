@@ -2,20 +2,17 @@ package handlers
 
 import (
 	"Animals_Shelter/models"
-	_ "database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
+	"html/template"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
-
-	/*"github.com/gorilla/mux"*/
-	"html/template"
 )
 
 var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html"))
@@ -29,6 +26,8 @@ type UserProfile struct {
 
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
+const profileImageDir = "uploads/profile_images"
+const backgroundImageDir = "uploads/profile_images/background"
 
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -74,8 +73,8 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	oldBackgroundImagePath := userImage.ProfileBgImage
 
 	// Handle image updates
-	profileImagePath := handleImageUpdate(r, "croppedImage", "uploads/profile_images", removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
-	backgroundImagePath := handleImageUpdate(r, "backgroundImage", "uploads/profile_images/background", removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
+	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
+	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
 
 	// Update user details and images
 	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
