@@ -47,9 +47,9 @@ func main() {
 	})
 
 	// Другие маршруты
-	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
-		handlers.AnimalListPage(sqlDB, w, r)
-	})
+	//mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
+	//	handlers.AnimalListPage(sqlDB, w, r)
+	//})
 
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -172,7 +172,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/terms-of-service", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TermsOfServicePage(sqlDB, w, r)
+		handlers.TermsOfServicePage(w, r)
 	})
 
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
