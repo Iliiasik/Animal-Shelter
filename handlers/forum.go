@@ -63,22 +63,35 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Запрос для получения информации о пользователе и его темах
-		err = db.QueryRow("SELECT username, profile_image, profile_bg_image FROM users WHERE id = $1", user.ID).Scan(&user.Username, &user.ProfileImage, &user.BgImage)
+		// Запрос для получения информации о пользователе
+		err = db.QueryRow(`
+            SELECT username 
+            FROM users WHERE id = $1
+        `, user.ID).Scan(&user.Username)
 		if err != nil {
 			log.Printf("Error fetching user info: %v", err)
 			return
 		}
 
+		// Запрос для получения изображений профиля и фона
+		err = db.QueryRow(`
+            SELECT profile_image, profile_bg_image
+            FROM user_images WHERE user_id = $1
+        `, user.ID).Scan(&user.ProfileImage, &user.BgImage)
+		if err != nil {
+			log.Printf("Error fetching user images: %v", err)
+			return
+		}
+
 		// Запрос для получения тем пользователя
 		userQuery := `
-			SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-			FROM topics t
-			LEFT JOIN posts p ON t.id = p.topic_id
-			WHERE t.user_id = $1
-			GROUP BY t.id
-			ORDER BY t.id DESC
-		`
+            SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+            FROM topics t
+            LEFT JOIN posts p ON t.id = p.topic_id
+            WHERE t.user_id = $1
+            GROUP BY t.id
+            ORDER BY t.id DESC
+        `
 		stmt, err := db.Prepare(userQuery)
 		if err != nil {
 			log.Printf("Error preparing user query: %v", err)
@@ -110,15 +123,16 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Запрос для самых популярных тем
 	hottestQuery := `
-		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-			TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-		FROM topics t
-		LEFT JOIN users u ON t.user_id = u.id
-		LEFT JOIN posts p ON t.id = p.topic_id
-		GROUP BY t.id, u.username, u.profile_image
-		ORDER BY response_count DESC
-		LIMIT 3
-	`
+        SELECT t.id, t.title, u.username, ui.profile_image, COUNT(p.id) AS response_count, 
+            TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+        FROM topics t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN user_images ui ON u.id = ui.user_id
+        LEFT JOIN posts p ON t.id = p.topic_id
+        GROUP BY t.id, u.username, ui.profile_image
+        ORDER BY response_count DESC
+        LIMIT 3
+    `
 	hottestStmt, err := db.Prepare(hottestQuery)
 	if err != nil {
 		log.Printf("Error preparing hottest query: %v", err)
@@ -151,16 +165,17 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Основной SQL-запрос для тем форума
 	query := `
-		SELECT t.id, t.title, u.username, u.profile_image, COUNT(p.id) AS response_count, 
-			TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-		FROM topics t
-		LEFT JOIN users u ON t.user_id = u.id
-		LEFT JOIN posts p ON t.id = p.topic_id
-	`
+        SELECT t.id, t.title, u.username, ui.profile_image, COUNT(p.id) AS response_count, 
+            TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+        FROM topics t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN user_images ui ON u.id = ui.user_id
+        LEFT JOIN posts p ON t.id = p.topic_id
+    `
 
 	var rows *sql.Rows
 	if title != "" {
-		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $2 OFFSET $3`
+		query += ` WHERE t.title ILIKE $1 GROUP BY t.id, u.username, ui.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $2 OFFSET $3`
 		stmt, err := db.Prepare(query)
 		if err != nil {
 			log.Printf("Error preparing query for topics: %v", err)
@@ -170,7 +185,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 		rows, err = stmt.Query("%"+title+"%", topicsPerPage, offset)
 	} else {
-		query += ` GROUP BY t.id, u.username, u.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $1 OFFSET $2`
+		query += ` GROUP BY t.id, u.username, ui.profile_image ORDER BY t.id DESC, t.created_at DESC LIMIT $1 OFFSET $2`
 		stmt, err := db.Prepare(query)
 		if err != nil {
 			log.Printf("Error preparing query for topics: %v", err)
@@ -266,9 +281,8 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		TotalPages:    pageCount,
 		Pages:         pages,
 	})
-
 	if err != nil {
-		log.Printf("Error rendering template: %v", err)
+		log.Printf("Error executing template: %v", err)
 	}
 }
 
