@@ -46,10 +46,9 @@ func main() {
 		handlers.HomePage(sqlDB, w, r)
 	})
 
-	// Другие маршруты
-	//mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
-	//	handlers.AnimalListPage(sqlDB, w, r)
-	//})
+	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AnimalListPage(sqlDB, w, r)
+	})
 
 	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

@@ -120,8 +120,6 @@ func fetchAnimalImages(db *sql.DB, animalID int) ([]models.PostImage, error) {
 		FROM PostImages
 		WHERE animal_id = $1
 	`
-	log.Printf("Executing query: %s with animal ID %d\n", imageQuery, animalID)
-
 	rows, err := db.Query(imageQuery, animalID)
 	if err != nil {
 		// Логируем ошибку выполнения запроса
