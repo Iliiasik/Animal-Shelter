@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Animals_Shelter/models"
 	"database/sql"
 	"html/template"
 	"log"
@@ -138,4 +139,92 @@ func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gende
 	}
 
 	return animals, nil
+}
+
+func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем ID животного из параметров запроса
+	animalIDStr := r.URL.Query().Get("id")
+	if animalIDStr == "" {
+		http.Error(w, "Animal ID is required", http.StatusBadRequest)
+		return
+	}
+
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Animal ID", http.StatusBadRequest)
+		return
+	}
+
+	// Создаём экземпляр структуры AnimalWithDetails
+	var animal AnimalWithDetails
+
+	// Выполняем SQL-запрос для получения информации о животном
+	query := `
+		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, animals.age, 
+		       genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
+		       animals.description, animals.location, animals.weight, animals.color, 
+		       animals.is_sterilized, animals.has_passport
+		FROM animals
+		JOIN animaltypes ON animals.species_id = animaltypes.id
+		JOIN genders ON animals.gender_id = genders.id
+		JOIN animalstatus ON animals.status_id = animalstatus.id
+		WHERE animals.id = $1
+	`
+	err = db.QueryRow(query, animalID).Scan(
+		&animal.ID,
+		&animal.Name,
+		&animal.Species,
+		&animal.Breed,
+		&animal.Age,
+		&animal.Gender,
+		&animal.Status,
+		&animal.ArrivalDate,
+		&animal.Description,
+		&animal.Location,
+		&animal.Weight,
+		&animal.Color,
+		&animal.IsSterilized,
+		&animal.HasPassport,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Выполняем запрос для получения изображений животного
+	query = `SELECT image_url FROM postimages WHERE animal_id = $1`
+	rows, err := db.Query(query, animalID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Заполняем список изображений
+	for rows.Next() {
+		var image models.PostImage
+		if err := rows.Scan(&image.ImageURL); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		animal.Images = append(animal.Images, image)
+	}
+
+	// Рендеринг шаблона
+	tmpl, err := template.ParseFiles("templates/animal_information.html")
+	if err != nil {
+		log.Printf("Error parsing template: %v\n", err)
+		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tmpl.Execute(w, animal); err != nil {
+		log.Printf("Error executing template: %v\n", err)
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+		return
+	}
 }
