@@ -1,0 +1,39 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* Высота страницы */
+    display: flex;
+    flex-direction: column; /* Flex-контейнер для вертикального расположения */
+}
+
+body {
+    background-color: #f9f9f9; /* Опционально: фон страницы */
+}
+
+.content {
+    flex: 1; /* Занимает оставшееся пространство между хедером и футером */
+    display: flex;
+    justify-content: center; /* Горизонтальное центрирование */
+    align-items: center;    /* Вертикальное центрирование */
+}
+
+.form-container {
+    background-color: #fff; /* Опционально: фон формы */
+    padding: 20px;          /* Внутренний отступ */
+    border-radius: 10px;    /* Закругленные углы */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Опционально: тень */
+}
+
+.site-footer {
+    background-color: #333; /* Цвет фона футера */
+    color: white;           /* Цвет текста */
+    text-align: center;
+    padding: 20px;
+    margin-top: auto; /* Отталкивает футер вниз */
+}
+.feedback-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+}
