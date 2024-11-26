@@ -4,7 +4,6 @@ import (
 	"Animals_Shelter/models"
 	"database/sql"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -13,6 +12,7 @@ import (
 	"time"
 )
 
+// КУСОК ГОВНА НАДО ПЕРЕДЕЛАТЬ ТУТ ВСЕ
 type AnimalWithImages struct {
 	models.Animal
 	Images      []models.PostImage
@@ -240,66 +240,4 @@ func AddMedicalRecord(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-// AnimalInformation handles the request to view a specific animal's information
-func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	animalIDStr := r.URL.Query().Get("id")
-	if animalIDStr == "" {
-		http.Error(w, "Animal ID is required", http.StatusBadRequest)
-		return
-	}
-	animalID, err := strconv.Atoi(animalIDStr)
-	if err != nil {
-		http.Error(w, "Invalid Animal ID", http.StatusBadRequest)
-		return
-	}
-
-	// Fetch animal information
-	var animal AnimalWithImages
-	query := `
-        SELECT a.id, a.name, a.species, t.type_name, a.breed, a.age, a.gender, a.status_id, s.status_name, a.arrival_date, a.description
-        FROM animals a
-        JOIN animalstatus s ON a.status_id = s.id
-        JOIN animaltypes t ON a.species_id = t.id
-        WHERE a.id = $1
-    `
-	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.SpeciesID, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Fetch animal images
-	query = `SELECT image_url FROM postimages WHERE animal_id = $1`
-	rows, err := db.Query(query, animalID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var image models.PostImage
-		if err := rows.Scan(&image.ImageURL); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		animal.Images = append(animal.Images, image)
-	}
-	tmpl, err := template.ParseFiles("templates/animal_information.html")
-	if err != nil {
-		log.Printf("Error parsing template: %v\n", err)
-		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
-		return
-	}
-	if err := tmpl.Execute(w, animal); err != nil {
-		log.Printf("Error executing template: %v\n", err)
-		http.Error(w, "Failed to render template", http.StatusInternalServerError)
-		return
-	}
 }
