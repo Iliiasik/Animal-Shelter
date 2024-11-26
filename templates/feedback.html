@@ -10,34 +10,35 @@
   <script src = "/js/feedback.js" defer></script>
 </head>
 
-<!--  <nav>-->
-<!--    <div class="wrapper">-->
-<!--      <div class="logo"><a href="/">Animal Shelter</a></div>-->
-<!--      <ul class="nav-links">-->
-<!--        <li><a href="/forum">Forum</a></li>-->
-<!--        <li><a href="/feedback">Feedback</a></li>-->
-<!--        {{if .LoggedIn}}-->
-<!--        <li><a href="/profile">Profile</a></li>-->
-<!--        <li><a href="/logout">Logout</a></li>-->
-<!--        {{else}}-->
-<!--        <li><a href="/login">Login</a></li>-->
-<!--        {{end}}-->
-<!--      </ul>-->
-<!--    </div>-->
-<!--  </nav>-->
+<body>
 <div class="content">
   <div class="form-container">
-    <!-- Контейнер для сообщений -->
-    <div id="feedback-message" class="feedback-message"></div>
     <form id="feedback-form" action="/feedback-save" method="POST">
       <label for="feedback-text">Your Feedback:</label>
       <textarea id="feedback-text" name="text" required></textarea>
       <button type="submit">Submit</button>
     </form>
   </div>
+
+  <!-- Круглые дырки для изображений -->
+  <div class="hole1" style="top: 20px; left: 50px;">
+    <img src="/system_images/I-REFUSE.jpg" alt="Image 1">
+  </div>
+  <div class="hole2" style="top: 150px; left: 400px;">
+    <img src="/system_images/hehe.jpg" alt="Image 2">
+  </div>
+  <div class="hole3" style="top: 300px; left: 270px;">
+    <img src="/system_images/workwork.jpg" alt="Image 3">
+  </div>
 </div>
 
-
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <p id="modal-message"></p>
+    <span id="close-modal" class="close">&times;</span>
+    <img id="modal-image" src="default-image.jpg" alt="Modal Image" style="max-width: 100%; height: auto;">
+  </div>
+</div>
 
 <!-- Site footer -->
 <footer class="site-footer">
@@ -81,9 +82,5 @@
 
   </div>
 </footer>
-<!--</footer>-->
-<body>
-
-
 </body>
 </html>
