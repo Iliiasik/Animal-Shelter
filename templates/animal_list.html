@@ -17,9 +17,9 @@
                 <a href="#" class="desktop-item">Animal Types</a>
                 <ul class="drop-menu">
                     <li><a href="/animal_list">All</a></li>
-                    <li><a onclick="filterAnimals('1')">Dogs</a></li>
-                    <li><a onclick="filterAnimals('2')">Cats</a></li>
-                    <li><a onclick="filterAnimals('3')">Birds</a></li>
+                    <li><a onclick="filterAnimals('Dog')">Dogs</a></li>
+                    <li><a onclick="filterAnimals('Cat')">Cats</a></li>
+                    <li><a onclick="filterAnimals('Bird')">Birds</a></li>
                 </ul>
             </li>
             <li><a href="#">Feedback</a></li>
@@ -38,16 +38,16 @@
             <span class="category-icon">
                 {{if eq .CurrentCategory "all"}}
                 <img src="system_images/all%20search.png" alt="All Icon">
-                {{else if eq .CurrentCategory "1"}}
+                {{else if eq .CurrentCategory "Dog"}}
                 <img src="system_images/dog%20search.png" alt="Dog Icon">
-                {{else if eq .CurrentCategory "2"}}
+                {{else if eq .CurrentCategory "Cat"}}
                 <img src="system_images/cat%20search.png" alt="Cat Icon">
-                {{else if eq .CurrentCategory "3"}}
+                {{else if eq .CurrentCategory "Bird"}}
                 <img src="system_images/bird%20search.png" alt="Bird Icon">
                 {{end}}
             </span>
             <span class="category-text">
-                {{if eq .CurrentCategory "all"}}Pets{{else if eq .CurrentCategory "1"}}Dogs{{else if eq .CurrentCategory "2"}}Cats{{else if eq .CurrentCategory "3"}}Birds{{end}}
+                 {{if eq .CurrentCategory "all"}}Pets{{else if eq .CurrentCategory "Dog"}}Dogs{{else if eq .CurrentCategory "Cat"}}Cats{{else if eq .CurrentCategory "Bird"}}Birds{{end}}
             </span>
         </h2>
         <div class="search-container">
@@ -154,5 +154,12 @@
             lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
         });
     });
+    function filterAnimals(species) {
+        console.log('Filtering animals by species:', species); // Для отладки
+        const url = new URL(window.location.href);
+        url.searchParams.set('species', species);
+        console.log('Redirecting to URL:', url.toString()); // Для отладки
+        window.location.href = url.toString();
+    }
 </script>
 </html>

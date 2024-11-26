@@ -74,15 +74,36 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	animal.StatusID = statusID
 
+	// Получаем или создаем запись о поле (gender)
+	genderName := r.FormValue("gender_id")
+	var genderID int
+	err = db.QueryRow("SELECT id FROM genders WHERE name = $1", genderName).Scan(&genderID)
+	if err == sql.ErrNoRows {
+		// Если пол отсутствует, добавляем его
+		err = db.QueryRow("INSERT INTO genders (name) VALUES ($1) RETURNING id", genderName).Scan(&genderID)
+		if err != nil {
+			http.Error(w, "Error inserting gender", http.StatusInternalServerError)
+			return
+		}
+	} else if err != nil {
+		http.Error(w, "Error fetching gender", http.StatusInternalServerError)
+		return
+	}
+	animal.GenderID = genderID
+
 	// Остальные данные животного
 	animal.Breed = r.FormValue("breed")
 	animal.Age, _ = strconv.Atoi(r.FormValue("age"))
 	animal.ArrivalDate = r.FormValue("arrival_date")
 	animal.Description = r.FormValue("description")
+	animal.Location = r.FormValue("location")
+	animal.Weight, _ = strconv.Atoi(r.FormValue("weight"))
+	animal.Color = r.FormValue("color")
+	animal.IsSterilized, _ = strconv.ParseBool(r.FormValue("is_sterilized"))
+	animal.HasPassport, _ = strconv.ParseBool(r.FormValue("has_passport"))
 
 	// Создаем директорию "uploads", если она не существует
 	uploadDir := "uploads"
-
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, os.ModePerm)
 		if err != nil {
@@ -140,12 +161,12 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Вставка данных о животном в базу данных
 	query := `
-        INSERT INTO animals (name, species, breed, age, gender, status_id, arrival_date, description)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO animals (name, species_id, breed, age, gender_id, status_id, arrival_date, description, location, weight, color, is_sterilized, has_passport)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING id
     `
 	var animalID int
-	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.Gender, animal.StatusID, animal.ArrivalDate, animal.Description).Scan(&animalID)
+	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.GenderID, animal.StatusID, animal.ArrivalDate, animal.Description, animal.Location, animal.Weight, animal.Color, animal.IsSterilized, animal.HasPassport).Scan(&animalID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -54,6 +54,17 @@ func (Animal) TableName() string {
 	return "animals"
 }
 
+type PostImage struct {
+	ID       int    `json:"id" gorm:"primaryKey"`
+	AnimalID int    `json:"animal_id" gorm:"index;foreignKey:AnimalID;constraint:OnDelete:CASCADE;"`
+	ImageURL string `json:"image_url"`
+	Animal   Animal `gorm:"foreignKey:AnimalID;references:ID"`
+}
+
+func (PostImage) TableName() string {
+	return "postimages"
+}
+
 type MedicalRecord struct {
 	ID          uint   `json:"id" gorm:"primaryKey"`
 	AnimalID    uint   `json:"animal_id" gorm:"index;foreignKey:AnimalID;constraint:OnDelete:CASCADE;"`
@@ -66,15 +77,4 @@ type MedicalRecord struct {
 
 func (MedicalRecord) TableName() string {
 	return "medicalrecords"
-}
-
-type PostImage struct {
-	ID       int    `json:"id" gorm:"primaryKey"`
-	AnimalID int    `json:"animal_id" gorm:"index;foreignKey:AnimalID;constraint:OnDelete:CASCADE;"`
-	ImageURL string `json:"image_url"`
-	Animal   Animal `gorm:"foreignKey:AnimalID;references:ID"`
-}
-
-func (PostImage) TableName() string {
-	return "postimages"
 }
