@@ -154,7 +154,10 @@ func main() {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
 		}
 	})
-
+	mux.HandleFunc("/feedback", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoadFeedbackPage(w, r) // Обработчик для отображения страницы отзывов
+	})
+	mux.HandleFunc("/feedback-save", handlers.SaveFeedback(gormDB)) // Обработчик для сохранения отзыва
 	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowForum(sqlDB, w, r)
 	})
