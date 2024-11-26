@@ -1,0 +1,146 @@
+.animal-title {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.animal-info-container {
+    display: flex;
+    max-width: 1200px;
+    padding: 20px;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.animal-details {
+    width: 30%; /* Занимает 30% ширины контейнера */
+    box-sizing: border-box; /* Учитывает внутренние отступы и границы */
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.animal-slider {
+    width: 70%; /* Занимает 70% ширины контейнера */
+    box-sizing: border-box; /* Учитывает внутренние отступы и границы */
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.slider {
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.slide_viewer {
+    height: 340px;
+    overflow: hidden;
+    position: relative;
+}
+
+.slide_group {
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.slide {
+    display: none;
+    height: 100%;
+    position: absolute;
+    width: 100%;
+}
+
+.slide:first-child {
+    display: block;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.slide_buttons {
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+
+a.slide_btn {
+    color: #474544;
+    font-size: 42px;
+    margin: 0 0.175em;
+    transition: all 0.4s ease-in-out;
+}
+
+.slide_btn.active, .slide_btn:hover {
+    color: #428CC6;
+    cursor: pointer;
+}
+
+.directional_nav {
+    height: 340px;
+    margin: 0 auto;
+    max-width: 100%;
+    position: relative;
+    top: -340px;
+}
+
+.previous_btn, .next_btn {
+    cursor: pointer;
+    height: 65px;
+    opacity: 0.5;
+    transition: opacity 0.4s ease-in-out;
+    width: 65px;
+}
+
+.previous_btn:hover, .next_btn:hover {
+    opacity: 1;
+}
+
+.previous_btn {
+    bottom: 0;
+    left: 10px;
+    margin: auto;
+    position: absolute;
+    top: 0;
+}
+
+.next_btn {
+    bottom: 0;
+    margin: auto;
+    position: absolute;
+    right: 10px;
+    top: 0;
+}
+
+@media only screen and (max-width: 767px) {
+    .animal-info-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .animal-details {
+        width: 100%; /* На мобильных устройствах 100% ширины */
+    }
+
+    .animal-slider {
+        width: 100%; /* На мобильных устройствах 100% ширины */
+    }
+
+    .directional_nav {
+        top: auto;
+    }
+
+    .previous_btn {
+        left: 50px;
+    }
+
+    .next_btn {
+        right: 50px;
+    }
+}
