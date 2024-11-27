@@ -155,10 +155,12 @@ function handleMediaChange(e) {
 mediaQuery.addListener(handleMediaChange);
 handleMediaChange(mediaQuery);
 
-
 // Обработчик для отправки данных профиля
-document.querySelector('.button-save').addEventListener('click', function (e) {
+document.querySelector('.button-save').addEventListener('click', async function (e) {
     e.preventDefault();
+
+    // Удаляем обработчик `click`
+    this.removeEventListener('click', arguments.callee);
 
     const formData = new FormData();
     formData.append('firstName', document.getElementById('firstName').value);
@@ -167,60 +169,66 @@ document.querySelector('.button-save').addEventListener('click', function (e) {
     formData.append('phone', document.getElementById('phone').value);
     formData.append('dob', document.getElementById('dob').value);
 
-
     if (originalBgImageFile) {
         formData.append('backgroundImage', originalBgImageFile, originalBgImageFile.name);
     } else if (removeBackgroundFlag) {
         formData.append('removeBackgroundImage', 'true');
     }
 
-
     if (cropper) {
-        cropper.getCroppedCanvas().toBlob(function (blob) {
-            formData.append('croppedImage', blob, originalImageFile ? originalImageFile.name : 'cropped_image.jpg');
-            if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
-            sendProfileData(formData);
-        }, 'image/jpeg');
+        const blob = await new Promise(resolve => {
+            cropper.getCroppedCanvas().toBlob(resolve, 'image/jpeg');
+        });
+        formData.append('croppedImage', blob, originalImageFile ? originalImageFile.name : 'cropped_image.jpg');
+        if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
+        await sendProfileData(formData);
     } else if (originalImageFile) {
         formData.append('croppedImage', originalImageFile, originalImageFile.name);
         if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
-        sendProfileData(formData);
+        await sendProfileData(formData);
     } else {
         if (removeProfileImageFlag) formData.append('removeProfileImage', 'true');
-        sendProfileData(formData);
+        await sendProfileData(formData);
     }
+
+    // Возвращаем обработчик `click` после завершения
+    this.addEventListener('click', arguments.callee);
 });
 
-// Функция отправки данных FormData`  и логирование перед отправкой
-function sendProfileData(formData) {
-    saveSettings()
+
+async function sendProfileData(formData) {
     console.log('FormData being sent:');
     for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
     }
 
-    fetch('/save-profile', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                window.location.href = '/profile';
-            } else {
-                alert('Error saving profile');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('There was an error with your request. Please try again.');
+    try {
+        const response = await fetch('/save-profile', {
+            method: 'POST',
+            body: formData
         });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const text = await response.text();
+        console.log('Response text:', text);
+
+        const data = JSON.parse(text);
+        if (data.success) {
+            window.location.href = '/profile';
+        } else {
+            alert('Error saving profile');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('There was an error with your request. Please try again.');
+    }
 }
+
+
+
 
 function saveSettings() {
     const showEmail = document.getElementById("showEmail").checked;
