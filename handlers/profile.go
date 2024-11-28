@@ -2,12 +2,9 @@ package handlers
 
 import (
 	"Animals_Shelter/models"
-	"Animals_Shelter/storage"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"html/template"
 	"io"
@@ -15,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -34,16 +30,12 @@ const profileImageDir = "uploads/profile_images"
 const backgroundImageDir = "uploads/profile_images/background"
 
 // SaveProfile handles saving the updated user profile including the cropped image
-func SaveProfile(db *gorm.DB, minioService *storage.MinioService, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		log.Println("Invalid method:", r.Method)
 		return
 	}
-
-	// Дополнительная проверка на сервере для предотвращения дублирующих запросов
 
 	firstName, lastName, bio, phone, dob, removeProfileImage, removeBackgroundImage := getFormData(r)
 	log.Printf("Form data: firstName=%s, lastName=%s, bio=%s, phone=%s, dob=%s, removeProfileImage=%t, removeBackgroundImage=%t\n",
@@ -56,6 +48,7 @@ func SaveProfile(db *gorm.DB, minioService *storage.MinioService, w http.Respons
 		return
 	}
 
+	// Get user ID from session
 	var userID uint
 	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
 		http.Error(w, "Session error", http.StatusInternalServerError)
@@ -63,6 +56,7 @@ func SaveProfile(db *gorm.DB, minioService *storage.MinioService, w http.Respons
 		return
 	}
 
+	// Get existing images and user details
 	var userDetail models.UserDetail
 	var userImage models.UserImage
 	if err := db.First(&userDetail, "user_id = ?", userID).Error; err != nil {
@@ -78,9 +72,11 @@ func SaveProfile(db *gorm.DB, minioService *storage.MinioService, w http.Respons
 	oldProfileImagePath := userImage.ProfileImage
 	oldBackgroundImagePath := userImage.ProfileBgImage
 
-	profileImagePath := handleImageUpdate(r, "croppedImage", "profile-images", minioService, removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
-	backgroundImagePath := handleImageUpdate(r, "backgroundImage", "background-images", minioService, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
+	// Handle image updates
+	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
+	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
 
+	// Update user details and images
 	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
 	if err != nil {
 		http.Error(w, "Error saving profile", http.StatusInternalServerError)
@@ -89,6 +85,7 @@ func SaveProfile(db *gorm.DB, minioService *storage.MinioService, w http.Respons
 	}
 
 	log.Println("Profile successfully updated")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(map[string]bool{"success": true})
 	if err != nil {
@@ -116,64 +113,31 @@ func getSessionToken(r *http.Request) (string, error) {
 	return cookie.Value, nil
 }
 
-func handleImageUpdate(r *http.Request, formFieldName, bucketName string, minioService *storage.MinioService, removeFlag bool, oldImagePath, defaultImagePath string) string {
+func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string) string {
 	if removeFlag {
-		// Удаление изображения из MinIO, если оно не является системным изображением
+		//Delete image if it is not system image
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
-			objectName := getObjectNameFromPath(oldImagePath)
-			err := minioService.Client.RemoveObject(context.Background(), bucketName, objectName, minio.RemoveObjectOptions{})
-			if err != nil {
-				log.Println("Error deleting old image in MinIO:", err)
+			if err := os.Remove(oldImagePath); err != nil {
+				log.Println("Error deleting old image file:", err)
 			} else {
-				log.Printf("Deleted old image: %s from bucket %s", objectName, bucketName)
+				log.Printf("Deleted old image: %s", oldImagePath)
 			}
 		}
 		return defaultImagePath
 	}
 
-	newImagePath, err := saveImageToMinIO(r, formFieldName, bucketName, minioService)
+	newImagePath, err := saveImage(r, formFieldName, dir)
 	if err == nil && newImagePath != "" {
-		// Если загружено новое изображение, удалите предыдущее
+		//If new image uploaded, delete previous one
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
-			objectName := getObjectNameFromPath(oldImagePath)
-			err := minioService.Client.RemoveObject(context.Background(), bucketName, objectName, minio.RemoveObjectOptions{})
-			if err != nil {
-				log.Println("Error deleting old image in MinIO:", err)
+			if err := os.Remove(oldImagePath); err != nil {
+				log.Println("Error deleting old image file:", err)
 			}
 		}
 		return newImagePath
 	}
 
 	return oldImagePath
-}
-func saveImageToMinIO(r *http.Request, formFieldName, bucketName string, minioService *storage.MinioService) (string, error) {
-	file, handler, err := r.FormFile(formFieldName)
-	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
-			return "", nil
-		}
-		log.Println("Error reading file:", err)
-		return "", err
-	}
-	defer file.Close()
-
-	// Уникальное имя файла
-	objectName := storage.GenerateUniqueFileName(handler.Filename)
-
-	// Загрузка файла в MinIO
-	_, err = minioService.UploadFile(bucketName, objectName, file, handler.Size, handler.Header.Get("Content-Type"))
-	if err != nil {
-		log.Println("Error uploading file to MinIO:", err)
-		return "", err
-	}
-
-	// Возвращаем путь к объекту
-	return fmt.Sprintf("%s/%s", bucketName, objectName), nil
-}
-
-func getObjectNameFromPath(path string) string {
-	parts := strings.Split(path, "/")
-	return parts[len(parts)-1]
 }
 
 func updateUserProfile(db *gorm.DB, userID uint, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath string) error {

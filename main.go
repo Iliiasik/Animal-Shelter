@@ -7,12 +7,11 @@ import (
 	"Animals_Shelter/admin/middleware"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
-	"Animals_Shelter/storage"
 	"fmt"
-	_ "github.com/minio/minio-go/v7"
+	"regexp"
+
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 )
 
@@ -36,15 +35,7 @@ func main() {
 	// Создаем новый маршрутизатор
 	mux := http.NewServeMux()
 
-	// Инициализация MinIO клиента
-	endpoint := "localhost:9000"
-	accessKeyID := "minioadmin"
-	secretAccessKey := "minioadmin"
-
-	minioService, err := storage.InitMinioClient(endpoint, accessKeyID, secretAccessKey)
-	if err != nil {
-		log.Fatalf("Failed to initialize MinIO client: %v", err)
-	}
+	// Оборачиваем админку в Middleware
 
 	// Оборачиваем админку в Middleware
 	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
@@ -141,11 +132,9 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
-
-	http.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SaveProfile(gormDB, minioService, w, r)
+	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SaveProfile(gormDB, w, r) // Маршрут для сохранения профиля
 	})
-
 	mux.HandleFunc("/save-visibility-settings", func(w http.ResponseWriter, r *http.Request) {
 		handlers.SaveVisibilitySettings(gormDB, w, r)
 	})
