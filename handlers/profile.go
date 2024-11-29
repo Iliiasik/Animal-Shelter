@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"html/template"
 	"io"
@@ -28,8 +29,8 @@ type UserProfile struct {
 
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
-const profileImageDir = "uploads/profile_images"
-const backgroundImageDir = "uploads/profile_images/background"
+const profileImageDir = "user/profile_images"
+const backgroundImageDir = "user/background"
 
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseWriter, r *http.Request) {
@@ -73,10 +74,10 @@ func SaveProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 
 	oldProfileImagePath := userImage.ProfileImage
 	oldBackgroundImagePath := userImage.ProfileBgImage
-
+	bucketName := "animal-shelter-media"
 	// Handle image updates
-	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath, minioClient)
-	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath, minioClient)
+	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath, bucketName, minioClient)
+	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath, bucketName, minioClient)
 
 	// Update user details and images
 	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
@@ -115,14 +116,23 @@ func getSessionToken(r *http.Request) (string, error) {
 	return cookie.Value, nil
 }
 
-func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string, minioClient *storage.MinioClient) string {
+func handleImageUpdate(
+	r *http.Request,
+	formFieldName,
+	dir string,
+	removeFlag bool,
+	oldImagePath,
+	defaultImagePath,
+	bucketName string, // Добавляем параметр для имени бакета
+	minioClient *storage.MinioClient,
+) string {
 	if removeFlag {
-		// Удаление старого изображения, если оно не системное
+		// Удаляем изображение из MinIO, если оно не системное
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
-			if err := os.Remove(oldImagePath); err != nil {
-				log.Println("Error deleting old image file:", err)
+			if err := deleteImageFromMinIO(minioClient, bucketName, oldImagePath); err != nil {
+				log.Println("Error deleting old image from MinIO:", err)
 			} else {
-				log.Printf("Deleted old image: %s", oldImagePath)
+				log.Printf("Deleted old image from MinIO: %s", oldImagePath)
 			}
 		}
 		return defaultImagePath
@@ -132,8 +142,8 @@ func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bo
 	if err == nil && newImagePath != "" {
 		// Если новое изображение загружено, удалите предыдущее
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
-			if err := os.Remove(oldImagePath); err != nil {
-				log.Println("Error deleting old image file:", err)
+			if err := deleteImageFromMinIO(minioClient, bucketName, oldImagePath); err != nil {
+				log.Println("Error deleting old image from MinIO:", err)
 			}
 		}
 		return newImagePath
@@ -163,6 +173,72 @@ func updateUserProfile(db *gorm.DB, userID uint, firstName, lastName, bio, phone
 		return err
 	}
 
+	return nil
+}
+
+func saveImageToMinIO(r *http.Request, formFieldName, dir string, minioClient *storage.MinioClient) (string, error) {
+	file, handler, err := r.FormFile(formFieldName)
+	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) {
+			return "", nil
+		}
+		log.Println("Error uploading image:", err)
+		return "", err
+	}
+	defer file.Close()
+
+	// Уникальное имя файла
+	uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
+	objectPath := fmt.Sprintf("%s/%s", dir, uniqueFileName)
+
+	// Создание временного файла на диске
+	tempFilePath := fmt.Sprintf("tmp/%s", uniqueFileName) // Временная директория для сохранения
+	err = os.MkdirAll("tmp", os.ModePerm)
+	if err != nil {
+		log.Println("Error creating temporary directory:", err)
+		return "", err
+	}
+
+	out, err := os.Create(tempFilePath)
+	if err != nil {
+		log.Println("Error creating temporary file:", err)
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Println("Error saving temporary file:", err)
+		return "", err
+	}
+
+	// Загрузка в MinIO
+	ctx := context.Background()
+	uploadedPath, err := minioClient.UploadFile(ctx, objectPath, tempFilePath, handler.Header.Get("Content-Type"))
+	if err != nil {
+		log.Println("Error uploading file to MinIO:", err)
+		return "", err
+	}
+
+	// Удаление временного файла
+	err = os.Remove(tempFilePath)
+	if err != nil {
+		log.Println("Error deleting temporary file:", err)
+	}
+
+	return uploadedPath, nil
+}
+
+func deleteImageFromMinIO(minioClient *storage.MinioClient, bucketName, filePath string) error {
+	ctx := context.Background()
+
+	// Используем minioClient.Client для вызова RemoveObject
+	err := minioClient.Client.RemoveObject(ctx, bucketName, filePath, minio.RemoveObjectOptions{})
+	if err != nil {
+		log.Println("Error deleting image from MinIO:", err)
+		return err
+	}
+	log.Printf("Successfully deleted image from MinIO: %s", filePath)
 	return nil
 }
 
@@ -210,51 +286,6 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 	}
 
 	return imagePath, nil
-}
-func saveImageToMinIO(r *http.Request, formFieldName, dir string, minioClient *storage.MinioClient) (string, error) {
-	file, handler, err := r.FormFile(formFieldName)
-	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
-			return "", nil
-		}
-		log.Println("Error uploading image:", err)
-		return "", err
-	}
-	defer file.Close()
-
-	uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
-	tempFilePath := fmt.Sprintf("%s/%s", dir, uniqueFileName)
-
-	// Временное сохранение файла на диск
-	out, err := os.Create(tempFilePath)
-	if err != nil {
-		log.Println("Error creating temporary file:", err)
-		return "", err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, file)
-	if err != nil {
-		log.Println("Error saving temporary file:", err)
-		return "", err
-	}
-
-	// Загрузка в MinIO
-	ctx := context.Background()
-	objectPath := fmt.Sprintf("images/%s", uniqueFileName)
-	uploadedPath, err := minioClient.UploadFile(ctx, objectPath, tempFilePath, handler.Header.Get("Content-Type"))
-	if err != nil {
-		log.Println("Error uploading file to MinIO:", err)
-		return "", err
-	}
-
-	// Удалить временный файл
-	err = os.Remove(tempFilePath)
-	if err != nil {
-		log.Println("Error deleting temporary file:", err)
-	}
-
-	return uploadedPath, nil
 }
 
 //ALl above are functions handling the update

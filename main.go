@@ -18,6 +18,7 @@ import (
 )
 
 func main() {
+	const bucketName = "animal-shelter-media"
 	// Подключение к базе данных через GORM
 	gormDB := db.ConnectDB()
 
@@ -38,7 +39,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Создание MinioClient
-	minioClient, err := storage.NewMinioClient("minio:9000", "minioadmin", "minioadmin", "media")
+	minioClient, err := storage.NewMinioClient("minio:9000", "minioadmin", "minioadmin", bucketName)
 	if err != nil {
 		log.Fatalf("Failed to initialize Minio client: %v", err)
 	}

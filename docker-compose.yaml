@@ -28,7 +28,7 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
-      MINIO_BUCKET_NAME: media
+      MINIO_BUCKET_NAME: animal-shelter-media
     ports:
       - "8080:8080"
     depends_on:
