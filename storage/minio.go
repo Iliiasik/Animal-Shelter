@@ -4,74 +4,69 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"mime/multipart"
+	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-type MinioService struct {
+type MinioClient struct {
 	Client *minio.Client
+	Bucket string
 }
 
-// InitMinioClient initializes a MinIO client.
-func InitMinioClient(endpoint, accessKeyID, secretAccessKey string) (*MinioService, error) {
+// NewMinioClient создает клиент для работы с MinIO
+func NewMinioClient(endpoint, accessKey, secretKey, bucketName string) (*MinioClient, error) {
 	client, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: false, // Use `true` for HTTPS, otherwise `false` for HTTP
+		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+		Secure: false, // Установите `true`, если используете HTTPS
 	})
 	if err != nil {
-		log.Println("Error initializing MinIO client:", err)
-		return nil, err
+		return nil, fmt.Errorf("error initializing MinIO client: %w", err)
 	}
 
-	return &MinioService{Client: client}, nil
-}
-
-// CreateBucket creates a new bucket in MinIO if it does not already exist.
-func (ms *MinioService) CreateBucket(bucketName string) error {
+	// Создать бакет, если его нет
 	ctx := context.Background()
-	exists, err := ms.Client.BucketExists(ctx, bucketName)
+	err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 	if err != nil {
-		log.Printf("Error checking bucket existence: %v\n", err)
-		return err
-	}
-	if !exists {
-		err := ms.Client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
-		if err != nil {
-			log.Printf("Error creating bucket %s: %v\n", bucketName, err)
-			return err
+		exists, errBucketExists := client.BucketExists(ctx, bucketName)
+		if errBucketExists == nil && exists {
+			log.Printf("Bucket %s already exists", bucketName)
+		} else {
+			return nil, fmt.Errorf("failed to create bucket: %w", err)
 		}
-		log.Printf("Bucket %s created successfully\n", bucketName)
 	}
-	return nil
+
+	return &MinioClient{
+		Client: client,
+		Bucket: bucketName,
+	}, nil
 }
 
-// UploadFile uploads a file to the specified bucket.
-func (ms *MinioService) UploadFile(bucketName, objectName string, file multipart.File, fileSize int64, contentType string) (string, error) {
-	ctx := context.Background()
-
-	// Ensure the bucket exists
-	if err := ms.CreateBucket(bucketName); err != nil {
-		return "", err
-	}
-
-	// Upload the file
-	_, err := ms.Client.PutObject(ctx, bucketName, objectName, file, fileSize, minio.PutObjectOptions{
+// UploadFile загружает файл в MinIO
+func (mc *MinioClient) UploadFile(ctx context.Context, objectName, filePath, contentType string) (string, error) {
+	info, err := mc.Client.FPutObject(ctx, mc.Bucket, objectName, filePath, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
-		log.Printf("Error uploading file %s: %v\n", objectName, err)
-		return "", err
+		return "", fmt.Errorf("error uploading file to MinIO: %w", err)
 	}
 
-	log.Printf("File %s uploaded successfully to bucket %s\n", objectName, bucketName)
-	return fmt.Sprintf("%s/%s", bucketName, objectName), nil
+	log.Printf("Successfully uploaded %s of size %d\n", info.Key, info.Size)
+	return fmt.Sprintf("/%s/%s", mc.Bucket, objectName), nil
 }
 
-// GenerateUniqueFileName creates a unique file name using the current timestamp.
-func GenerateUniqueFileName(originalFileName string) string {
-	timestamp := time.Now().Unix()
-	return fmt.Sprintf("%d_%s", timestamp, originalFileName)
+// GetFileURL возвращает URL файла
+func (mc *MinioClient) GetFileURL(objectName string) (string, error) {
+	// Создать объект url.Values
+	reqParams := url.Values{}
+	reqParams.Set("response-content-disposition", "attachment; filename="+objectName)
+
+	// Вызвать метод PresignedGetObject
+	url, err := mc.Client.PresignedGetObject(context.Background(), mc.Bucket, objectName, time.Hour*24, reqParams)
+	if err != nil {
+		return "", fmt.Errorf("error generating file URL: %w", err)
+	}
+	return url.String(), nil
 }

@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"Animals_Shelter/models"
+	"Animals_Shelter/storage"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,7 +32,7 @@ const profileImageDir = "uploads/profile_images"
 const backgroundImageDir = "uploads/profile_images/background"
 
 // SaveProfile handles saving the updated user profile including the cropped image
-func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+func SaveProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		log.Println("Invalid method:", r.Method)
@@ -73,8 +75,8 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	oldBackgroundImagePath := userImage.ProfileBgImage
 
 	// Handle image updates
-	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
-	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
+	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath, minioClient)
+	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath, minioClient)
 
 	// Update user details and images
 	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
@@ -113,9 +115,9 @@ func getSessionToken(r *http.Request) (string, error) {
 	return cookie.Value, nil
 }
 
-func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string) string {
+func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bool, oldImagePath, defaultImagePath string, minioClient *storage.MinioClient) string {
 	if removeFlag {
-		//Delete image if it is not system image
+		// Удаление старого изображения, если оно не системное
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
 			if err := os.Remove(oldImagePath); err != nil {
 				log.Println("Error deleting old image file:", err)
@@ -126,9 +128,9 @@ func handleImageUpdate(r *http.Request, formFieldName, dir string, removeFlag bo
 		return defaultImagePath
 	}
 
-	newImagePath, err := saveImage(r, formFieldName, dir)
+	newImagePath, err := saveImageToMinIO(r, formFieldName, dir, minioClient)
 	if err == nil && newImagePath != "" {
-		//If new image uploaded, delete previous one
+		// Если новое изображение загружено, удалите предыдущее
 		if oldImagePath != "" && oldImagePath != defaultImagePath {
 			if err := os.Remove(oldImagePath); err != nil {
 				log.Println("Error deleting old image file:", err)
@@ -208,6 +210,51 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 	}
 
 	return imagePath, nil
+}
+func saveImageToMinIO(r *http.Request, formFieldName, dir string, minioClient *storage.MinioClient) (string, error) {
+	file, handler, err := r.FormFile(formFieldName)
+	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) {
+			return "", nil
+		}
+		log.Println("Error uploading image:", err)
+		return "", err
+	}
+	defer file.Close()
+
+	uniqueFileName := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
+	tempFilePath := fmt.Sprintf("%s/%s", dir, uniqueFileName)
+
+	// Временное сохранение файла на диск
+	out, err := os.Create(tempFilePath)
+	if err != nil {
+		log.Println("Error creating temporary file:", err)
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Println("Error saving temporary file:", err)
+		return "", err
+	}
+
+	// Загрузка в MinIO
+	ctx := context.Background()
+	objectPath := fmt.Sprintf("images/%s", uniqueFileName)
+	uploadedPath, err := minioClient.UploadFile(ctx, objectPath, tempFilePath, handler.Header.Get("Content-Type"))
+	if err != nil {
+		log.Println("Error uploading file to MinIO:", err)
+		return "", err
+	}
+
+	// Удалить временный файл
+	err = os.Remove(tempFilePath)
+	if err != nil {
+		log.Println("Error deleting temporary file:", err)
+	}
+
+	return uploadedPath, nil
 }
 
 //ALl above are functions handling the update

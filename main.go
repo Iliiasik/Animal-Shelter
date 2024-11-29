@@ -7,7 +7,9 @@ import (
 	"Animals_Shelter/admin/middleware"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
+	"Animals_Shelter/storage"
 	"fmt"
+	"os"
 	"regexp"
 
 	"log"
@@ -35,7 +37,11 @@ func main() {
 	// Создаем новый маршрутизатор
 	mux := http.NewServeMux()
 
-	// Оборачиваем админку в Middleware
+	// Создание MinioClient
+	minioClient, err := storage.NewMinioClient("minio:9000", "minioadmin", "minioadmin", "media")
+	if err != nil {
+		log.Fatalf("Failed to initialize Minio client: %v", err)
+	}
 
 	// Оборачиваем админку в Middleware
 	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
@@ -133,7 +139,7 @@ func main() {
 		}
 	})
 	mux.HandleFunc("/save-profile", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SaveProfile(gormDB, w, r) // Маршрут для сохранения профиля
+		handlers.SaveProfile(gormDB, minioClient, w, r) // Маршрут для сохранения профиля
 	})
 	mux.HandleFunc("/save-visibility-settings", func(w http.ResponseWriter, r *http.Request) {
 		handlers.SaveVisibilitySettings(gormDB, w, r)
@@ -215,4 +221,19 @@ type responseWriter struct {
 func (rw *responseWriter) WriteHeader(statusCode int) {
 	rw.status = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
+}
+
+var Minio *storage.MinioClient
+
+func init() {
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	accessKey := os.Getenv("MINIO_ACCESS_KEY")
+	secretKey := os.Getenv("MINIO_SECRET_KEY")
+	bucketName := os.Getenv("MINIO_BUCKET_NAME")
+
+	client, err := storage.NewMinioClient(endpoint, accessKey, secretKey, bucketName)
+	if err != nil {
+		log.Fatalf("Failed to initialize MinIO client: %v", err)
+	}
+	Minio = client
 }
