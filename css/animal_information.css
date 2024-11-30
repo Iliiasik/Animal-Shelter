@@ -24,6 +24,7 @@
 }
 
 .details-title {
+    color: #2C6B2F;
     font-size: 24px;
     font-weight: bold;
     text-align: center;
@@ -39,8 +40,8 @@
 .info-list li {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #ddd; /* Линия разделяющая элементы */
+    padding: 10px 5px;
+    border-radius: 5px;
 }
 
 .info-list li:last-child {
@@ -257,4 +258,7 @@ a.slide_btn {
 .item-icon {
     width: 30px;
     height: 30px;
+}
+.status-info {
+    margin-left: auto;
 }

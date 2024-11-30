@@ -38,7 +38,6 @@ nav {
 
 nav .wrapper {
     position: relative;
-    max-width: 1300px;
     padding: 0px 30px;
     height: 70px;
     line-height: 70px;
@@ -332,7 +331,10 @@ nav .wrapper {
     justify-content: center; /* Центрируем карточки */
     padding: 20px; /* Отступы вокруг грида */
 }
-
+.home-list {
+    display: flex;
+    justify-content: space-evenly;
+}
 .card {
     margin: 30px auto;
     width: 300px;
