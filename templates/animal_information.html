@@ -61,17 +61,26 @@
             <span>{{if .HasPassport}}With passport{{else}}Without passport{{end}}</span>
             <img src="system_images/Passport.svg" alt="Passport Icon" class="item-icon">
         </div>
-
+        <div class="item-info status-info">
+            <span>{{.Status}}</span>
+            {{if eq .Status "Available"}}
+            <img src="system_images/Available.svg" alt="Available Icon" class="item-icon">
+            {{else if eq .Status "Booked"}}
+            <img src="system_images/Booked.svg" alt="Booked Icon" class="item-icon">
+            {{else if eq .Status "On treatment"}}
+            <img src="system_images/On treatment.svg" alt="On treatment Icon" class="item-icon">
+            {{end}}
+        </div>
     </section>
 <!-- Основная информация о животном с секцией слайдера справа -->
 <section class="animal-info-container">
     <div class="animal-details">
         <div class="details-container">
-            <h2 class="details-title">Animal Details</h2>
+            <h2 class="details-title">Details</h2>
             <ul class="info-list">
                 <li><strong>Breed:</strong> {{.Breed}}</li>
                 <li><strong>Age:</strong> {{.Age}} years</li>
-                <li><strong>Status:</strong> {{.Status}}</li>
+
                 <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
                 <li><strong>Location:</strong> {{.Location}}</li>
                 <li><strong>Weight:</strong> {{.Weight}} kg</li>

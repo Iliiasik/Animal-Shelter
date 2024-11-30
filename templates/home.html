@@ -65,7 +65,7 @@
 <!-- Choose Your Friend Section -->
 <section class="choose-friend">
     <h2>Choose Your Friend</h2>
-    <div class="cards-list">
+    <div class="cards-list home-list">
         {{range $index, $animal := .Animals}}
         {{if lt $index 3}} <!-- Display only the first three animals -->
         <a href="/animal_information?id={{$animal.ID}}" class="card">
