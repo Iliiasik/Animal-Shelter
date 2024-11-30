@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/animal_information.css">
     <link rel="stylesheet" href="/css/footer.css">
 </head>
+
 <body>
 <nav>
     <div class="wrapper">
@@ -23,29 +24,71 @@
         </ul>
     </div>
 </nav>
+<div class="main-content">
+    <section class="animal-title-section">
+        <div class="category-title">
+            <h1 class="animal-title">{{.Name}}</h1>
+            {{if eq .Species "Dog"}}
+            <a href="/animal_list?species=Dog">
+                <img src="system_images/Dog.svg" alt="Dog Icon" class="animal-icon">
+            </a>
+            {{else if eq .Species "Cat"}}
+            <a href="/animal_list?species=Cat">
+                <img src="system_images/Cat.svg" alt="Cat Icon" class="animal-icon">
+            </a>
+            {{else if eq .Species "Bird"}}
+            <a href="/animal_list?species=Bird">
+                <img src="system_images/Bird.svg" alt="Bird Icon" class="animal-icon">
+            </a>
+            {{end}}
+        </div>
 
-<!-- Заголовок -->
-<h1 class="animal-title">{{.Name}} Information</h1>
-
+        <a href="/animal_list?gender={{.Gender}}" class="gender-link">
+            <div class="gender-info">
+                <span>{{.Gender}}</span>
+                {{if eq .Gender "Male"}}
+                <img src="system_images/Male.svg" alt="Male Icon" class="gender-icon">
+                {{else if eq .Gender "Female"}}
+                <img src="system_images/Female.svg" alt="Female Icon" class="gender-icon">
+                {{end}}
+            </div>
+        </a>
+        <div class="item-info">
+            <span>{{if .IsSterilized}}Sterilized{{else}}Not sterilized{{end}}</span>
+            <img src="system_images/Sterilized.svg" alt="Sterilized Icon" class="item-icon">
+        </div>
+        <div class="item-info">
+            <span>{{if .HasPassport}}With passport{{else}}Without passport{{end}}</span>
+            <img src="system_images/Passport.svg" alt="Passport Icon" class="item-icon">
+        </div>
+        <div class="item-info status-info">
+            <span>{{.Status}}</span>
+            {{if eq .Status "Available"}}
+            <img src="system_images/Available.svg" alt="Available Icon" class="item-icon">
+            {{else if eq .Status "Booked"}}
+            <img src="system_images/Booked.svg" alt="Booked Icon" class="item-icon">
+            {{else if eq .Status "On treatment"}}
+            <img src="system_images/On treatment.svg" alt="On treatment Icon" class="item-icon">
+            {{end}}
+        </div>
+    </section>
 <!-- Основная информация о животном с секцией слайдера справа -->
 <section class="animal-info-container">
     <div class="animal-details">
-        <h2>{{.Name}}</h2>
-        <p>{{.Description}}</p>
-        <ul class="info-list">
-            <li><strong>Species:</strong> {{.Species}}</li>
-            <li><strong>Breed:</strong> {{.Breed}}</li>
-            <li><strong>Age:</strong> {{.Age}} years</li>
-            <li><strong>Gender:</strong> {{.Gender}}</li>
-            <li><strong>Status:</strong> {{.Status}}</li>
-            <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
-            <li><strong>Location:</strong> {{.Location}}</li>
-            <li><strong>Weight:</strong> {{.Weight}} kg</li>
-            <li><strong>Color:</strong> {{.Color}}</li>
-            <li><strong>Sterilized:</strong> {{if .IsSterilized}}Yes{{else}}No{{end}}</li>
-            <li><strong>Has Passport:</strong> {{if .HasPassport}}Yes{{else}}No{{end}}</li>
-        </ul>
+        <div class="details-container">
+            <h2 class="details-title">Details</h2>
+            <ul class="info-list">
+                <li><strong>Breed:</strong> {{.Breed}}</li>
+                <li><strong>Age:</strong> {{.Age}} years</li>
+
+                <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
+                <li><strong>Location:</strong> {{.Location}}</li>
+                <li><strong>Weight:</strong> {{.Weight}} kg</li>
+                <li><strong>Color:</strong> {{.Color}}</li>
+            </ul>
+        </div>
     </div>
+
     <div class="animal-slider">
         <div class="slider">
             <div class="slide_viewer">
@@ -125,7 +168,9 @@
 
     </div>
 </footer>
+</div>
 </body>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {

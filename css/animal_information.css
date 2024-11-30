@@ -1,32 +1,65 @@
-.animal-title {
-    text-align: center;
-    margin: 20px 0;
+.main-content {
+    margin-top: 60px;
 }
 
 .animal-info-container {
     display: flex;
-    max-width: 1200px;
     padding: 20px;
     gap: 20px;
     justify-content: space-between;
 }
 
 .animal-details {
-    width: 30%; /* Занимает 30% ширины контейнера */
-    box-sizing: border-box; /* Учитывает внутренние отступы и границы */
+    width: 50%;
+
+    box-sizing: border-box; /* Учитывает отступы и границы */
+
+}
+
+.details-container {
+    border: 1px solid #ddd; /* Рамка для контейнера */
+    border-radius: 8px; /* Скругление углов */
     padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
+    background-color: #fff; /* Белый фон */
+}
+
+.details-title {
+    color: #2C6B2F;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 5px;
+    border-radius: 5px;
+}
+
+.info-list li:last-child {
+    border-bottom: none; /* Убираем нижнюю линию у последнего элемента */
+}
+
+.info-list strong {
+    font-weight: bold;
+    color: #333; /* Цвет для текста заголовка */
+}
+
+.info-list li:nth-child(even) {
+    background-color: #f9f9f9; /* Чередование фона для четных элементов */
 }
 
 .animal-slider {
-    width: 70%; /* Занимает 70% ширины контейнера */
-    box-sizing: border-box; /* Учитывает внутренние отступы и границы */
-    padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
+    width: 50%;
+    box-sizing: border-box;
 }
 
 .slider {
@@ -60,8 +93,8 @@
 .slide img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    border-radius: 10px;
+    object-fit: cover;
+
 }
 
 .slide_buttons {
@@ -83,11 +116,10 @@ a.slide_btn {
 }
 
 .directional_nav {
-    height: 340px;
     margin: 0 auto;
     max-width: 100%;
     position: relative;
-    top: -340px;
+    top: -55%;
 }
 
 .previous_btn, .next_btn {
@@ -143,4 +175,90 @@ a.slide_btn {
     .next_btn {
         right: 50px;
     }
+}
+.animal-title-section {
+    display: flex;
+    justify-content: flex-start;
+    gap: 2%;
+    align-items: center;
+    position: relative;
+    margin: 2% 3% 1% 3%;
+}
+
+.category-title {
+    display: flex;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+
+    border-radius: 10px;
+    background-color: #f3f3f3;
+    padding: 10px;
+}
+
+.animal-icon {
+    width: 65px; /* Установите желаемую ширину */
+    height: 65px; /* Установите желаемую высоту */
+    margin-left: 10px; /* Отступ между заголовком и иконкой */
+    transition: transform 0.3s ease;
+}
+.animal-icon:hover {
+    transform: scale(1.05);
+}
+
+.animal-title {
+
+    font-size: 36px;
+    font-weight: bold;
+}
+
+
+.gender-link {
+    text-decoration: none;
+}
+.gender-info {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #f3f3f3;
+    transition: transform 0.3s ease;
+}
+
+.gender-info:hover {
+    transform: scale(1.05);
+}
+
+.gender-info span {
+    margin-right: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #090909;
+}
+
+.gender-icon {
+    width: 30px;
+    height: 30px;
+}
+.item-info {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #f3f3f3;
+    transition: transform 0.3s ease;
+}
+.item-info span {
+    margin-right: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #090909;
+}
+
+.item-icon {
+    width: 30px;
+    height: 30px;
+}
+.status-info {
+    margin-left: auto;
 }

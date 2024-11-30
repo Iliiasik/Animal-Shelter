@@ -37,13 +37,27 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Получаем user_id из текущей сессии
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Error(w, "Session not found", http.StatusUnauthorized)
+		return
+	}
+
+	var userID int
+	err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+	if err != nil {
+		http.Error(w, "Error fetching user ID from session", http.StatusInternalServerError)
+		return
+	}
+
 	var animal models.Animal
 	animal.Name = r.FormValue("name")
 
 	// Получаем или создаем запись о виде (species)
 	speciesName := r.FormValue("species")
 	var speciesID int
-	err := db.QueryRow("SELECT id FROM animaltypes WHERE type_name = $1", speciesName).Scan(&speciesID)
+	err = db.QueryRow("SELECT id FROM animaltypes WHERE type_name = $1", speciesName).Scan(&speciesID)
 	if err == sql.ErrNoRows {
 		// Если вид отсутствует, добавляем его
 		err = db.QueryRow("INSERT INTO animaltypes (type_name) VALUES ($1) RETURNING id", speciesName).Scan(&speciesID)
@@ -75,20 +89,9 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	animal.StatusID = statusID
 
 	// Получаем или создаем запись о поле (gender)
-	genderName := r.FormValue("gender_id")
+	genderName := r.FormValue("gender")
 	var genderID int
 	err = db.QueryRow("SELECT id FROM genders WHERE name = $1", genderName).Scan(&genderID)
-	if err == sql.ErrNoRows {
-		// Если пол отсутствует, добавляем его
-		err = db.QueryRow("INSERT INTO genders (name) VALUES ($1) RETURNING id", genderName).Scan(&genderID)
-		if err != nil {
-			http.Error(w, "Error inserting gender", http.StatusInternalServerError)
-			return
-		}
-	} else if err != nil {
-		http.Error(w, "Error fetching gender", http.StatusInternalServerError)
-		return
-	}
 	animal.GenderID = genderID
 
 	// Остальные данные животного
@@ -161,12 +164,12 @@ func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Вставка данных о животном в базу данных
 	query := `
-        INSERT INTO animals (name, species_id, breed, age, gender_id, status_id, arrival_date, description, location, weight, color, is_sterilized, has_passport)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        INSERT INTO animals (name, species_id, breed, age, gender_id, status_id, arrival_date, description, location, weight, color, is_sterilized, has_passport, user_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING id
     `
 	var animalID int
-	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.GenderID, animal.StatusID, animal.ArrivalDate, animal.Description, animal.Location, animal.Weight, animal.Color, animal.IsSterilized, animal.HasPassport).Scan(&animalID)
+	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.GenderID, animal.StatusID, animal.ArrivalDate, animal.Description, animal.Location, animal.Weight, animal.Color, animal.IsSterilized, animal.HasPassport, userID).Scan(&animalID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
