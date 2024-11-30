@@ -9,10 +9,42 @@ import (
 	"strconv"
 )
 
+// Для информации о животных
+
+type AnimalWithDetails struct {
+	ID           int
+	Name         string
+	Species      string
+	Breed        string
+	Age          int
+	Gender       string
+	Status       string
+	ArrivalDate  string
+	Description  string
+	Location     string
+	Weight       int
+	Color        string
+	IsSterilized bool
+	HasPassport  bool
+	Images       []models.PostImage
+}
+
+// Для листа животных
+
 type PageDataAnimals struct {
 	LoggedIn        bool
-	Animals         []AnimalWithDetails
+	Animals         []AnimalSummary
 	CurrentCategory string
+}
+type AnimalSummary struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Species  string `json:"species"`
+	Breed    string `json:"breed"`
+	Color    string `json:"color"`
+	Age      string `json:"age"`
+	Gender   string `json:"gender"`
+	ImageURL string `json:"image_url"`
 }
 
 func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -38,7 +70,7 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем животных с деталями из базы данных с фильтрами
-	animals, err := fetchAllAnimalsWithFiltration(db, species, breed, color, age, gender)
+	animals, err := fetchAnimalsWithFilters(db, species, breed, color, age, gender)
 	if err != nil {
 		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
 		return
@@ -60,24 +92,20 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gender string) ([]AnimalWithDetails, error) {
-	var animals []AnimalWithDetails
+func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, age, gender string) ([]AnimalSummary, error) {
+	var animals []AnimalSummary
 
 	query := `
-		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, animals.age, 
-			genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
-			animals.description, animals.location, animals.weight, animals.color, 
-			animals.is_sterilized, animals.has_passport
+		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
+		       animals.color, animals.age, genders.name AS gender,
+		       (SELECT image_url FROM postimages WHERE animal_id = animals.id LIMIT 1) AS image
 		FROM animals
 		JOIN animaltypes ON animals.species_id = animaltypes.id
 		JOIN genders ON animals.gender_id = genders.id
-		JOIN animalstatus ON animals.status_id = animalstatus.id
+		WHERE 1=1
 	`
 
-	// Массив аргументов для параметров запроса
 	var args []interface{}
-
-	// Добавляем условия для каждого фильтра, если он задан
 	if species != "" {
 		query += " AND animaltypes.type_name = $1"
 		args = append(args, species)
@@ -99,9 +127,7 @@ func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gende
 		args = append(args, gender)
 	}
 
-	// Выполняем запрос с параметрами
-	log.Printf("Query params - species: %s, breed: %s, color: %s, age: %s, gender: %s", species, breed, color, age, gender)
-
+	// Выполняем запрос
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
@@ -111,28 +137,17 @@ func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gende
 
 	// Обрабатываем строки результата
 	for rows.Next() {
-		var animal AnimalWithDetails
+		var animal AnimalSummary
 		if err := rows.Scan(
-			&animal.ID, &animal.Name, &animal.Species, &animal.Breed, &animal.Age,
-			&animal.Gender, &animal.Status, &animal.ArrivalDate, &animal.Description,
-			&animal.Location, &animal.Weight, &animal.Color, &animal.IsSterilized, &animal.HasPassport); err != nil {
+			&animal.ID, &animal.Name, &animal.Species, &animal.Breed,
+			&animal.Color, &animal.Age, &animal.Gender, &animal.ImageURL); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			return nil, err
 		}
-
-		// Получаем изображения для каждого животного
-		images, err := fetchAnimalImages(db, animal.ID)
-		if err != nil {
-			log.Printf("Error fetching images for animal ID %d: %v", animal.ID, err)
-			return nil, err
-		}
-		animal.Images = images
-
-		// Добавляем животное в список
 		animals = append(animals, animal)
 	}
 
-	// Проверяем на наличие ошибок после завершения цикла
+	// Проверяем ошибки после итерации
 	if err := rows.Err(); err != nil {
 		log.Printf("Error after rows iteration: %v", err)
 		return nil, err

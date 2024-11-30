@@ -80,11 +80,7 @@
         {{range .Animals}}
         <a href="/animal_information?id={{.ID}}" class="card">
             <div class="card_image">
-                {{if .Images}}
-                <img src="{{(index .Images 0).ImageURL}}" class="d-block w-100" alt="{{.Name}}">
-                {{else}}
-                <img src="/images/default.png" class="d-block w-100" alt="Default Image">
-                {{end}}
+                <img src="{{.ImageURL}}" class="d-block w-100" alt="{{.Name}}">
             </div>
             <div class="card_title">
                 <p>{{.Name}}</p>
