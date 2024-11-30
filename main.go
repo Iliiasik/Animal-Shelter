@@ -127,7 +127,7 @@ func main() {
 	})
 	mux.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			handlers.ShowProfile(gormDB, w, r) // Маршрут для профиля
+			handlers.ShowProfile(gormDB, minioClient, w, r) // Маршрут для профиля
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

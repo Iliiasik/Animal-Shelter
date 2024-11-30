@@ -59,14 +59,14 @@ func (mc *MinioClient) UploadFile(ctx context.Context, objectName, filePath, con
 
 // GetFileURL возвращает URL файла
 func (mc *MinioClient) GetFileURL(objectName string) (string, error) {
-	// Создать объект url.Values
+	// Создать объект u.Values
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "attachment; filename="+objectName)
 
 	// Вызвать метод PresignedGetObject
-	url, err := mc.Client.PresignedGetObject(context.Background(), mc.Bucket, objectName, time.Hour*24, reqParams)
+	u, err := mc.Client.PresignedGetObject(context.Background(), mc.Bucket, objectName, time.Hour*24, reqParams)
 	if err != nil {
 		return "", fmt.Errorf("error generating file URL: %w", err)
 	}
-	return url.String(), nil
+	return u.String(), nil
 }
