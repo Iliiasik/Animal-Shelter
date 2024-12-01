@@ -12,21 +12,27 @@ import (
 // Для информации о животных
 
 type AnimalWithDetails struct {
-	ID           int
-	Name         string
-	Species      string
-	Breed        string
-	Age          int
-	Gender       string
-	Status       string
-	ArrivalDate  string
-	Description  string
-	Location     string
-	Weight       int
-	Color        string
-	IsSterilized bool
-	HasPassport  bool
-	Images       []models.PostImage
+	ID           int                `json:"id"`
+	Name         string             `json:"name"`
+	Species      string             `json:"species"`
+	Breed        string             `json:"breed"`
+	Age          int                `json:"age"`
+	Gender       string             `json:"gender"`
+	Status       string             `json:"status"`
+	ArrivalDate  string             `json:"arrival_date"`
+	Description  string             `json:"description"`
+	Location     string             `json:"location"`
+	Weight       int                `json:"weight"`
+	Color        string             `json:"color"`
+	IsSterilized bool               `json:"is_sterilized"`
+	HasPassport  bool               `json:"has_passport"`
+	Images       []models.PostImage `json:"images"`
+	UserDetails  struct {
+		FirstName   string `json:"first_name"`
+		LastName    string `json:"last_name"`
+		PhoneNumber string `json:"phone_number"`
+		Email       string `json:"email"`
+	} `json:"user_details"`
 }
 
 // Для листа животных
@@ -227,6 +233,30 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		animal.Images = append(animal.Images, image)
+	}
+
+	// Выполняем запрос для получения информации о владельце
+	userQuery := `
+		SELECT u.email, ud.first_name, ud.last_name, ud.phone_number
+		FROM users u
+		JOIN user_details ud ON u.id = ud.user_id
+		WHERE u.id = (
+			SELECT user_id FROM animals WHERE id = $1
+		)
+	`
+	err = db.QueryRow(userQuery, animalID).Scan(
+		&animal.UserDetails.Email,
+		&animal.UserDetails.FirstName,
+		&animal.UserDetails.LastName,
+		&animal.UserDetails.PhoneNumber,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No user details found for the animal.")
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Рендеринг шаблона

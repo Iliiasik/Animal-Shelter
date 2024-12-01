@@ -85,8 +85,10 @@
                 <li><strong>Location:</strong> {{.Location}}</li>
                 <li><strong>Weight:</strong> {{.Weight}} kg</li>
                 <li><strong>Color:</strong> {{.Color}}</li>
+
             </ul>
         </div>
+
     </div>
 
     <div class="animal-slider">
@@ -124,8 +126,23 @@
                 </svg>
             </div>
         </div>
+
     </div><!-- End // .directional_nav -->
+
 </section>
+    <section class="stage-two">
+        <div class="animal-description">
+            <h3>Description</h3>
+            <p>{{.Description}}</p>
+        </div>
+        <div class="user-info">
+            <h3>Owner Information</h3>
+            <p><strong>Name:</strong> {{.UserDetails.FirstName}} {{.UserDetails.LastName}}</p>
+            <p><strong>Email:</strong> {{.UserDetails.Email}}</p>
+            <p><strong>Phone:</strong> {{.UserDetails.PhoneNumber}}</p>
+        </div>
+    </section>
+
 
 <footer class="site-footer">
     <div class="footer-links-container">
