@@ -137,10 +137,20 @@
         </div>
         <div class="user-info">
             <h3>Owner Information</h3>
-            <p><strong>Name:</strong> {{.UserDetails.FirstName}} {{.UserDetails.LastName}}</p>
-            <p><strong>Email:</strong> {{.UserDetails.Email}}</p>
-            <p><strong>Phone:</strong> {{.UserDetails.PhoneNumber}}</p>
+            <div class="user-info-left">
+                <p><strong>Name:</strong> {{.UserDetails.FirstName}} {{.UserDetails.LastName}}</p>
+                <p><strong>Email:</strong> {{.UserDetails.Email}}</p>
+                <p><strong>Phone:</strong> {{.UserDetails.PhoneNumber}}</p>
+            </div>
+            <div class="user-info-right">
+                <div class="profile-image">
+                    <img src="{{.UserDetails.ProfileImage}}" alt="Profile Image">
+                </div>
+                <p><strong>Username:</strong> {{.UserDetails.Username}}</p>
+
+            </div>
         </div>
+
     </section>
 
 

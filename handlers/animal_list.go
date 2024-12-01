@@ -29,10 +29,12 @@ type AnimalWithDetails struct {
 	HasPassport  bool               `json:"has_passport"`
 	Images       []models.PostImage `json:"images"`
 	UserDetails  struct {
-		FirstName   string `json:"first_name"`
-		LastName    string `json:"last_name"`
-		PhoneNumber string `json:"phone_number"`
-		Email       string `json:"email"`
+		FirstName    string `json:"first_name"`
+		LastName     string `json:"last_name"`
+		PhoneNumber  string `json:"phone_number"`
+		Email        string `json:"email"`
+		ProfileImage string `json:"profile_image"` // Добавляем профильное изображение
+		Username     string `json:"username"`
 	} `json:"user_details"`
 }
 
@@ -294,20 +296,23 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		animal.Images = append(animal.Images, image)
 	}
 
-	// Выполняем запрос для получения информации о владельце
+	// Выполняем запрос для получения информации о владельце и его профиле
 	userQuery := `
-		SELECT u.email, ud.first_name, ud.last_name, ud.phone_number
+		SELECT u.email, u.username, ud.first_name, ud.last_name, ud.phone_number, ui.profile_image
 		FROM users u
 		JOIN user_details ud ON u.id = ud.user_id
+		JOIN user_images ui ON u.id = ui.user_id
 		WHERE u.id = (
 			SELECT user_id FROM animals WHERE id = $1
 		)
 	`
 	err = db.QueryRow(userQuery, animalID).Scan(
 		&animal.UserDetails.Email,
+		&animal.UserDetails.Username,
 		&animal.UserDetails.FirstName,
 		&animal.UserDetails.LastName,
 		&animal.UserDetails.PhoneNumber,
+		&animal.UserDetails.ProfileImage, // Получаем профильное изображение
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
