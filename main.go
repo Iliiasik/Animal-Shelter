@@ -1,10 +1,6 @@
 package main
 
 import (
-	"Animals_Shelter/admin"
-	"Animals_Shelter/admin/auth"
-	"Animals_Shelter/admin/db_old"
-	"Animals_Shelter/admin/middleware"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
 	"Animals_Shelter/storage"
@@ -22,10 +18,10 @@ func main() {
 	// Подключение к базе данных через GORM
 	gormDB := db.ConnectDB()
 
-	oldGormDB := db_old.ConnectOldDB()
+	//oldGormDB := db_old.ConnectOldDB()
 	// Initialize QOR Admin
 	// Инициализация админки
-	Admin := admin.InitAdmin(oldGormDB)
+	//Admin := admin.InitAdmin(oldGormDB)
 
 	// Получаем *sql.DB из *gorm.DB
 	sqlDB, err := gormDB.DB()
@@ -44,9 +40,9 @@ func main() {
 		log.Fatalf("Failed to initialize Minio client: %v", err)
 	}
 
-	// Оборачиваем админку в Middleware
-	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
-	mux.Handle("/admin/", adminHandler)
+	//// Оборачиваем админку в Middleware
+	//adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
+	//mux.Handle("/admin/", adminHandler)
 
 	// Настройка маршрутов с использованием *sql.DB
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

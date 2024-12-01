@@ -500,8 +500,8 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		}
 	}
 
-	// Генерация URL для изображений и проверка существования файла
-	profileImageURL, err := minioClient.GetFileURL(userImage.ProfileImage)
+	// Генерация URL для изображений
+	profileImageURL, err := storage.GetFileURL(minioClient.Client, minioClient.Bucket, userImage.ProfileImage)
 	if err != nil {
 		log.Printf("Error generating URL for profile image: %s, error: %v", userImage.ProfileImage, err)
 		profileImageURL = defaultProfileImagePath // Подставляем дефолтное изображение
@@ -514,7 +514,7 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		}
 	}
 
-	backgroundImageURL, err := minioClient.GetFileURL(userImage.ProfileBgImage)
+	backgroundImageURL, err := storage.GetFileURL(minioClient.Client, minioClient.Bucket, userImage.ProfileBgImage)
 	if err != nil {
 		log.Printf("Error generating URL for background image: %s, error: %v", userImage.ProfileBgImage, err)
 		backgroundImageURL = defaultBackgroundImagePath // Подставляем дефолтное изображение

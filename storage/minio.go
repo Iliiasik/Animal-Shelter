@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -58,15 +59,29 @@ func (mc *MinioClient) UploadFile(ctx context.Context, objectName, filePath, con
 }
 
 // GetFileURL возвращает URL файла
-func (mc *MinioClient) GetFileURL(objectName string) (string, error) {
-	// Создать объект u.Values
-	reqParams := url.Values{}
-	reqParams.Set("response-content-disposition", "attachment; filename="+objectName)
+func GetFileURL(minioClient *minio.Client, bucketName, objectName string) (string, error) {
+	// Лог перед проверкой объекта
+	log.Printf("Checking object in bucket=%s with name=%s", bucketName, objectName)
 
-	// Вызвать метод PresignedGetObject
-	u, err := mc.Client.PresignedGetObject(context.Background(), mc.Bucket, objectName, time.Hour*24, reqParams)
+	// Проверка существования объекта
+	_, err := minioClient.StatObject(context.Background(), bucketName, objectName, minio.StatObjectOptions{})
 	if err != nil {
-		return "", fmt.Errorf("error generating file URL: %w", err)
+		log.Printf("Error checking object: %v", err)
+		return "", err
 	}
-	return u.String(), nil
+
+	// Генерация подписанного URL
+	reqParams := make(url.Values)
+	presignedURL, err := minioClient.PresignedGetObject(context.Background(), bucketName, objectName, time.Hour, reqParams)
+	if err != nil {
+		log.Printf("Error generating presigned URL: %v", err)
+		return "", err
+	}
+
+	// Замените внутренний адрес MinIO на публичный
+	publicEndpoint := "http://localhost:9000" // или внешний адрес сервера
+	fileURL := strings.Replace(presignedURL.String(), "http://minio:9000", publicEndpoint, 1)
+
+	log.Printf("Generated file URL: %s", fileURL)
+	return fileURL, nil
 }
