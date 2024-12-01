@@ -9,10 +9,52 @@ import (
 	"strconv"
 )
 
+// Для информации о животных
+
+type AnimalWithDetails struct {
+	ID           int                `json:"id"`
+	Name         string             `json:"name"`
+	Species      string             `json:"species"`
+	Breed        string             `json:"breed"`
+	AgeYears     int                `json:"age_years"`  // Год
+	AgeMonths    int                `json:"age_months"` // Месяцы
+	Gender       string             `json:"gender"`
+	Status       string             `json:"status"`
+	ArrivalDate  string             `json:"arrival_date"`
+	Description  string             `json:"description"`
+	Location     string             `json:"location"`
+	Weight       float64            `json:"weight"` // Тип изменен на float
+	Color        string             `json:"color"`
+	IsSterilized bool               `json:"is_sterilized"`
+	HasPassport  bool               `json:"has_passport"`
+	Images       []models.PostImage `json:"images"`
+	UserDetails  struct {
+		FirstName    string `json:"first_name"`
+		LastName     string `json:"last_name"`
+		PhoneNumber  string `json:"phone_number"`
+		Email        string `json:"email"`
+		ProfileImage string `json:"profile_image"` // Добавляем профильное изображение
+		Username     string `json:"username"`
+	} `json:"user_details"`
+}
+
+// Для листа животных
+
 type PageDataAnimals struct {
 	LoggedIn        bool
-	Animals         []AnimalWithDetails
+	Animals         []AnimalSummary
 	CurrentCategory string
+}
+type AnimalSummary struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Species   string `json:"species"`
+	Breed     string `json:"breed"`
+	Color     string `json:"color"`
+	AgeYears  int    `json:"age_years"`  // Число лет
+	AgeMonths int    `json:"age_months"` // Число месяцев
+	Gender    string `json:"gender"`
+	ImageURL  string `json:"image_url"`
 }
 
 func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -28,7 +70,8 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	species := r.URL.Query().Get("species")
 	breed := r.URL.Query().Get("breed")
 	color := r.URL.Query().Get("color")
-	age := r.URL.Query().Get("age")
+	ageYears := r.URL.Query().Get("age_years")
+	ageMonths := r.URL.Query().Get("age_months")
 	gender := r.URL.Query().Get("gender")
 
 	// Устанавливаем CurrentCategory
@@ -38,7 +81,7 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем животных с деталями из базы данных с фильтрами
-	animals, err := fetchAllAnimalsWithFiltration(db, species, breed, color, age, gender)
+	animals, err := fetchAnimalsWithFilters(db, species, breed, color, ageYears, ageMonths, gender)
 	if err != nil {
 		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
 		return
@@ -60,48 +103,82 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gender string) ([]AnimalWithDetails, error) {
-	var animals []AnimalWithDetails
+func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, ageMonthsStr, gender string) ([]AnimalSummary, error) {
+	var animals []AnimalSummary
 
 	query := `
-		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, animals.age, 
-			genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
-			animals.description, animals.location, animals.weight, animals.color, 
-			animals.is_sterilized, animals.has_passport
-		FROM animals
-		JOIN animaltypes ON animals.species_id = animaltypes.id
-		JOIN genders ON animals.gender_id = genders.id
-		JOIN animalstatus ON animals.status_id = animalstatus.id
-	`
+        SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
+               animals.color, animalages.years, animalages.months, genders.name AS gender,
+               (SELECT image_url FROM postimages WHERE animal_id = animals.id LIMIT 1) AS image
+        FROM animals
+        JOIN animaltypes ON animals.species_id = animaltypes.id
+        JOIN genders ON animals.gender_id = genders.id
+        LEFT JOIN animalages ON animals.id = animalages.animal_id
+        WHERE 1=1
+    `
 
-	// Массив аргументов для параметров запроса
 	var args []interface{}
 
-	// Добавляем условия для каждого фильтра, если он задан
+	// Преобразование строк в числа для возраста
+	var ageYears, ageMonths int
+	var err error
+	if ageYearsStr != "" {
+		ageYears, err = strconv.Atoi(ageYearsStr)
+		if err != nil {
+			log.Printf("Invalid ageYears: %v", err)
+			return nil, err
+		}
+	}
+	if ageMonthsStr != "" {
+		ageMonths, err = strconv.Atoi(ageMonthsStr)
+		if err != nil {
+			log.Printf("Invalid ageMonths: %v", err)
+			return nil, err
+		}
+	}
+
+	// Фильтрация по species
 	if species != "" {
-		query += " AND animaltypes.type_name = $1"
+		query += " AND animaltypes.type_name = $" + strconv.Itoa(len(args)+1)
 		args = append(args, species)
 	}
+
+	// Фильтрация по breed
 	if breed != "" {
 		query += " AND animals.breed LIKE $" + strconv.Itoa(len(args)+1)
 		args = append(args, "%"+breed+"%")
 	}
+
+	// Фильтрация по color
 	if color != "" {
 		query += " AND animals.color LIKE $" + strconv.Itoa(len(args)+1)
 		args = append(args, "%"+color+"%")
 	}
-	if age != "" {
-		query += " AND animals.age = $" + strconv.Itoa(len(args)+1)
-		args = append(args, age)
+
+	// Фильтрация по возрасту (если ageYears и ageMonths предоставлены)
+	if ageYearsStr != "" || ageMonthsStr != "" {
+		// Если указаны оба значения возраста
+		if ageYearsStr != "" && ageMonthsStr != "" {
+			query += " AND animalages.years = $" + strconv.Itoa(len(args)+1) + " AND animalages.months = $" + strconv.Itoa(len(args)+2)
+			args = append(args, ageYears, ageMonths)
+		} else if ageYearsStr != "" {
+			// Если указан только возраст в годах
+			query += " AND animalages.years = $" + strconv.Itoa(len(args)+1)
+			args = append(args, ageYears)
+		} else if ageMonthsStr != "" {
+			// Если указан только возраст в месяцах
+			query += " AND animalages.months = $" + strconv.Itoa(len(args)+1)
+			args = append(args, ageMonths)
+		}
 	}
+
+	// Фильтрация по gender
 	if gender != "" {
 		query += " AND genders.name = $" + strconv.Itoa(len(args)+1)
 		args = append(args, gender)
 	}
 
-	// Выполняем запрос с параметрами
-	log.Printf("Query params - species: %s, breed: %s, color: %s, age: %s, gender: %s", species, breed, color, age, gender)
-
+	// Выполняем запрос
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
@@ -111,28 +188,17 @@ func fetchAllAnimalsWithFiltration(db *sql.DB, species, breed, color, age, gende
 
 	// Обрабатываем строки результата
 	for rows.Next() {
-		var animal AnimalWithDetails
+		var animal AnimalSummary
 		if err := rows.Scan(
-			&animal.ID, &animal.Name, &animal.Species, &animal.Breed, &animal.Age,
-			&animal.Gender, &animal.Status, &animal.ArrivalDate, &animal.Description,
-			&animal.Location, &animal.Weight, &animal.Color, &animal.IsSterilized, &animal.HasPassport); err != nil {
+			&animal.ID, &animal.Name, &animal.Species, &animal.Breed,
+			&animal.Color, &animal.AgeYears, &animal.AgeMonths, &animal.Gender, &animal.ImageURL); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			return nil, err
 		}
-
-		// Получаем изображения для каждого животного
-		images, err := fetchAnimalImages(db, animal.ID)
-		if err != nil {
-			log.Printf("Error fetching images for animal ID %d: %v", animal.ID, err)
-			return nil, err
-		}
-		animal.Images = images
-
-		// Добавляем животное в список
 		animals = append(animals, animal)
 	}
 
-	// Проверяем на наличие ошибок после завершения цикла
+	// Проверяем ошибки после итерации
 	if err := rows.Err(); err != nil {
 		log.Printf("Error after rows iteration: %v", err)
 		return nil, err
@@ -160,7 +226,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Выполняем SQL-запрос для получения информации о животном
 	query := `
-		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, animals.age, 
+		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
 		       genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
 		       animals.description, animals.location, animals.weight, animals.color, 
 		       animals.is_sterilized, animals.has_passport
@@ -175,7 +241,6 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		&animal.Name,
 		&animal.Species,
 		&animal.Breed,
-		&animal.Age,
 		&animal.Gender,
 		&animal.Status,
 		&animal.ArrivalDate,
@@ -195,6 +260,23 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Запрос для получения возраста животного (из таблицы animalages)
+	ageQuery := `SELECT years, months FROM animalages WHERE animal_id = $1`
+	err = db.QueryRow(ageQuery, animalID).Scan(
+		&animal.AgeYears,
+		&animal.AgeMonths,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Если возраст не найден, то оставляем значения по умолчанию (0)
+			animal.AgeYears = 0
+			animal.AgeMonths = 0
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	// Выполняем запрос для получения изображений животного
 	query = `SELECT image_url FROM postimages WHERE animal_id = $1`
 	rows, err := db.Query(query, animalID)
@@ -212,6 +294,33 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		animal.Images = append(animal.Images, image)
+	}
+
+	// Выполняем запрос для получения информации о владельце и его профиле
+	userQuery := `
+		SELECT u.email, u.username, ud.first_name, ud.last_name, ud.phone_number, ui.profile_image
+		FROM users u
+		JOIN user_details ud ON u.id = ud.user_id
+		JOIN user_images ui ON u.id = ui.user_id
+		WHERE u.id = (
+			SELECT user_id FROM animals WHERE id = $1
+		)
+	`
+	err = db.QueryRow(userQuery, animalID).Scan(
+		&animal.UserDetails.Email,
+		&animal.UserDetails.Username,
+		&animal.UserDetails.FirstName,
+		&animal.UserDetails.LastName,
+		&animal.UserDetails.PhoneNumber,
+		&animal.UserDetails.ProfileImage, // Получаем профильное изображение
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No user details found for the animal.")
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Рендеринг шаблона

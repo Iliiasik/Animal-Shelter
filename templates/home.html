@@ -70,8 +70,8 @@
         {{if lt $index 3}} <!-- Display only the first three animals -->
         <a href="/animal_information?id={{$animal.ID}}" class="card">
             <div class="card_image">
-                {{if $animal.Images}}
-                <img src="{{(index $animal.Images 0).ImageURL}}" class="d-block w-100" alt="{{$animal.Name}}">
+                {{if $animal.Image}}
+                <img src="{{$animal.Image}}" class="d-block w-100" alt="{{$animal.Name}}">
                 {{else}}
                 <img src="/images/default.png" class="d-block w-100" alt="Default Image">
                 {{end}}

@@ -14,14 +14,17 @@
         <option value="Dog">Dog</option>
         <option value="Cat">Cat</option>
         <option value="Bird">Bird</option>
-        <!-- other animal-->
+        <!-- other animals -->
     </select><br>
 
     <label for="breed">Breed:</label>
     <input type="text" id="breed" name="breed"><br>
 
-    <label for="age">Age:</label>
-    <input type="number" id="age" name="age"><br>
+    <label for="age_years">Age (Years):</label>
+    <input type="number" id="age_years" name="age_years" min="0"><br>
+
+    <label for="age_months">Age (Months):</label>
+    <input type="number" id="age_months" name="age_months" min="0" max="11"><br>
 
     <label for="gender">Gender:</label>
     <select id="gender" name="gender">
@@ -29,12 +32,11 @@
         <option value="Male">Male</option>
     </select><br>
 
-
     <label for="status_id">Status:</label>
     <select id="status_id" name="status_id" required>
         <option value="Available">Available</option>
         <option value="Adopted">Adopted</option>
-        <option value="In Treatment">In Treatment</option>
+        <option value="On treatment">In Treatment</option>
         <!-- other status -->
     </select><br>
 
@@ -48,7 +50,7 @@
     <input type="text" id="location" name="location"><br>
 
     <label for="weight">Weight (kg):</label>
-    <input type="number" id="weight" name="weight"><br>
+    <input type="number" id="weight" name="weight" step="0.1"><br>
 
     <label for="color">Color:</label>
     <input type="text" id="color" name="color"><br>

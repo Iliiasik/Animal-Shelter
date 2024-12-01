@@ -1,7 +1,7 @@
 /* Стили для полей ввода и select */
 input, select {
     width: 200px;
-    padding: 12px 20px;
+    padding: 10px 10px;
     border: 2px solid #ccc;
     outline: 0;
     border-radius: 5px;
@@ -10,7 +10,9 @@ input, select {
     font-weight: 600;
     transition: all 0.5s;
 }
-
+.age {
+    width: 100px; /* Ширина полей ввода, чтобы они были маленькими, как одна клеточка */
+}
 /* Уменьшаем ширину select */
 select {
     width: 160px; /* Уменьшенная ширина для select */

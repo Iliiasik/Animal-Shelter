@@ -29,13 +29,23 @@ func (Gender) TableName() string {
 	return "genders" // Название таблицы
 }
 
+type AnimalAge struct {
+	AnimalID int `json:"animal_id" gorm:"primaryKey;unique;not null;constraint:OnDelete:CASCADE;"` // Foreign key для связи с животным
+	Years    int `json:"years" gorm:"not null;default:0"`
+	Months   int `json:"months" gorm:"not null;default:0"`
+}
+
+func (AnimalAge) TableName() string {
+	return "animalages"
+}
+
 type Animal struct {
 	ID           int          `json:"id" gorm:"primaryKey"`
 	Name         string       `json:"name"`
 	SpeciesID    int          `json:"species_id" gorm:"not null"`
 	Species      AnimalType   `json:"species" gorm:"foreignKey:SpeciesID"`
 	Breed        string       `json:"breed"`
-	Age          int          `json:"age"`
+	Age          AnimalAge    `json:"age" gorm:"foreignKey:AnimalID"`
 	GenderID     int          `json:"gender_id" gorm:"not null"`
 	Gender       Gender       `json:"gender" gorm:"foreignKey:GenderID"`
 	StatusID     int          `json:"status_id" gorm:"not null"`
@@ -43,7 +53,7 @@ type Animal struct {
 	ArrivalDate  string       `json:"arrival_date"`
 	Description  string       `json:"description"`
 	Location     string       `json:"location"`
-	Weight       int          `json:"weight"`
+	Weight       float64      `json:"weight"`
 	Color        string       `json:"color"`
 	Images       []PostImage  `gorm:"foreignKey:AnimalID"`
 	IsSterilized bool         `json:"is_sterilized" gorm:"default:false"`

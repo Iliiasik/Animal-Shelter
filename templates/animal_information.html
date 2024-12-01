@@ -79,14 +79,16 @@
             <h2 class="details-title">Details</h2>
             <ul class="info-list">
                 <li><strong>Breed:</strong> {{.Breed}}</li>
-                <li><strong>Age:</strong> {{.Age}} years</li>
+                <li><strong>Age:</strong> {{.AgeYears}} years {{.AgeMonths}} months</li>
 
                 <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
                 <li><strong>Location:</strong> {{.Location}}</li>
                 <li><strong>Weight:</strong> {{.Weight}} kg</li>
                 <li><strong>Color:</strong> {{.Color}}</li>
+
             </ul>
         </div>
+
     </div>
 
     <div class="animal-slider">
@@ -124,8 +126,33 @@
                 </svg>
             </div>
         </div>
+
     </div><!-- End // .directional_nav -->
+
 </section>
+    <section class="stage-two">
+        <div class="animal-description">
+            <h3>Description</h3>
+            <p>{{.Description}}</p>
+        </div>
+        <div class="user-info">
+            <h3>Owner Information</h3>
+            <div class="user-info-left">
+                <p><strong>Name:</strong> {{.UserDetails.FirstName}} {{.UserDetails.LastName}}</p>
+                <p><strong>Email:</strong> {{.UserDetails.Email}}</p>
+                <p><strong>Phone:</strong> {{.UserDetails.PhoneNumber}}</p>
+            </div>
+            <div class="user-info-right">
+                <div class="profile-image">
+                    <img src="{{.UserDetails.ProfileImage}}" alt="Profile Image">
+                </div>
+                <p><strong>Username:</strong> {{.UserDetails.Username}}</p>
+
+            </div>
+        </div>
+
+    </section>
+
 
 <footer class="site-footer">
     <div class="footer-links-container">
