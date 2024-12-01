@@ -37,13 +37,13 @@
         <h2 class="category-title">
             <span class="category-icon">
                 {{if eq .CurrentCategory "all"}}
-                <img src="system_images/all%20search.png" alt="All Icon">
+                <img src="system_images/all search.png" alt="All Icon">
                 {{else if eq .CurrentCategory "Dog"}}
-                <img src="system_images/dog%20search.png" alt="Dog Icon">
+                <img src="system_images/Dogs search.png" alt="Dog Icon">
                 {{else if eq .CurrentCategory "Cat"}}
-                <img src="system_images/cat%20search.png" alt="Cat Icon">
+                <img src="system_images/Cats search.png" alt="Cat Icon">
                 {{else if eq .CurrentCategory "Bird"}}
-                <img src="system_images/bird%20search.png" alt="Bird Icon">
+                <img src="system_images/Birds search.png" alt="Bird Icon">
                 {{end}}
             </span>
             <span class="category-text">
@@ -60,7 +60,10 @@
             </div>
 
             <div class="search-field">
-                <input type="number" id="age-search" class="search-input" placeholder="Search by age...">
+                <input type="number" id="age-years-search" name="age_years" class="search-input age" placeholder="Years" min="0">
+            </div>
+            <div class="search-field">
+                <input type="number" id="age-months-search" name="age_months" class="search-input age" placeholder="Months" min="0" max="11">
             </div>
 
             <div class="search-field">
@@ -104,14 +107,16 @@
     // Получаем элементы полей ввода
     const breedInput = document.getElementById('breed-search');
     const colorInput = document.getElementById('color-search');
-    const ageInput = document.getElementById('age-search');
+    const ageYearsInput = document.getElementById('age-years-search');
+    const ageMonthsInput = document.getElementById('age-months-search');
     const genderSelect = document.getElementById('gender-search');
 
     // Функция фильтрации
     function applyFilters() {
         const breed = breedInput.value;
         const color = colorInput.value;
-        const age = ageInput.value;
+        const ageYears = ageYearsInput.value;
+        const ageMonths = ageMonthsInput.value;
         const gender = genderSelect.value;
 
         const url = new URL(window.location.href);
@@ -123,14 +128,19 @@
         if (color) url.searchParams.set('color', color);
         else url.searchParams.delete('color');
 
-        if (age) url.searchParams.set('age', age);
-        else url.searchParams.delete('age');
+        // Добавляем возраст (годы и месяцы)
+        if (ageYears) url.searchParams.set('age_years', ageYears);
+        else url.searchParams.delete('age_years');
+
+        if (ageMonths) url.searchParams.set('age_months', ageMonths);
+        else url.searchParams.delete('age_months');
 
         if (gender) url.searchParams.set('gender', gender);
         else url.searchParams.delete('gender');
 
         window.location.href = url.toString(); // Перенаправляем на новый URL
     }
+
 
     document.addEventListener("DOMContentLoaded", function() {
         const navbar = document.querySelector('nav');

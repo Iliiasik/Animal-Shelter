@@ -50,16 +50,16 @@ func main() {
 		handlers.AnimalListPage(sqlDB, w, r)
 	})
 
-	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			handlers.ShowAddAnimalForm(w, r)
-		case "POST":
-			handlers.AddAnimal(sqlDB, w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	//mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
+	//	switch r.Method {
+	//	case "GET":
+	//		handlers.ShowAddAnimalForm(w, r)
+	//	case "POST":
+	//		handlers.AddAnimal(sqlDB, w, r)
+	//	default:
+	//		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	//	}
+	//})
 	mux.HandleFunc("/animal_information", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handlers.AnimalInformation(sqlDB, w, r)

@@ -34,6 +34,7 @@ func ConnectDB() *gorm.DB {
 		&models.AnimalStatus{},
 		&models.AnimalType{},
 		&models.Gender{},
+		&models.AnimalAge{},
 		&models.MedicalRecord{},
 		&models.PostImage{},
 		&models.Adoption{},
