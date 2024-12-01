@@ -35,6 +35,7 @@ type AnimalWithDetails struct {
 		Email        string `json:"email"`
 		ProfileImage string `json:"profile_image"` // Добавляем профильное изображение
 		Username     string `json:"username"`
+		BgImage      string `json:"profile_bg_image"`
 	} `json:"user_details"`
 }
 
@@ -298,7 +299,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Выполняем запрос для получения информации о владельце и его профиле
 	userQuery := `
-		SELECT u.email, u.username, ud.first_name, ud.last_name, ud.phone_number, ui.profile_image
+		SELECT u.email, u.username, ud.first_name, ud.last_name, ud.phone_number, ui.profile_image, ui.profile_bg_image
 		FROM users u
 		JOIN user_details ud ON u.id = ud.user_id
 		JOIN user_images ui ON u.id = ui.user_id
@@ -312,7 +313,8 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		&animal.UserDetails.FirstName,
 		&animal.UserDetails.LastName,
 		&animal.UserDetails.PhoneNumber,
-		&animal.UserDetails.ProfileImage, // Получаем профильное изображение
+		&animal.UserDetails.ProfileImage,
+		&animal.UserDetails.BgImage,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {

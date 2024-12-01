@@ -138,15 +138,37 @@
         <div class="user-info">
             <h3>Owner Information</h3>
             <div class="user-info-left">
-                <p><strong>Name:</strong> {{.UserDetails.FirstName}} {{.UserDetails.LastName}}</p>
-                <p><strong>Email:</strong> {{.UserDetails.Email}}</p>
-                <p><strong>Phone:</strong> {{.UserDetails.PhoneNumber}}</p>
-            </div>
-            <div class="user-info-right">
-                <div class="profile-image">
-                    <img src="{{.UserDetails.ProfileImage}}" alt="Profile Image">
+                <div class="contact-info">
+                <p>
+                    <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                    <span>{{.UserDetails.FirstName}} {{.UserDetails.LastName}}</span>
+                </p>
+                <p>
+                    <img src="/system_images/email.svg" alt="Email Icon" class="info-icon">
+                    <span>{{.UserDetails.Email}}</span>
+                </p>
+                <p>
+                    <img src="/system_images/phone.svg" alt="Phone Icon" class="info-icon">
+                    <span>{{.UserDetails.PhoneNumber}}</span>
+                </p>
                 </div>
-                <p><strong>Username:</strong> {{.UserDetails.Username}}</p>
+                <div class="button-container">
+                    <a href="/" class="adopt-button">Adopt animal</a>
+                </div>
+            </div>
+
+            <div class="user-info-right">
+                <div class="user-profile" style="background-image: url('{{.UserDetails.BgImage}}');">
+                    <div class="profile-inner">
+                        <a href="/profile/{{.UserDetails.Username}}">
+                            <img src="{{.UserDetails.ProfileImage}}" alt="Profile Image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        </a>
+                        <div class="username-info">
+                            <div class="username">{{.UserDetails.Username}}</div>
+
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
