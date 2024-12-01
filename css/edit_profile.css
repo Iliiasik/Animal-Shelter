@@ -9,13 +9,14 @@ body {
 
     background-size: cover;
     background-position: center;
-    height: 300px; /* Высота 100% окна браузера */
+    height: 30vh; /* Высота 100% окна браузера */
     position: relative;
     z-index: 1;
 }
 .bg-buttons{
-    float: right;
-    margin: 240px 0 24px;
+    position: fixed;
+    right:1vh;
+    top: 24vh;
     display: flex;
     align-items: flex-end;
     flex-direction: row;
@@ -300,7 +301,7 @@ body {
     display: flex;
     align-items: flex-start;
     flex-direction: column;
-    width: 300px;
+    width: 30vh;
 }
 .buttons{
     display: flex;
@@ -318,9 +319,9 @@ body {
     transform: translate(-50%, -50%);
     display: flex;
     align-items: flex-start;
-    width: 800px;
+    width: 80vh;
     background-color: #fff;
-    border-radius: 10px;
+    border-radius: 5vh;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     z-index: 2; /* Профиль выше фона */
@@ -341,17 +342,16 @@ body {
     display: block;    /* Убираем любые возможные отступы вокруг изображения */
 }
 .form-container{
-    width: 400px;
+    width: 40vh;
 }
-.profile-info {
-    flex: 1;
-}
-
-.profile-info h1 {
-    font-size: 24px;
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
+    width: 45vh;
+    padding: 10px;
     margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
 }
-
 label {
     font-size: 16px;
     margin-bottom: 10px;
@@ -492,14 +492,13 @@ label {
 
 /* Основной стиль панели */
 .sidebar {
-
     position: fixed;
-    top: 300px;
-    left: -250px; /* по умолчанию скрыта за пределами экрана */
-    width: 250px;
-    height: 100%;
+    top: 30vh;
+    left: -35vh; /* по умолчанию скрыта за пределами экрана */
+    width: 25vh;
+    height: 100vh;
     background-color: #f4f4f4;
-    padding: 20px;
+    padding: 2vh;
     transition: left 0.3s;
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -512,7 +511,7 @@ label {
 }
 .sidebar-button-container{
     position: fixed;
-    top: 800px;
+    top: 85vh;
     left: 10px;
     z-index: 1001;
 }
@@ -576,7 +575,7 @@ label {
     font-size: 0.9rem;
     font-weight: 600;
     padding: 8px 24px;
-    margin: 12px 0 24px;
+    margin: 5px 0 24px;
     border: 2px solid #6b7280;
     border-radius: 30px;
     background-color: #f6f6f6;
@@ -770,7 +769,7 @@ label {
     display: flex;
     justify-content: flex-end;
     flex-direction: row;
-    width: 400px;
+    width: 40vh;
 }
 
 /*конец стилей кнопок сохранения или отмены изменений профиля*/
@@ -854,18 +853,19 @@ textarea {
 
 @media (max-width: 990px) {
     .profile{
-        width:500px;
+        width:50vh;
         flex-direction: column;
         align-items: center;
         z-index: 0;
-        margin-top: 300px;
+        margin-top: 30vh;
     }
     .profile-background{
         z-index: 0;
         align-items: center;
+        height: 32vh;
     }
     form{
-        width: 400px;
+        width: 40vh;
     }
 
 }
@@ -873,7 +873,6 @@ textarea {
     .sidebar{
         border: 2px solid #6b7280;
     }
-
 
     .sidebar-toggle-button .button-text {
         position:relative;
