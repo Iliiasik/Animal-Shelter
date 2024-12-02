@@ -40,7 +40,7 @@ type UserPrivacy struct {
 type UserImage struct {
 	UserID         uint   `json:"user_id" gorm:"primaryKey"`                                                   // Внешний ключ на таблицу пользователей
 	User           User   `json:"user" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Связь с таблицей пользователей
-	ProfileImage   string `json:"profile_image" gorm:"default:'system_images/default_profile.jpg'"`            // Изображение профиля
+	ProfileImage   string `json:"profile_image" gorm:"default:'system_images/default_profile(boring).jpg'"`    // Изображение профиля
 	ProfileBgImage string `json:"profile_bg_image" gorm:"default:'system_images/default_bg.jpg'"`              // Фоновое изображение
 }
 
