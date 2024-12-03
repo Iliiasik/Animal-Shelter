@@ -58,6 +58,7 @@ type Animal struct {
 	Images       []PostImage  `gorm:"foreignKey:AnimalID"`
 	IsSterilized bool         `json:"is_sterilized" gorm:"default:false"`
 	HasPassport  bool         `json:"has_passport" gorm:"default:false"`
+	Views        int          `json:"views" gorm:"default:0"`
 	UserID       uint         `json:"user_id" gorm:"not null"`
 	User         User         `json:"user" gorm:"foreignKey:UserID"`
 }

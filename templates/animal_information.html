@@ -70,6 +70,12 @@
             {{else if eq .Status "On treatment"}}
             <img src="system_images/On treatment.svg" alt="On treatment Icon" class="item-icon">
             {{end}}
+
+
+        </div>
+        <div class="item-info views-info">
+            <span>{{.Views}} views</span>
+            <img src="system_images/eye.svg" alt="Eye Icon" class="views-icon">
         </div>
     </section>
 <!-- Основная информация о животном с секцией слайдера справа -->
@@ -79,14 +85,20 @@
             <h2 class="details-title">Details</h2>
             <ul class="info-list">
                 <li><strong>Breed:</strong> {{.Breed}}</li>
-                <li><strong>Age:</strong> {{.AgeYears}} years {{.AgeMonths}} months</li>
+                <li>
+                    <strong>Age:</strong>
+                    {{.AgeYears}}
+                    {{if eq .AgeYears 1}}year{{else}}years{{end}}
+                    {{.AgeMonths}}
+                    {{if eq .AgeMonths 1}}month{{else}}months{{end}}
+                </li>
 
-                <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
                 <li><strong>Location:</strong> {{.Location}}</li>
-                <li><strong>Weight:</strong> {{.Weight}} kg</li>
+                <li><strong>Weight:</strong> <span id="weight"></span></li>
                 <li><strong>Color:</strong> {{.Color}}</li>
-
+                <li><strong>Arrival Date:</strong> {{.ArrivalDate}}</li>
             </ul>
+
         </div>
 
     </div>
@@ -136,7 +148,7 @@
             <p>{{.Description}}</p>
         </div>
         <div class="user-info">
-            <h3>Owner Information</h3>
+            <h3>Owner information</h3>
             <div class="user-info-left">
                 <div class="contact-info">
                 <p>
@@ -174,8 +186,6 @@
         </div>
 
     </section>
-
-
 <footer class="site-footer">
     <div class="footer-links-container">
         <div class="footer-links">
@@ -329,6 +339,31 @@
 
         advance();
     });
+    document.addEventListener("DOMContentLoaded", function () {
+        let timer;
+        const animalID = new URLSearchParams(window.location.search).get("id");
 
+        if (animalID) {
+            timer = setTimeout(() => {
+                fetch(`/increment_views?id=${animalID}`, { method: "POST" })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error("Failed to increment views");
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+            }, 180000); // 3 минуты
+        }
+
+        // Сбросить таймер, если пользователь уходит со страницы раньше
+        window.addEventListener("beforeunload", () => clearTimeout(timer));
+    });
+    const weightKg = parseFloat("{{.Weight}}"); // Здесь будет передаваться значение из вашего шаблона
+
+    // Конвертируем вес в фунты (1 кг = 2.20462 lb)
+    const weightLb = weightKg * 2.20462;
+
+    // Обновляем элемент для отображения веса в килограммах и фунтах в одном span
+    document.getElementById('weight').textContent = `${weightKg} kg (${weightLb.toFixed(2)} lb)`;
 </script>
 </html>
