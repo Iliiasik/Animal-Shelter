@@ -24,7 +24,6 @@
 }
 
 .details-title {
-    color: #2C6B2F;
     font-size: 24px;
     font-weight: bold;
     text-align: center;
@@ -212,7 +211,9 @@ a.slide_btn {
     font-weight: bold;
 }
 
-
+.animal-description h3 {
+    margin-bottom: 10px;
+}
 .gender-link {
     text-decoration: none;
 }
@@ -259,6 +260,14 @@ a.slide_btn {
     width: 30px;
     height: 30px;
 }
+.views-icon {
+    width: 20px;
+    height: 20px;
+}
+.views-info span{
+    font-size: 12px;
+    margin-right: 7px;
+}
 .status-info {
     margin-left: auto;
 }
@@ -284,7 +293,6 @@ a.slide_btn {
 .user-info {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;

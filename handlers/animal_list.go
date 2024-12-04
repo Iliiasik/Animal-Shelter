@@ -27,6 +27,7 @@ type AnimalWithDetails struct {
 	Color        string             `json:"color"`
 	IsSterilized bool               `json:"is_sterilized"`
 	HasPassport  bool               `json:"has_passport"`
+	Views        int                `json:"views"`
 	Images       []models.PostImage `json:"images"`
 	UserDetails  struct {
 		FirstName    string `json:"first_name"`
@@ -230,7 +231,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
 		       genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
 		       animals.description, animals.location, animals.weight, animals.color, 
-		       animals.is_sterilized, animals.has_passport
+		       animals.is_sterilized, animals.has_passport, animals.views
 		FROM animals
 		JOIN animaltypes ON animals.species_id = animaltypes.id
 		JOIN genders ON animals.gender_id = genders.id
@@ -251,6 +252,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		&animal.Color,
 		&animal.IsSterilized,
 		&animal.HasPassport,
+		&animal.Views,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -338,4 +340,32 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to render template", http.StatusInternalServerError)
 		return
 	}
+}
+
+func IncrementViews(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	animalIDStr := r.URL.Query().Get("id")
+	if animalIDStr == "" {
+		http.Error(w, "Animal ID is required", http.StatusBadRequest)
+		return
+	}
+
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Animal ID", http.StatusBadRequest)
+		return
+	}
+
+	query := `UPDATE animals SET views = views + 1 WHERE id = $1`
+	_, err = db.Exec(query, animalID)
+	if err != nil {
+		http.Error(w, "Failed to increment views", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
