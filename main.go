@@ -5,7 +5,6 @@ import (
 	"Animals_Shelter/handlers"
 	"Animals_Shelter/storage"
 	"fmt"
-	"os"
 	"regexp"
 
 	"log"
@@ -35,7 +34,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Создание MinioClient
-	minioClient, err := storage.NewMinioClient("minio:9000", "minioadmin", "minioadmin", bucketName)
+	minioClient, err := storage.NewMinioClient()
 	if err != nil {
 		log.Fatalf("Failed to initialize Minio client: %v", err)
 	}
@@ -218,19 +217,4 @@ type responseWriter struct {
 func (rw *responseWriter) WriteHeader(statusCode int) {
 	rw.status = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
-var Minio *storage.MinioClient
-
-func init() {
-	endpoint := os.Getenv("MINIO_ENDPOINT")
-	accessKey := os.Getenv("MINIO_ACCESS_KEY")
-	secretKey := os.Getenv("MINIO_SECRET_KEY")
-	bucketName := os.Getenv("MINIO_BUCKET_NAME")
-
-	client, err := storage.NewMinioClient(endpoint, accessKey, secretKey, bucketName)
-	if err != nil {
-		log.Fatalf("Failed to initialize MinIO client: %v", err)
-	}
-	Minio = client
 }

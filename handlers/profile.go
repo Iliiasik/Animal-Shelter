@@ -436,7 +436,6 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		return
 	}
 
-	// Ищем сессию в базе данных
 	var session models.Session
 	if err := db.Where("session_id = ?", sessionCookie.Value).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -448,13 +447,11 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		return
 	}
 
-	// Проверка на истечение срока действия сессии
 	if session.ExpiresAt != nil && session.ExpiresAt.Before(time.Now()) {
 		http.Error(w, "Session expired", http.StatusUnauthorized)
 		return
 	}
 
-	// Ищем пользователя по UserID из сессии
 	var user models.User
 	if err := db.Preload("Role").First(&user, session.UserID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -466,7 +463,6 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		return
 	}
 
-	// Загружаем дополнительные данные о пользователе (детали, изображения, конфиденциальность)
 	var userDetail models.UserDetail
 	if err := db.First(&userDetail, "user_id = ?", user.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -500,34 +496,20 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		}
 	}
 
-	// Генерация URL для изображений
-	profileImageURL, err := storage.GetFileURL(minioClient.Client, minioClient.Bucket, userImage.ProfileImage)
+	profileImageURL, err := minioClient.GeneratePresignedURL("profile_images/"+userImage.ProfileImage, time.Hour*24)
 	if err != nil {
-		log.Printf("Error generating URL for profile image: %s, error: %v", userImage.ProfileImage, err)
-		profileImageURL = defaultProfileImagePath // Подставляем дефолтное изображение
-	} else {
-		// Проверка доступности файла
-		_, err = minioClient.Client.StatObject(context.Background(), minioClient.Bucket, userImage.ProfileImage, minio.StatObjectOptions{})
-		if err != nil {
-			log.Printf("Profile image not found: %s, error: %v", userImage.ProfileImage, err)
-			profileImageURL = defaultProfileImagePath // Подставляем дефолтное изображение
-		}
+		log.Println("Error generating profile image URL:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	backgroundImageURL, err := storage.GetFileURL(minioClient.Client, minioClient.Bucket, userImage.ProfileBgImage)
+	backgroundImageURL, err := minioClient.GeneratePresignedURL("background_images/"+userImage.ProfileBgImage, time.Hour*24)
 	if err != nil {
-		log.Printf("Error generating URL for background image: %s, error: %v", userImage.ProfileBgImage, err)
-		backgroundImageURL = defaultBackgroundImagePath // Подставляем дефолтное изображение
-	} else {
-		// Проверка доступности файла
-		_, err = minioClient.Client.StatObject(context.Background(), minioClient.Bucket, userImage.ProfileBgImage, minio.StatObjectOptions{})
-		if err != nil {
-			log.Printf("Background image not found: %s, error: %v", userImage.ProfileBgImage, err)
-			backgroundImageURL = defaultBackgroundImagePath // Подставляем дефолтное изображение
-		}
+		log.Println("Error generating background image URL:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	// Формируем структурированные данные для шаблона
 	profileData := struct {
 		User               models.User
 		UserDetail         models.UserDetail
@@ -542,7 +524,6 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		BackgroundImageURL: backgroundImageURL,
 	}
 
-	// Отправляем данные в шаблон для рендеринга
 	err = profileTemplate.Execute(w, profileData)
 	if err != nil {
 		log.Println("Template rendering error:", err)

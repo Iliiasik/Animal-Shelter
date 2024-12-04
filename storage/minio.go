@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -18,7 +17,13 @@ type MinioClient struct {
 }
 
 // NewMinioClient создает клиент для работы с MinIO
-func NewMinioClient(endpoint, accessKey, secretKey, bucketName string) (*MinioClient, error) {
+func NewMinioClient() (*MinioClient, error) {
+	// Получаем параметры из переменных окружения
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	accessKey := os.Getenv("MINIO_ACCESS_KEY")
+	secretKey := os.Getenv("MINIO_SECRET_KEY")
+	bucketName := os.Getenv("MINIO_BUCKET_NAME")
+
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: false, // Установите `true`, если используете HTTPS
@@ -27,16 +32,22 @@ func NewMinioClient(endpoint, accessKey, secretKey, bucketName string) (*MinioCl
 		return nil, fmt.Errorf("error initializing MinIO client: %w", err)
 	}
 
-	// Создать бакет, если его нет
+	// Проверяем, существует ли бакет
 	ctx := context.Background()
-	err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+	exists, err := client.BucketExists(ctx, bucketName)
 	if err != nil {
-		exists, errBucketExists := client.BucketExists(ctx, bucketName)
-		if errBucketExists == nil && exists {
-			log.Printf("Bucket %s already exists", bucketName)
-		} else {
+		return nil, fmt.Errorf("failed to check if bucket exists: %w", err)
+	}
+
+	// Если бакет не существует, создаем его
+	if !exists {
+		err := client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		if err != nil {
 			return nil, fmt.Errorf("failed to create bucket: %w", err)
 		}
+		log.Printf("Bucket %s created", bucketName)
+	} else {
+		log.Printf("Bucket %s already exists", bucketName)
 	}
 
 	return &MinioClient{
@@ -46,8 +57,8 @@ func NewMinioClient(endpoint, accessKey, secretKey, bucketName string) (*MinioCl
 }
 
 // UploadFile загружает файл в MinIO
-func (mc *MinioClient) UploadFile(ctx context.Context, objectName, filePath, contentType string) (string, error) {
-	info, err := mc.Client.FPutObject(ctx, mc.Bucket, objectName, filePath, minio.PutObjectOptions{
+func (m *MinioClient) UploadFile(ctx context.Context, objectName, filePath, contentType string) (string, error) {
+	info, err := m.Client.FPutObject(ctx, m.Bucket, objectName, filePath, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
@@ -55,33 +66,19 @@ func (mc *MinioClient) UploadFile(ctx context.Context, objectName, filePath, con
 	}
 
 	log.Printf("Successfully uploaded %s of size %d\n", info.Key, info.Size)
-	return fmt.Sprintf("/%s/%s", mc.Bucket, objectName), nil
+	return fmt.Sprintf("/%s/%s", m.Bucket, objectName), nil
 }
 
-// GetFileURL возвращает URL файла
-func GetFileURL(minioClient *minio.Client, bucketName, objectName string) (string, error) {
-	// Лог перед проверкой объекта
-	log.Printf("Checking object in bucket=%s with name=%s", bucketName, objectName)
+func (m *MinioClient) GeneratePresignedURL(objectName string, expires time.Duration) (string, error) {
+	// Генерация предварительно подписанного URL для доступа к объекту
+	ctx := context.Background()
 
-	// Проверка существования объекта
-	_, err := minioClient.StatObject(context.Background(), bucketName, objectName, minio.StatObjectOptions{})
+	// Генерация подписанной ссылки с использованием контейнера MinIO
+	presignedURL, err := m.Client.PresignedGetObject(ctx, m.Bucket, objectName, expires, nil)
 	if err != nil {
-		log.Printf("Error checking object: %v", err)
-		return "", err
+		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
 	}
 
-	// Генерация подписанного URL
-	reqParams := make(url.Values)
-	presignedURL, err := minioClient.PresignedGetObject(context.Background(), bucketName, objectName, time.Hour, reqParams)
-	if err != nil {
-		log.Printf("Error generating presigned URL: %v", err)
-		return "", err
-	}
-
-	// Замените внутренний адрес MinIO на публичный
-	publicEndpoint := "http://localhost:9000" // или внешний адрес сервера
-	fileURL := strings.Replace(presignedURL.String(), "http://minio:9000", publicEndpoint, 1)
-
-	log.Printf("Generated file URL: %s", fileURL)
-	return fileURL, nil
+	// Возвращаем URL как есть, без дополнительных замен
+	return presignedURL.String(), nil
 }
