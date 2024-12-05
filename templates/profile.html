@@ -11,36 +11,72 @@
 </head>
 <body>
 <div class="profile-background" style="background-image: url('{{.UserImage.ProfileBgImage}}');">
+    <div class="profile-container">
+        <!-- Первый профиль -->
+        <div class="profile">
+            <!-- Левая колонка: Аватар и имя пользователя -->
+            <div class="profile-left">
+                <div class="profile-image">
+                    <img src="{{.UserImage.ProfileImage}}" alt="Profile Image">
+                </div>
+                <h1 class="username">{{.User.Username}}</h1>
+                {{if eq .User.Role.Name "Veterinarian"}}
+                <div class="info-item">
+                    <img src="/system_images/Medicine.svg" alt="Veterinarian Icon" class="info-icon">
+                    <span class="role veterinarian-role">{{.User.Role.Name}}</span>
+                </div>
+                {{else if eq .User.Role.Name "Moderator"}}
+                <div class="info-item">
+                    <img src="/system_images/access.svg" alt="Moderator Icon" class="info-icon">
+                    <span class="role moderator-role">{{.User.Role.Name}}</span>
+                </div>
+                {{else if eq .User.Role.Name "Admin"}}
+                <div class="info-item">
+                    <img src="/system_images/access.svg" alt="Administrator Icon" class="info-icon">
+                    <span class="role administrator-role">{{.User.Role.Name}}</span>
+                </div>
+                {{end}}
+            </div>
 
-    <div class="profile">
+            <!-- Правая колонка: Личная информация -->
+            <div class="profile-info">
+                <h2 class="section-title">Personal Information</h2>
+                <div class="info-item">
+                    <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                    <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
+                </div>
+                <p class="bio-text">{{.UserDetail.Bio}}</p>
+                {{if .UserPrivacy.ShowEmail}}
+                <div class="info-item">
+                    <img src="/system_images/email.svg" alt="Email Icon" class="info-icon">
+                    <span>{{.User.Email}}</span>
+                </div>
+                {{end}}
 
-        <div class="profile-image">
-            <img src="{{.UserImage.ProfileImage}}" alt="Profile Image" >
+                {{if .UserPrivacy.ShowPhone}}
+                <div class="info-item">
+                    <img src="/system_images/phone.svg" alt="Phone Icon" class="info-icon">
+                    <span>{{.UserDetail.PhoneNumber}}</span>
+                </div>
+                {{end}}
+
+                <div class="info-item">
+                    <img src="/system_images/Date.svg" alt="Date Icon" class="info-icon">
+                    <span id="dob-display">{{.UserDetail.DateOfBirth}}</span>
+                </div>
+            </div>
         </div>
 
-        <div class="profile-info">
+        <!-- Второй профиль -->
+        <div class="profile-options">
+            <h2>Options</h2>
 
-            <h1> {{.User.Username}}</h1>
-            <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
-
-            <div class="contact-info">
-                <p>{{.UserDetail.Bio}}</p>
-                <!-- Условное отображение email -->
-                {{if .UserPrivacy.ShowEmail}}
-                <p><strong>Email:</strong> {{.User.Email}}</p>
-                {{end}}
-                <!-- Условное отображение телефона -->
-                {{if .UserPrivacy.ShowPhone}}
-                <p><strong>Phone Number:</strong> {{.UserDetail.PhoneNumber}}</p>
-                {{end}}
-                <strong>Date of Birth:</strong> <span id="dob-display">{{.UserDetail.DateOfBirth}}</span><br>
-
-            </div>
+                <button class="general-button">Add Animal</button>
+                <button class="general-button">Delete Animal</button>
 
         </div>
 
     </div>
-
 </div>
 
 <!-- Кнопка Home (слева) -->

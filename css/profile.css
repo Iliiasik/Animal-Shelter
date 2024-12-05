@@ -12,41 +12,138 @@ body {
     height: 30vh;                /* Высота фона */
     position: relative;           /* Для позиционирования содержимого */
 }
-
+.profile-container {
+    display: flex; /* Выравнивание профилей по горизонтали */
+    justify-content: space-between; /* Равномерное распределение места */
+    align-items: flex-start; /* Выравнивание по верхнему краю */
+    gap: 20px; /* Расстояние между профилями */
+}
 .profile-image-functions{
     display: flex;
     align-items: flex-start;
 }
 .profile {
     display: flex;
-    align-items: flex-start;      /* Выравниваем элементы по вертикали сверху */
-    max-width: 80vh;
-    margin: 200px auto 0 auto;    /* Центрируем блок и сдвигаем его вверх, чтобы аватар выходил за фон */
+    align-items: flex-start;
+    justify-content: space-between; /* Разделяем колонки */
+    max-width: 90vh;
+    margin: 10% 0 0 15%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тень */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     flex-direction: row;
+    gap: 20px; /* Расстояние между колонками */
+}
+.profile-options {
+    max-width: 40vh;
+    margin: 17% auto 0 2%;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    gap: 20px; /* Расстояние между колонками */
+}
+.profile-options h2 {
+    text-align: center;
+}
+.profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрируем содержимое */
+    text-align: center; /* Выравниваем текст по центру */
+    margin-right: 2%;
 }
 
 .profile-image {
-    width: 15vh;   /* Фиксируем ширину */
-    height: 15vh;  /* Фиксируем высоту */
-    margin-right: 20px;
-    overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
-    border-radius: 50%;  /* Делаем круглый контейнер */
+    width: 15vh;
+    height: 15vh;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border-radius: 50%;
 }
 
 .profile-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Изображение заполняет контейнер, сохраняя пропорции */
-    display: block;    /* Убираем любые возможные отступы вокруг изображения */
+    object-fit: cover;
+    display: block;
 }
 
-.profile-info {
-    flex: 1;                      /* Информация о профиле занимает оставшееся пространство */
+.username {
+    font-size: 20px;
+    margin-bottom: 7%;
+    font-weight: bold;
+    color: #333;
 }
+/* Контейнер для элемента информации */
+.info-item {
+    display: flex;           /* Горизонтальное выравнивание */
+    align-items: center;     /* Вертикальное выравнивание */
+    gap: 10px;               /* Расстояние между иконкой и текстом */
+    font-size: 16px;         /* Размер текста */
+    font-weight: 600;
+    margin-bottom: 5%;     /* Отступ между элементами */
+}
+
+/* Иконки */
+.info-icon {
+    width: 24px;             /* Ширина иконки */
+    height: 24px;            /* Высота иконки */
+    object-fit: contain;     /* Сохраняем пропорции */
+}
+.bio-text {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5; /* Межстрочный интервал */
+}
+
+.role {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+
+.veterinarian-role {
+    color: green;
+}
+
+.moderator-role {
+    color: #5656da;
+}
+
+.administrator-role {
+    color: darkred;
+}
+
+
+
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.section-title {
+    font-size: 22px; /* Размер текста заголовка */
+    font-weight: bold; /* Жирный шрифт */
+    color: #333; /* Темный цвет текста */
+    margin-bottom: 15px; /* Отступ снизу */
+    border-bottom: 2px solid #ccc; /* Линия под заголовком */
+    padding-bottom: 5px; /* Расстояние между текстом и линией */
+}
+
+.profile-info h3 {
+    font-size: 20px;
+}
+
+.profile-info p {
+    font-size: 16px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
 
 .profile-info h1 {
     font-size: 24px;
@@ -71,6 +168,7 @@ body {
 .contact-info a:hover {
     text-decoration: underline;
 }
+
 .button-home, .button-edit {
     position: fixed; /* Фиксируем кнопки на экране */
     bottom: 5vh;    /* Располагаем кнопки внизу страницы */
@@ -112,6 +210,25 @@ body {
 }
 
 .button-home:hover, .button-edit:hover {
+    background-color: #000;
+    color: #eee;
+}
+.general-button {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    border: 2px solid #6b7280;
+    margin-top: 7%;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #090909;
+    text-decoration: none; /* Убирает подчеркивание */
+}
+
+.general-button:hover {
     background-color: #000;
     color: #eee;
 }
