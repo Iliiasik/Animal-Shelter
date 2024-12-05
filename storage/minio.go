@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -70,15 +71,34 @@ func (m *MinioClient) UploadFile(ctx context.Context, objectName, filePath, cont
 }
 
 func (m *MinioClient) GeneratePresignedURL(objectName string, expires time.Duration) (string, error) {
-	// Генерация предварительно подписанного URL для доступа к объекту
+	// Логируем параметры
+	log.Printf("Generating presigned URL for bucket: %s, object: %s, expires in: %s", m.Bucket, objectName, expires)
+
+	// Если путь начинается с system_images, возвращаем его без изменений
+	if strings.HasPrefix(objectName, "system_images") {
+		log.Printf("Path starts with 'system_images', returning original path: %s", objectName)
+		return objectName, nil
+	}
+
+	// Создаем контекст
 	ctx := context.Background()
 
-	// Генерация подписанной ссылки с использованием контейнера MinIO
+	// Проверяем существование объекта
+	exists, err := m.Client.StatObject(ctx, m.Bucket, objectName, minio.StatObjectOptions{})
+	if err != nil {
+		log.Printf("Error checking if object exists: %v", err)
+		return "", fmt.Errorf("object %s does not exist in bucket %s: %w", objectName, m.Bucket, err)
+	}
+	log.Printf("Object exists: %+v", exists)
+
+	// Генерация ссылки
 	presignedURL, err := m.Client.PresignedGetObject(ctx, m.Bucket, objectName, expires, nil)
 	if err != nil {
+		log.Printf("Error generating presigned URL: %v", err)
 		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
 	}
 
-	// Возвращаем URL как есть, без дополнительных замен
+	// Выводим URL в логах для отладки
+	log.Printf("Generated presigned URL: %s", presignedURL.String())
 	return presignedURL.String(), nil
 }

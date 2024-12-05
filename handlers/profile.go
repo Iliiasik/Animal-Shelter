@@ -496,14 +496,14 @@ func ShowProfile(db *gorm.DB, minioClient *storage.MinioClient, w http.ResponseW
 		}
 	}
 
-	profileImageURL, err := minioClient.GeneratePresignedURL("profile_images/"+userImage.ProfileImage, time.Hour*24)
+	profileImageURL, err := minioClient.GeneratePresignedURL(userImage.ProfileImage, time.Hour*24)
 	if err != nil {
 		log.Println("Error generating profile image URL:", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	backgroundImageURL, err := minioClient.GeneratePresignedURL("background_images/"+userImage.ProfileBgImage, time.Hour*24)
+	backgroundImageURL, err := minioClient.GeneratePresignedURL(userImage.ProfileBgImage, time.Hour*24)
 	if err != nil {
 		log.Println("Error generating background image URL:", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
