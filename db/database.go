@@ -54,7 +54,7 @@ func ConnectDB() *gorm.DB {
 
 	// Инициализация ролей
 	initializeRoles(db)
-
+	initializeGenders(db)
 	return db
 }
 
@@ -78,6 +78,26 @@ func initializeRoles(db *gorm.DB) {
 				}
 			} else {
 				log.Printf("Error fetching role %s: %v\n", role.Name, err)
+			}
+		}
+	}
+}
+func initializeGenders(db *gorm.DB) {
+	genders := []models.Gender{
+		{Name: "Male"},
+		{Name: "Female"},
+	}
+	for _, gender := range genders {
+		var existingGender models.Gender
+		if err := db.Where("name = ?", gender.Name).First(&existingGender).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := db.Create(&gender).Error; err != nil {
+					log.Printf("Error creating gender %s: %v\n", gender.Name, err)
+				} else {
+					log.Printf("Gender %s created successfully.\n", gender.Name)
+				}
+			} else {
+				log.Printf("Error fetching gender %s: %v\n", gender.Name, err)
 			}
 		}
 	}

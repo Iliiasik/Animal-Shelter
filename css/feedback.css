@@ -42,7 +42,7 @@ textarea {
     resize: none;  /* Позволяет изменять размер по вертикали */
 }
 
-button {
+.button {
     align-self: flex-end; /* Выравниваем кнопку по левому краю */
     padding: 10px 20px;    /* Внутренние отступы */
     background-color: #4CAF50; /* Зеленый цвет фона */
@@ -53,7 +53,7 @@ button {
     font-size: 1em;        /* Размер шрифта */
 }
 
-button:hover {
+.button:hover {
     background-color: #45a049; /* При наведении немного темнее */
 }
 

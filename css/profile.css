@@ -9,7 +9,7 @@ body {
 
     background-size: cover;       /* Изображение покрывает всю ширину контейнера */
     background-position: center;  /* Центрируем фон */
-    height: 300px;                /* Высота фона */
+    height: 30vh;                /* Высота фона */
     position: relative;           /* Для позиционирования содержимого */
 }
 
@@ -20,7 +20,7 @@ body {
 .profile {
     display: flex;
     align-items: flex-start;      /* Выравниваем элементы по вертикали сверху */
-    max-width: 800px;
+    max-width: 80vh;
     margin: 200px auto 0 auto;    /* Центрируем блок и сдвигаем его вверх, чтобы аватар выходил за фон */
     background-color: #fff;
     border-radius: 10px;
@@ -30,8 +30,8 @@ body {
 }
 
 .profile-image {
-    width: 150px;   /* Фиксируем ширину */
-    height: 150px;  /* Фиксируем высоту */
+    width: 15vh;   /* Фиксируем ширину */
+    height: 15vh;  /* Фиксируем высоту */
     margin-right: 20px;
     overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
     border-radius: 50%;  /* Делаем круглый контейнер */
@@ -73,7 +73,7 @@ body {
 }
 .button-home, .button-edit {
     position: fixed; /* Фиксируем кнопки на экране */
-    bottom: 50px;    /* Располагаем кнопки внизу страницы */
+    bottom: 5vh;    /* Располагаем кнопки внизу страницы */
     padding: 10px 20px;
     background-color: #adadad; /* Цвет кнопок */
     color: #000000;

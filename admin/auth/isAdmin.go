@@ -18,22 +18,30 @@ func IsLoggedIn(db *gorm.DB, r *http.Request) bool {
 	return err == nil
 }
 
-// IsAdmin проверяет, является ли текущий пользователь администратором
-func IsAdmin(db *gorm.DB, r *http.Request) bool {
+// IsRole проверяет, имеет ли текущий пользователь определенную роль
+func IsRole(db *gorm.DB, r *http.Request, roleID int) bool {
 	sessionCookie, err := r.Cookie("session")
 	if err != nil {
 		return false
 	}
 
+	// Найти сессию по идентификатору
 	var session models.Session
 	err = db.Where("session_id = ?", sessionCookie.Value).First(&session).Error
 	if err != nil {
 		return false
 	}
 
-	var isAdmin bool
+	// Проверить роль пользователя
+	var userRoleID int
 	stmt := db.Session(&gorm.Session{PrepareStmt: true}).Model(&models.User{}).
-		Select("is_admin").Where("id = ?", session.UserID)
-	err = stmt.Row().Scan(&isAdmin)
-	return err == nil && isAdmin
+		Select("role_id").Where("id = ?", session.UserID)
+	err = stmt.Row().Scan(&userRoleID)
+
+	return err == nil && userRoleID == roleID
+}
+
+// IsAdmin проверяет, является ли текущий пользователь администратором (role_id = 4)
+func IsAdmin(db *gorm.DB, r *http.Request) bool {
+	return IsRole(db, r, 4)
 }

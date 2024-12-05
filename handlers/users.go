@@ -183,7 +183,7 @@ func Register(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		profileImagePath = "system_images/default_profile.jpg"
+		profileImagePath = defaultProfileImagePath
 	}
 
 	// Генерируем токен подтверждения email
