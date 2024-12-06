@@ -12,24 +12,24 @@ import (
 // Для информации о животных
 
 type AnimalWithDetails struct {
-	ID           int                `json:"id"`
-	Name         string             `json:"name"`
-	Species      string             `json:"species"`
-	Breed        string             `json:"breed"`
-	AgeYears     int                `json:"age_years"`  // Год
-	AgeMonths    int                `json:"age_months"` // Месяцы
-	Gender       string             `json:"gender"`
-	Status       string             `json:"status"`
-	ArrivalDate  string             `json:"arrival_date"`
-	Description  string             `json:"description"`
-	Location     string             `json:"location"`
-	Weight       float64            `json:"weight"` // Тип изменен на float
-	Color        string             `json:"color"`
-	IsSterilized bool               `json:"is_sterilized"`
-	HasPassport  bool               `json:"has_passport"`
-	Views        int                `json:"views"`
-	Images       []models.PostImage `json:"images"`
-	UserDetails  struct {
+	ID              int                `json:"id"`
+	Name            string             `json:"name"`
+	Species         string             `json:"species"`
+	Breed           string             `json:"breed"`
+	AgeYears        int                `json:"age_years"`  // Год
+	AgeMonths       int                `json:"age_months"` // Месяцы
+	Gender          string             `json:"gender"`
+	Status          string             `json:"status"`
+	PublicationDate string             `json:"arrival_date"`
+	Description     string             `json:"description"`
+	Location        string             `json:"location"`
+	Weight          float64            `json:"weight"` // Тип изменен на float
+	Color           string             `json:"color"`
+	IsSterilized    bool               `json:"is_sterilized"`
+	HasPassport     bool               `json:"has_passport"`
+	Views           int                `json:"views"`
+	Images          []models.PostImage `json:"images"`
+	UserDetails     struct {
 		FirstName    string `json:"first_name"`
 		LastName     string `json:"last_name"`
 		PhoneNumber  string `json:"phone_number"`
@@ -229,7 +229,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Выполняем SQL-запрос для получения информации о животном
 	query := `
 		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
-		       genders.name AS gender, animalstatus.status_name AS status, animals.arrival_date, 
+		       genders.name AS gender, animalstatus.status_name AS status, animals.publication_date, 
 		       animals.description, animals.location, animals.weight, animals.color, 
 		       animals.is_sterilized, animals.has_passport, animals.views
 		FROM animals
@@ -245,7 +245,7 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		&animal.Breed,
 		&animal.Gender,
 		&animal.Status,
-		&animal.ArrivalDate,
+		&animal.PublicationDate,
 		&animal.Description,
 		&animal.Location,
 		&animal.Weight,

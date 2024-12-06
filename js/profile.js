@@ -53,3 +53,90 @@ document.addEventListener("DOMContentLoaded", () => {
     // Инициализация обновления
     updateDisplay();
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const addAnimal = document.getElementById('addAnimalBtn');
+
+    if (!addAnimal) {
+        console.error("Element with id 'addAnimalBtn' not found.");
+        return;
+    }
+
+    addAnimal.addEventListener('click', function() {
+        Swal.fire({
+            html: document.getElementById('addAnimalForm').innerHTML,
+            width: '30%',
+            confirmButtonText: 'Close',
+            showCloseButton: false,
+            focusConfirm: false,
+            didOpen: () => {
+                const form = document.querySelector('.swal2-container #animalForm');
+                if (form) {
+                    form.onsubmit = async (e) => {
+                        e.preventDefault();
+
+                        const formData = new FormData(form);
+
+                        // Массив обязательных полей
+                        const requiredFields = ["name", "breed", "age_years","age_months","description","location","weight","color"];
+                        let validationPassed = true;
+
+                        for (const field of requiredFields) {
+                            const fieldElement = form.querySelector(`[name="${field}"]`);
+
+                            // Если поле пустое, показываем предупреждение
+                            if (!formData.get(field) || fieldElement.value.trim() === '') {
+                                Swal.fire({
+                                    icon: "warning",
+                                    title: "Warning",
+                                    text: `The field "${fieldElement.previousElementSibling.innerText}" is required.`,
+                                });
+                                validationPassed = false;
+                                return; // Прерываем дальнейшую обработку
+                            }
+                        }
+
+                        if (!validationPassed) return;
+
+                        try {
+                            const response = await fetch("/add-animal", {
+                                method: "POST",
+                                body: formData
+                            });
+
+                            const result = await response.json();
+
+                            if (response.ok && result.status === "ok") {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Success",
+                                    text: result.message,
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: result.message || "An unexpected error occurred.",
+                                });
+                            }
+                        } catch (error) {
+                            console.error("Error:", error);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "Failed to communicate with the server.",
+                            });
+                        }
+                    };
+                }
+            },
+            willClose: () => {
+                const form = document.querySelector('.swal2-container #animalForm');
+                if (form) {
+                    form.reset();
+                }
+            },
+        });
+    });
+});
+

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // All models about animals
 
 type AnimalStatus struct {
@@ -40,27 +42,27 @@ func (AnimalAge) TableName() string {
 }
 
 type Animal struct {
-	ID           int          `json:"id" gorm:"primaryKey"`
-	Name         string       `json:"name"`
-	SpeciesID    int          `json:"species_id" gorm:"not null"`
-	Species      AnimalType   `json:"species" gorm:"foreignKey:SpeciesID"`
-	Breed        string       `json:"breed"`
-	Age          AnimalAge    `json:"age" gorm:"foreignKey:AnimalID"`
-	GenderID     int          `json:"gender_id" gorm:"not null"`
-	Gender       Gender       `json:"gender" gorm:"foreignKey:GenderID"`
-	StatusID     int          `json:"status_id" gorm:"not null"`
-	Status       AnimalStatus `json:"status" gorm:"foreignKey:StatusID"`
-	ArrivalDate  string       `json:"arrival_date"`
-	Description  string       `json:"description"`
-	Location     string       `json:"location"`
-	Weight       float64      `json:"weight"`
-	Color        string       `json:"color"`
-	Images       []PostImage  `gorm:"foreignKey:AnimalID"`
-	IsSterilized bool         `json:"is_sterilized" gorm:"default:false"`
-	HasPassport  bool         `json:"has_passport" gorm:"default:false"`
-	Views        int          `json:"views" gorm:"default:0"`
-	UserID       uint         `json:"user_id" gorm:"not null"`
-	User         User         `json:"user" gorm:"foreignKey:UserID"`
+	ID              int          `json:"id" gorm:"primaryKey"`
+	Name            string       `json:"name"`
+	SpeciesID       int          `json:"species_id" gorm:"not null"`
+	Species         AnimalType   `json:"species" gorm:"foreignKey:SpeciesID"`
+	Breed           string       `json:"breed"`
+	Age             AnimalAge    `json:"age" gorm:"foreignKey:AnimalID"`
+	GenderID        int          `json:"gender_id" gorm:"not null"`
+	Gender          Gender       `json:"gender" gorm:"foreignKey:GenderID"`
+	StatusID        int          `json:"status_id" gorm:"not null"`
+	Status          AnimalStatus `json:"status" gorm:"foreignKey:StatusID"`
+	PublicationDate time.Time    `json:"publication_date" gorm:"default:CURRENT_TIMESTAMP"`
+	Description     string       `json:"description"`
+	Location        string       `json:"location"`
+	Weight          float64      `json:"weight"`
+	Color           string       `json:"color"`
+	Images          []PostImage  `gorm:"foreignKey:AnimalID"`
+	IsSterilized    bool         `json:"is_sterilized" gorm:"default:false"`
+	HasPassport     bool         `json:"has_passport" gorm:"default:false"`
+	Views           int          `json:"views" gorm:"default:0"`
+	UserID          uint         `json:"user_id" gorm:"not null"`
+	User            User         `json:"user" gorm:"foreignKey:UserID"`
 }
 
 func (Animal) TableName() string {

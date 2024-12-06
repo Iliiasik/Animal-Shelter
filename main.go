@@ -50,16 +50,10 @@ func main() {
 		handlers.AnimalListPage(sqlDB, w, r)
 	})
 
-	//mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
-	//	switch r.Method {
-	//	case "GET":
-	//		handlers.ShowAddAnimalForm(w, r)
-	//	case "POST":
-	//		handlers.AddAnimal(sqlDB, w, r)
-	//	default:
-	//		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	//	}
-	//})
+	mux.HandleFunc("/add-animal", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AddAnimal(gormDB, w, r)
+	})
+
 	mux.HandleFunc("/animal_information", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handlers.AnimalInformation(sqlDB, w, r)
@@ -71,16 +65,6 @@ func main() {
 		handlers.IncrementViews(sqlDB, w, r)
 	})
 
-	mux.HandleFunc("/medical_records", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			handlers.ShowAddMedicalRecordForm(sqlDB, w, r)
-		case "POST":
-			handlers.AddMedicalRecord(sqlDB, w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
