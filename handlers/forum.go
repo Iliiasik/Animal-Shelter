@@ -428,18 +428,24 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	topicID := r.URL.Query().Get("id")
 
-	// Подготавливаем запрос для получения заголовка темы
-	stmtTitle, err := db.Prepare("SELECT title FROM topics WHERE id = $1")
+	// Подготавливаем запрос для получения заголовка, описания и информации о создателе темы
+	stmtTopic, err := db.Prepare(`
+        SELECT t.title, t.description, u.username, ui.profile_image 
+        FROM topics t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN user_images ui ON u.id = ui.user_id
+        WHERE t.id = $1
+    `)
 	if err != nil {
-		http.Error(w, "Error preparing statement for topic title", http.StatusInternalServerError)
+		http.Error(w, "Error preparing statement for topic", http.StatusInternalServerError)
 		return
 	}
-	defer stmtTitle.Close()
+	defer stmtTopic.Close()
 
-	var title string
-	err = stmtTitle.QueryRow(topicID).Scan(&title)
+	var title, description, creatorUsername, creatorProfileImage string
+	err = stmtTopic.QueryRow(topicID).Scan(&title, &description, &creatorUsername, &creatorProfileImage)
 	if err != nil {
-		http.Error(w, "Error fetching topic title", http.StatusInternalServerError)
+		http.Error(w, "Error fetching topic details", http.StatusInternalServerError)
 		return
 	}
 
@@ -458,24 +464,36 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var posts []struct {
-		ID        int
-		Content   string
-		UserID    int
-		CreatedAt string
+	// Структура для постов с дополнительной информацией
+	type Post struct {
+		ID           int
+		Content      string
+		UserID       int
+		CreatedAt    string
+		Username     string
+		ProfileImage string
 	}
 
+	var posts []Post
+
 	for rows.Next() {
-		var post struct {
-			ID        int
-			Content   string
-			UserID    int
-			CreatedAt string
-		}
+		var post Post
 		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt); err != nil {
 			http.Error(w, "Error scanning posts", http.StatusInternalServerError)
 			return
 		}
+
+		// Получение username и ProfileImage для каждого поста
+		err = db.QueryRow(
+			"SELECT u.username, ui.profile_image FROM users u LEFT JOIN user_images ui ON u.id = ui.user_id WHERE u.id = $1",
+			post.UserID,
+		).Scan(&post.Username, &post.ProfileImage)
+
+		if err != nil {
+			http.Error(w, "Error fetching user details", http.StatusInternalServerError)
+			return
+		}
+
 		posts = append(posts, post)
 	}
 
@@ -486,20 +504,21 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Передаем заголовок и посты в шаблон
+	// Передаем данные в шаблон
 	err = forumTemplates.ExecuteTemplate(w, "topic.html", struct {
-		Title string
-		ID    int
-		Posts []struct {
-			ID        int
-			Content   string
-			UserID    int
-			CreatedAt string
-		}
+		Title               string
+		Description         string
+		CreatorUsername     string
+		CreatorProfileImage string
+		ID                  int
+		Posts               []Post
 	}{
-		Title: title,
-		ID:    topicIDInt, // Передаем ID темы как int
-		Posts: posts,
+		Title:               title,
+		Description:         description,
+		CreatorUsername:     creatorUsername,
+		CreatorProfileImage: creatorProfileImage,
+		ID:                  topicIDInt,
+		Posts:               posts,
 	})
 
 	if err != nil {
