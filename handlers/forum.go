@@ -428,6 +428,13 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	topicID := r.URL.Query().Get("id")
 
+	// Преобразуем topicID в int
+	topicIDInt, err := strconv.Atoi(topicID)
+	if err != nil {
+		http.Error(w, "Invalid topic ID", http.StatusBadRequest)
+		return
+	}
+
 	// Подготавливаем запрос для получения заголовка, описания и информации о создателе темы
 	stmtTopic, err := db.Prepare(`
         SELECT t.title, t.description, u.username, ui.profile_image 
@@ -443,21 +450,26 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	defer stmtTopic.Close()
 
 	var title, description, creatorUsername, creatorProfileImage string
-	err = stmtTopic.QueryRow(topicID).Scan(&title, &description, &creatorUsername, &creatorProfileImage)
+	err = stmtTopic.QueryRow(topicIDInt).Scan(&title, &description, &creatorUsername, &creatorProfileImage)
 	if err != nil {
 		http.Error(w, "Error fetching topic details", http.StatusInternalServerError)
 		return
 	}
 
-	// Подготавливаем запрос для получения постов по ID темы
-	stmtPosts, err := db.Prepare("SELECT id, content, user_id, created_at FROM posts WHERE topic_id = $1 ORDER BY created_at")
+	// Подготавливаем запрос для получения постов по ID темы, включая ответы (ParentID)
+	stmtPosts, err := db.Prepare(`
+        SELECT id, content, user_id, created_at, parent_id 
+        FROM posts 
+        WHERE topic_id = $1 
+        ORDER BY created_at
+    `)
 	if err != nil {
 		http.Error(w, "Error preparing statement for posts", http.StatusInternalServerError)
 		return
 	}
 	defer stmtPosts.Close()
 
-	rows, err := stmtPosts.Query(topicID)
+	rows, err := stmtPosts.Query(topicIDInt)
 	if err != nil {
 		http.Error(w, "Error fetching posts", http.StatusInternalServerError)
 		return
@@ -470,18 +482,26 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Content      string
 		UserID       int
 		CreatedAt    string
+		ParentID     *int
 		Username     string
 		ProfileImage string
+		Replies      []Post
+		TopicID      int // Добавляем поле TopicID
 	}
 
 	var posts []Post
+	var postMap = make(map[int][]Post) // Карта для хранения ответов на посты
 
+	// Получаем все посты и ответы
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt); err != nil {
+		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.ParentID); err != nil {
 			http.Error(w, "Error scanning posts", http.StatusInternalServerError)
 			return
 		}
+
+		// Устанавливаем TopicID для каждого поста
+		post.TopicID = topicIDInt
 
 		// Получение username и ProfileImage для каждого поста
 		err = db.QueryRow(
@@ -494,30 +514,34 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		posts = append(posts, post)
+		// Добавляем пост в основной список
+		if post.ParentID == nil {
+			posts = append(posts, post)
+		} else {
+			// Сохраняем ответы на другие посты
+			postMap[*post.ParentID] = append(postMap[*post.ParentID], post)
+		}
 	}
 
-	// Преобразование topicID в int
-	topicIDInt, err := strconv.Atoi(topicID)
-	if err != nil {
-		http.Error(w, "Invalid topic ID", http.StatusBadRequest)
-		return
+	// Привязываем ответы к родительским постам
+	for i := range posts {
+		posts[i].Replies = postMap[posts[i].ID]
 	}
 
-	// Передаем данные в шаблон
+	// Передаем данные в шаблон с IDt для темы
 	err = forumTemplates.ExecuteTemplate(w, "topic.html", struct {
 		Title               string
 		Description         string
 		CreatorUsername     string
 		CreatorProfileImage string
-		ID                  int
+		IDt                 int
 		Posts               []Post
 	}{
 		Title:               title,
 		Description:         description,
 		CreatorUsername:     creatorUsername,
 		CreatorProfileImage: creatorProfileImage,
-		ID:                  topicIDInt,
+		IDt:                 topicIDInt, // Передаем topic ID как IDt
 		Posts:               posts,
 	})
 
@@ -528,16 +552,40 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 // CreatePost handles adding a new post to a topic ---------------------------------------------------------
 func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Проверка метода запроса
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
+	// Получаем параметры из формы
 	topicID := r.FormValue("topic_id")
 	content := r.FormValue("content")
+	parentID := r.FormValue("comment_id") // Это ID родительского комментария для ответа
 
+	// Отладочный вывод значений параметров
+	fmt.Println("topicID:", topicID)
+	fmt.Println("content:", content)
+	fmt.Println("parentID:", parentID)
+
+	// Преобразуем ParentID в int, если оно присутствует
+	var parentIDInt *int
+	if parentID != "" {
+		parsedParentID, err := strconv.Atoi(parentID)
+		if err != nil {
+			fmt.Println("Invalid ParentID:", err) // Выводим ошибку преобразования
+			http.Error(w, "Invalid ParentID", http.StatusBadRequest)
+			return
+		}
+		parentIDInt = &parsedParentID
+	} else {
+		parentIDInt = nil // Если родительский комментарий отсутствует, передаем nil
+	}
+
+	// Получаем cookie для проверки сессии
 	cookie, err := r.Cookie("session")
 	if err != nil {
+		fmt.Println("Session cookie not found:", err) // Отладочный вывод
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -546,33 +594,45 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Подготавливаем запрос для получения user_id по session_id
 	stmtSession, err := db.Prepare("SELECT user_id FROM sessions WHERE session_id = $1")
 	if err != nil {
+		fmt.Println("Error preparing statement for session:", err) // Отладочный вывод
 		http.Error(w, "Error preparing statement for session", http.StatusInternalServerError)
 		return
 	}
 	defer stmtSession.Close()
 
-	// Выполняем подготовленный запрос для получения user_id
+	// Выполняем запрос для получения user_id
 	err = stmtSession.QueryRow(cookie.Value).Scan(&userID)
 	if err != nil {
+		fmt.Println("Error fetching user ID:", err) // Отладочный вывод
 		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
 		return
 	}
 
 	// Подготавливаем запрос для вставки нового поста
-	stmtInsertPost, err := db.Prepare("INSERT INTO posts (topic_id, user_id, content) VALUES ($1, $2, $3)")
+	stmtInsertPost, err := db.Prepare(`
+        INSERT INTO posts (topic_id, user_id, content, parent_id) 
+        VALUES ($1, $2, $3, $4) RETURNING id
+    `)
 	if err != nil {
+		fmt.Println("Error preparing statement for inserting post:", err) // Отладочный вывод
 		http.Error(w, "Error preparing statement for inserting post", http.StatusInternalServerError)
 		return
 	}
 	defer stmtInsertPost.Close()
 
-	// Выполняем подготовленный запрос для вставки поста
-	_, err = stmtInsertPost.Exec(topicID, userID, content)
+	// Выполняем запрос для вставки поста
+	var postID int
+	err = stmtInsertPost.QueryRow(topicID, userID, content, parentIDInt).Scan(&postID)
 	if err != nil {
+		fmt.Println("Error during post creation:", err) // Отладочный вывод
 		http.Error(w, "Error creating post", http.StatusInternalServerError)
 		return
 	}
 
+	// Выводим ID нового поста для отладки
+	fmt.Println("New post created with ID:", postID)
+
+	// Перенаправляем на страницу темы с новым постом
 	http.Redirect(w, r, "/topic?id="+topicID, http.StatusSeeOther)
 }
 
