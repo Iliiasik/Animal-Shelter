@@ -11,37 +11,107 @@
 <body>
 <nav>
     <div class="wrapper">
-        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <span class="logo-text">Animal Shelter</span>
+            </a>
+        </div>
         <ul class="nav-links">
             <li><a href="/forum">Forum</a></li>
-            <li><a href="#">Feedback</a></li>
+            <li><a href="/feedback">Feedback</a></li>
         </ul>
     </div>
 </nav>
+<main class="main-content">
+    <div class="topic-container">
+        <!-- Заголовок и информация о создателе на одном уровне -->
+        <div class="topic-header">
+            <h1 class="topic-title">{{.Title}}</h1>
+            <div class="creator-info">
+                <img src="{{.CreatorProfileImage}}" alt="Profile Image" class="creator-avatar">
+                <span class="creator-username">{{.CreatorUsername}}</span>
+            </div>
+        </div>
 
-<div class="container">
-    <h1 class="topic-title">Topic: {{.Title}}</h1>
+        <!-- Описание темы -->
+        <p class="topic-description">{{.Description}}</p>
 
-    <!-- Форма для добавления нового комментария -->
-    <div class="comment-form">
-        <form method="POST" action="/create_post">
-            <input type="hidden" name="topic_id" value="{{.ID}}">
-            <label for="content">Add a Comment:</label>
-            <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
-            <button type="submit">Add Comment</button>
-        </form>
+        <!-- Форма для добавления комментария -->
+        <div class="comment-form">
+            <form method="POST" action="/create_post">
+                <input type="hidden" name="topic_id" value="{{.IDt}}">
+                <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
+                <button type="submit" class="add-comment">Add Comment</button>
+            </form>
+        </div>
+
+        <!-- Список комментариев -->
+        <ul class="comments-list">
+            {{range .Posts}}
+            <li class="comment" id="comment-{{.ID}}">
+                <div class="comment-header">
+                    <img src="{{.ProfileImage}}" alt="User Avatar" class="user-avatar">
+                    <span class="username">{{.Username}}</span>
+                    <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
+                </div>
+
+                <div class="comment-content">
+                    <span class="short-content">
+                        {{if gt (len .Content) 1000}}
+                            {{slice .Content 0 1000}}...
+                            <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
+                        {{else}}
+                            {{.Content}}
+                        {{end}}
+                    </span>
+                    <span class="full-content" style="display:none;">
+                        {{.Content}}
+                        <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
+                    </span>
+                </div>
+
+                <!-- Кнопка для ответа на комментарий -->
+                <div class="reply-button-container">
+                    <button class="reply-button" onclick="showReplyForm('{{.ID}}')">Reply</button>
+                </div>
+
+                <!-- Форма для ответа на комментарий -->
+                <div class="reply-form" id="reply-form-{{.ID}}" style="display:none;">
+                    <form method="POST" action="/create_post">
+                        <input type="hidden" name="topic_id" value="{{.TopicID}}">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <textarea name="content" required placeholder="Enter your reply..."></textarea>
+                        <button type="submit" class="add-reply">Add Reply</button>
+                    </form>
+                </div>
+
+                <!-- Рендерим ответы -->
+                {{if .Replies}}
+                <ul class="replies-list">
+                    {{range .Replies}}
+                    <li class="reply">
+                        <div class="comment-header">
+                            <img src="{{.ProfileImage}}" alt="User Avatar" class="user-avatar">
+                            <span class="username">{{.Username}}</span>
+                            <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
+                        </div>
+                        <div class="comment-content">
+                            <span class="short-content">
+                                {{.Content}}
+                            </span>
+                        </div>
+                    </li>
+                    {{end}}
+                </ul>
+                {{end}}
+            </li>
+            {{end}}
+        </ul>
+
     </div>
+</main>
 
-    <!-- Список комментариев -->
-    <ul class="comments-list">
-        {{range .Posts}}
-        <li class="comment">
-            <div class="comment-content">{{.Content}}</div>
-            <div class="comment-date">{{.CreatedAt}}</div>
-        </li>
-        {{end}}
-    </ul>
-</div>
 <footer class="site-footer">
     <div class="footer-links-container">
         <div class="footer-links">
@@ -85,4 +155,98 @@
 </footer>
 
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                navbar.classList.add('nav-hidden');
+            } else {
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+        });
+    });
+    function toggleContent(link) {
+        var shortContent = link.closest('.comment-content').querySelector('.short-content');
+        var fullContent = link.closest('.comment-content').querySelector('.full-content');
+        var moreLink = link.closest('.comment-content').querySelector('.more-link');
+        var lessLink = link.closest('.comment-content').querySelector('.less-link');
+
+        if (link.classList.contains('more-link')) {
+            shortContent.style.display = 'none';
+            fullContent.style.display = 'block';
+            moreLink.style.display = 'none';
+            lessLink.style.display = 'block';
+        } else {
+            shortContent.style.display = 'block';
+            fullContent.style.display = 'none';
+            moreLink.style.display = 'block';
+            lessLink.style.display = 'none';
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        var commentDates = document.querySelectorAll('.comment-date');
+
+        commentDates.forEach(function(dateElement) {
+            var createdAt = dateElement.getAttribute('data-created-at');
+            var createdAtTime = new Date(createdAt);
+
+            var currentYear = new Date().getFullYear();
+            var formattedDate;
+
+            if (createdAtTime.getFullYear() === currentYear) {
+                formattedDate = createdAtTime.toLocaleString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                formattedDate = createdAtTime.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            formattedDate = formattedDate.replace(/\//g, '-');
+            dateElement.textContent = formattedDate;
+        });
+    });
+    function showReplyForm(commentId) {
+        var replyForm = document.getElementById('reply-form-' + commentId);
+        if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+            replyForm.style.display = 'block';  // Показываем форму
+        } else {
+            replyForm.style.display = 'none';   // Скрываем форму
+        }
+    }
+
+    function toggleContent(link) {
+        var shortContent = link.closest('.comment-content').querySelector('.short-content');
+        var fullContent = link.closest('.comment-content').querySelector('.full-content');
+        var moreLink = link.closest('.comment-content').querySelector('.more-link');
+        var lessLink = link.closest('.comment-content').querySelector('.less-link');
+
+        if (link.classList.contains('more-link')) {
+            shortContent.style.display = 'none';
+            fullContent.style.display = 'block';
+            moreLink.style.display = 'none';
+            lessLink.style.display = 'block';
+        } else {
+            shortContent.style.display = 'block';
+            fullContent.style.display = 'none';
+            moreLink.style.display = 'block';
+            lessLink.style.display = 'none';
+        }
+    }
+
+</script>
 </html>
