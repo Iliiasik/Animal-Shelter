@@ -6,6 +6,8 @@
     <title>Profile of {{.User.Username}}</title>
     <link rel="stylesheet" type="text/css" href="/css/profile.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
     <script src="/js/profile.js"></script>
 
 </head>
@@ -71,14 +73,77 @@
         <div class="profile-options">
             <h2>Options</h2>
 
-                <button class="general-button">Add Animal</button>
+                <button class="general-button" id="addAnimalBtn">Add Animal</button>
                 <button class="general-button">Delete Animal</button>
 
         </div>
 
     </div>
 </div>
+<div id="addAnimalForm" style="display:none;">
+    <h1>Add Animal</h1>
+    <form id="animalForm" action="/animals" method="POST" enctype="multipart/form-data">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
 
+        <label for="species">Species:</label>
+        <select id="species" name="species" required>
+            <option value="Dog">Dog</option>
+            <option value="Cat">Cat</option>
+            <option value="Bird">Bird</option>
+            <!-- other animals -->
+        </select><br>
+
+        <label for="breed">Breed:</label>
+        <input type="text" id="breed" name="breed"><br>
+
+        <label for="age_years">Age (Years):</label>
+        <input type="number" id="age_years" name="age_years" min="0"><br>
+
+        <label for="age_months">Age (Months):</label>
+        <input type="number" id="age_months" name="age_months" min="0" max="11"><br>
+
+        <label for="gender">Gender:</label>
+        <select id="gender" name="gender">
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+        </select><br>
+
+        <label for="status_id">Status:</label>
+        <select id="status_id" name="status_id" required>
+            <option value="Available">Available</option>
+            <option value="Adopted">Adopted</option>
+            <option value="On treatment">In Treatment</option>
+            <!-- other status -->
+        </select><br>
+
+        <label for="arrival_date">Arrival Date:</label>
+        <input type="date" id="arrival_date" name="arrival_date" required><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description"></textarea><br>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location"><br>
+
+        <label for="weight">Weight (kg):</label>
+        <input type="number" id="weight" name="weight" step="0.1"><br>
+
+        <label for="color">Color:</label>
+        <input type="text" id="color" name="color"><br>
+
+        <label for="is_sterilized">Sterilized:</label>
+        <input type="checkbox" id="is_sterilized" name="is_sterilized"><br>
+
+        <label for="has_passport">Has Passport:</label>
+        <input type="checkbox" id="has_passport" name="has_passport"><br>
+
+        <label for="images">Images (up to 4):</label>
+        <input type="file" id="images" name="images" accept="image/*" multiple><br>
+
+        <input type="submit" value="Add Animal">
+    </form>
+</div>
 <!-- Кнопка Home (слева) -->
 <a href="/home" class="button-home">Home</a>
 
@@ -86,4 +151,32 @@
 <a href="/edit-profile" class="button-edit">Edit Profile</a>
 
 </body>
+<script>
+    document.getElementById('addAnimalBtn').addEventListener('click', function() {
+        // Открываем модальное окно с формой
+        Swal.fire({
+            html: document.getElementById('addAnimalForm').innerHTML,
+            width: '80%',
+            confirmButtonText: 'Close',
+            showCloseButton: false,
+            focusConfirm: false,
+            didOpen: () => {
+                // Автоматически активируем формы для отправки
+                const form = document.getElementById('animalForm');
+                form.onsubmit = (e) => {
+                    e.preventDefault();
+                    // Здесь можно добавить логику для отправки формы
+                    console.log('Form submitted');
+                    Swal.fire('Success', 'Animal added successfully!', 'success');
+                }
+            },
+            willClose: () => {
+                // При закрытии, очищаем форму
+                document.getElementById('animalForm').reset();
+            },
+
+
+        });
+    });
+    </script>
 </html>
