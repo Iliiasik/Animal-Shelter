@@ -257,3 +257,19 @@ body {
     display: block;
     margin-bottom: 10px;
 }
+/* Стили для ввода */
+input {
+    width: 100%;
+    padding: 12px 20px;
+    border: 2px solid #ccc;
+    outline: 0;
+    border-radius: 5px;
+    background-color: transparent;
+    margin: 4px 0 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.5s;
+}
+.animal-submit{
+
+}
