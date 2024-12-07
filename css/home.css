@@ -743,3 +743,6 @@ nav .wrapper {
 .logo-text:hover {
     color: #7fb069;
 }
+.custom-toast-container{
+    top:60px !important;
+}
