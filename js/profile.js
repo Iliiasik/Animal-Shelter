@@ -62,196 +62,218 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    addAnimal.addEventListener('click', function() {
-        let formHtml = `
-            <div style="text-align: left; position: relative;">
-                <span class="question-icon" title="Field requirements">&#x3F;</span> <!-- Символ вопроса -->
-                <h1>Add Animal</h1>
-                <form id="animalForm" action="/add-animal" method="POST" enctype="multipart/form-data">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name"><br>
-        
-                    <label for="species">Species:</label>
-                    <select id="species" name="species">
-                        <option value="Dog">Dog</option>
-                        <option value="Cat">Cat</option>
-                        <option value="Bird">Bird</option>
-                    </select><br>
-        
-                    <label for="breed">Breed:</label>
-                    <input type="text" id="breed" name="breed"><br>
-        
-                    <label for="age_years">Age (Years):</label>
-                    <input type="number" id="age_years" name="age_years" min="0"><br>
-        
-                    <label for="age_months">Age (Months):</label>
-                    <input type="number" id="age_months" name="age_months" min="0" max="11"><br>
-        
-                    <label for="gender">Gender:</label>
-                    <select id="gender" name="gender">
-                        <option value="Female">Female</option>
-                        <option value="Male">Male</option>
-                    </select><br>
-        
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" style="resize: none;"></textarea><br>
-        
-                    <label for="location">Location:</label>
-                    <input type="text" id="location" name="location"><br>
-        
-                    <label for="weight">Weight (kg):</label>
-                    <input type="number" id="weight" name="weight" step="0.1"><br>
-        
-                    <label for="color">Color:</label>
-                    <input type="text" id="color" name="color"><br>
-        
-                    <label for="is_sterilized">Sterilized:</label>
-                    <input type="checkbox" id="is_sterilized" name="is_sterilized"><br>
-        
-                    <label for="has_passport">Has Passport:</label>
-                    <input type="checkbox" id="has_passport" name="has_passport"><br>
-        
-                    <label for="images">Images (up to 4):</label>
-                    <input type="file" id="images" name="images" accept="image/*" multiple><br>
-        
+    let formState = {};
+
+    const saveFormState = (form) => {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        formState = {};
+        inputs.forEach((input) => {
+            if (input.type === "checkbox") {
+                formState[input.name] = input.checked;
+            } else if (input.type === "file") {
+                formState[input.name] = input.files;
+            } else {
+                formState[input.name] = input.value;
+            }
+        });
+    };
+
+    const restoreFormState = (form) => {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach((input) => {
+            if (input.type === "checkbox") {
+                input.checked = !!formState[input.name];
+            } else if (input.type === "file") {
+                // File inputs are read-only, skipping restoration
+            } else {
+                input.value = formState[input.name] || '';
+            }
+        });
+    };
+
+    const getFormHtml = () => `
+        <div class="animal-form-container" style="text-align: left; position: relative;">
+            <span class="question-icon" title="Field requirements">&#x3F;</span>
+            <h1>Add Animal</h1>
+            <form id="animalForm" action="/add-animal" method="POST" enctype="multipart/form-data">
+                <!-- Поля формы -->
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name"><br>
+                <label for="species">Species:</label>
+                <select id="species" name="species">
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                    <option value="Bird">Bird</option>
+                </select><br>
+                <label for="breed">Breed:</label>
+                <input type="text" id="breed" name="breed"><br>
+                <label for="age_years">Age (Years):</label>
+                <input type="number" id="age_years" name="age_years" min="0"><br>
+                <label for="age_months">Age (Months):</label>
+                <input type="number" id="age_months" name="age_months" min="0" max="11"><br>
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender">
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                </select><br>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" style="resize: none;" readonly></textarea><br>
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location"><br>
+                <label for="weight">Weight (kg):</label>
+                <input type="number" id="weight" name="weight" step="0.1"><br>
+                <label for="color">Color:</label>
+                <input type="text" id="color" name="color"><br>
+                <label class="checkbox-wrapper-31">
+                    <input type="checkbox" id="is_sterilized" name="is_sterilized">
+                    <svg viewBox="0 0 35.6 35.6">
+                        <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                        <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                        <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+                    </svg>
+                    <span>Sterilized</span>
+                </label><br>
+                <label class="checkbox-wrapper-31">
+                    <input type="checkbox" id="has_passport" name="has_passport">
+                    <svg viewBox="0 0 35.6 35.6">
+                        <circle class="background" cx="17.8" cy="17.8" r="17.8"></circle>
+                        <circle class="stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+                        <polyline class="check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+                    </svg>
+                    <span>Has Passport</span>
+                </label><br>
+                <label for="images">Images (up to 4):</label>
+                <input type="file" id="images" name="images" accept="image/*" multiple><br>
+                <div class="submit-container">
                     <input type="submit" class="animal-submit" value="Add Animal">
-                </form>
-            </div>
-        `;
+                </div>
+            </form>
+        </div>`;
 
-        const openForm = (description = '') => {
+    const openForm = (description = '') => {
+        Swal.fire({
+            html: getFormHtml().replace(
+                '<textarea id="description" name="description" style="resize: none;"></textarea>',
+                `<textarea id="description" name="description" style="resize: none;">${description}</textarea>`
+            ),
+            width: '30%',
+            confirmButtonText: 'Close',
+            showCloseButton: false,
+            focusConfirm: false,
+            didOpen: setupFormInteractions,
+            willClose: resetFormState,
+        });
+    };
+
+    const setupFormInteractions = () => {
+        const form = document.querySelector('.swal2-container #animalForm');
+        const descriptionField = document.querySelector('#description');
+
+        restoreFormState(form);
+
+        descriptionField.addEventListener('click', (e) => handleDescriptionClick(e, form));
+
+        if (form) form.onsubmit = (e) => handleFormSubmit(e, form);
+
+        const questionIcon = document.querySelector('.swal2-container .question-icon');
+        if (questionIcon) questionIcon.addEventListener('click', () => showFieldRequirements(descriptionField));
+    };
+
+    const handleDescriptionClick = async (e, form) => {
+        e.preventDefault();
+        saveFormState(form);
+
+        const descriptionField = e.target;
+        const currentText = descriptionField.value;
+        const { value: text } = await Swal.fire({
+            input: 'textarea',
+            inputLabel: 'Description',
+            inputPlaceholder: 'Type your description here...',
+            inputAttributes: { 'aria-label': 'Type your description here' },
+            inputValue: currentText,
+            showCancelButton: true,
+        });
+
+        if (text !== undefined) descriptionField.value = text;
+        saveFormState(form);
+
+        openForm(descriptionField.value);
+    };
+
+    const handleFormSubmit = async (e, form) => {
+        e.preventDefault();
+
+        saveFormState(form);
+
+        const formData = new FormData(form);
+
+        if (!validateFormFields(form, formData)) return;
+
+        try {
+            const response = await fetch("/add-animal", { method: "POST", body: formData });
+            const result = await response.json();
+            handleFormSubmitResponse(response, result);
+        } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({ icon: "error", title: "Error", text: "Failed to communicate with the server." });
+        }
+    };
+
+    const validateFormFields = (form, formData) => {
+        const requiredFields = ["name", "breed", "age_years", "age_months", "description", "location", "weight", "color"];
+        for (const field of requiredFields) {
+            const fieldElement = form.querySelector(`[name="${field}"]`);
+            if (!formData.get(field) || fieldElement.value.trim() === '') {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Warning",
+                    text: `The field "${fieldElement.previousElementSibling.innerText}" is required.`,
+                });
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const handleFormSubmitResponse = (response, result) => {
+        if (response.ok && result.status === "ok") {
+            Swal.fire({ icon: "success", title: "Success", text: result.message });
+        } else {
             Swal.fire({
-                html: formHtml.replace(
-                    '<textarea id="description" name="description" style="resize: none;"></textarea>',
-                    `<textarea id="description" name="description" style="resize: none;">${description}</textarea>`
-                ),
-                width: '30%',
-                confirmButtonText: 'Close',
-                showCloseButton: false,
-                focusConfirm: false,
-                didOpen: () => {
-                    const form = document.querySelector('.swal2-container #animalForm');
-                    const descriptionField = document.querySelector('#description');
-
-                    // Добавляем обработчик для поля description
-                    descriptionField.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        const currentText = descriptionField.value;
-                        const { value: text } = await Swal.fire({
-                            input: 'textarea',
-                            inputLabel: 'Description',
-                            inputPlaceholder: 'Type your description here...',
-                            inputAttributes: {
-                                'aria-label': 'Type your description here'
-                            },
-                            inputValue: currentText,
-                            showCancelButton: true
-                        });
-
-                        if (text !== undefined) {
-                            descriptionField.value = text;
-                        }
-
-                        // Открываем форму с обновленным текстом
-                        openForm(descriptionField.value);
-                    });
-
-                    if (form) {
-                        form.onsubmit = async (e) => {
-                            e.preventDefault();
-
-                            const formData = new FormData(form);
-
-                            // Массив обязательных полей
-                            const requiredFields = ["name", "breed", "age_years","age_months","description","location","weight","color"];
-                            let validationPassed = true;
-
-                            for (const field of requiredFields) {
-                                const fieldElement = form.querySelector(`[name="${field}"]`);
-
-                                // Если поле пустое, показываем предупреждение
-                                if (!formData.get(field) || fieldElement.value.trim() === '') {
-                                    Swal.fire({
-                                        icon: "warning",
-                                        title: "Warning",
-                                        text: `The field "${fieldElement.previousElementSibling.innerText}" is required.`,
-                                    });
-                                    validationPassed = false;
-                                    return; // Прерываем дальнейшую обработку
-                                }
-                            }
-
-                            if (!validationPassed) return;
-
-                            try {
-                                const response = await fetch("/add-animal", {
-                                    method: "POST",
-                                    body: formData
-                                });
-
-                                const result = await response.json();
-
-                                if (response.ok && result.status === "ok") {
-                                    Swal.fire({
-                                        icon: "success",
-                                        title: "Success",
-                                        text: result.message,
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Error",
-                                        text: result.message || "An unexpected error occurred.",
-                                    });
-                                }
-                            } catch (error) {
-                                console.error("Error:", error);
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Error",
-                                    text: "Failed to communicate with the server.",
-                                });
-                            }
-                        };
-                    }
-
-                    // Добавляем обработчик для вопросика
-                    const questionIcon = document.querySelector('.swal2-container .question-icon');
-                    if (questionIcon) {
-                        questionIcon.addEventListener('click', () => {
-                            Swal.fire({
-                                icon: "info",
-                                title: "Field Requirements",
-                                html: `
-                                    <ul style="text-align: left;">
-                                        <li><strong>Name:</strong> Should be at least 3 characters long.</li>
-                                        <li><strong>Breed:</strong> Specify the breed of the animal.</li>
-                                        <li><strong>Age:</strong> Enter the age in years and months.</li>
-                                        <li><strong>Description:</strong> Provide a brief description of the animal.</li>
-                                        <li><strong>Location:</strong> Specify the location where the animal is found.</li>
-                                        <li><strong>Weight:</strong> Enter the weight in kilograms.</li>
-                                        <li><strong>Color:</strong> Specify the color of the animal.</li>
-                                    </ul>
-                                `,
-                                confirmButtonText: 'OK',
-                                willClose: () => {
-                                    openForm(descriptionField.value);
-                                }
-                            });
-                        });
-                    }
-                },
-                willClose: () => {
-                    const form = document.querySelector('.swal2-container #animalForm');
-                    if (form) {
-                        form.reset();
-                    }
-                },
+                icon: "error",
+                title: "Error",
+                text: result.message || "An unexpected error occurred.",
             });
         }
+    };
 
-        openForm();
-    });
+    const showFieldRequirements = (descriptionField) => {
+        Swal.fire({
+            icon: "info",
+            title: "Field Requirements",
+            html: `
+                <ul style="text-align: left;">
+                    <li><strong>Name:</strong> Should be at least 3 characters long.</li>
+                    <li><strong>Breed:</strong> Specify the breed of the animal.</li>
+                    <li><strong>Age:</strong> Enter the age in years and months.</li>
+                    <li><strong>Description:</strong> Provide a brief description of the animal.</li>
+                    <li><strong>Location:</strong> Specify the location where the animal is found.</li>
+                    <li><strong>Weight:</strong> Enter the weight in kilograms.</li>
+                    <li><strong>Color:</strong> Specify the color of the animal.</li>
+                </ul>`,
+            confirmButtonText: 'OK',
+            willClose: () => openForm(descriptionField.value),
+        });
+    };
+
+    const resetFormState = () => {
+        formState = {};  // Сбрасываем состояние формы
+        const form = document.querySelector('.swal2-container #animalForm');
+        if (form) form.reset();  // Сбрасываем форму
+    };
+
+    addAnimal.addEventListener('click', () => openForm());
 });
+
 
 

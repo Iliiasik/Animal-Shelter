@@ -246,30 +246,136 @@ body {
 .question-icon {
     position: absolute; top: 10px; right: 10px; cursor: pointer;
 }
-.animalForm {
-    text-align: left;
-    /* Выравниваем текст по левому краю */
-}
-.animalForm label,
-.animalForm input,
-.animalForm select,
-.animalForm textarea {
-    display: block;
-    margin-bottom: 10px;
-}
-/* Стили для ввода */
-input {
-    width: 100%;
-    padding: 12px 20px;
-    border: 2px solid #ccc;
-    outline: 0;
-    border-radius: 5px;
-    background-color: transparent;
-    margin: 4px 0 18px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.5s;
-}
-.animal-submit{
 
+
+.animal-form-container {
+    background-color: #f9f9f9; /* светлый фон */
+    border: 1px solid #ccc; /* рамка */
+    border-radius: 10px; /* закругленные углы */
+    padding: 20px; /* внутренний отступ */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* тень */
+}
+
+.animal-form-container h1 {
+    font-size: 1.5rem; /* размер заголовка */
+    color: #333; /* цвет текста */
+    margin-bottom: 15px; /* отступ снизу */
+}
+
+.animal-form-container label {
+    font-weight: bold; /* жирный текст */
+    color: #555; /* цвет текста */
+}
+
+.animal-form-container input,
+.animal-form-container select,
+.animal-form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+
+.animal-form-container textarea {
+    height: 80px; /* фиксированная высота */
+}
+
+.animal-form-container .submit-container {
+    text-align: center; /* Центрирует кнопку */
+    margin-top: 15px; /* Отступ сверху */
+}
+
+.animal-form-container .animal-submit {
+    width: 150px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.animal-form-container .animal-submit:hover {
+    background-color: #45a049; /* Темно-зеленый при наведении */
+}
+
+
+
+.animal-form-container .question-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.2rem;
+    color: #888;
+    cursor: pointer;
+}
+
+.animal-form-container .question-icon:hover {
+    color: #555;
+}
+.checkbox-wrapper-31 {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+}
+
+.checkbox-wrapper-31 svg {
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #6cbe45;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
 }
