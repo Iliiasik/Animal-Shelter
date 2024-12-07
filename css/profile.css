@@ -243,5 +243,17 @@ body {
         align-items: center;
     }
 }
-
-
+.question-icon {
+    position: absolute; top: 10px; right: 10px; cursor: pointer;
+}
+.animalForm {
+    text-align: left;
+    /* Выравниваем текст по левому краю */
+}
+.animalForm label,
+.animalForm input,
+.animalForm select,
+.animalForm textarea {
+    display: block;
+    margin-bottom: 10px;
+}

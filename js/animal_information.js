@@ -1,19 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Navbar Scroll Hide/Show
-    const navbar = document.querySelector('nav');
-    let lastScrollTop = 0;
-
-    window.addEventListener('scroll', function () {
-        let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-        if (currentScrollTop > lastScrollTop) {
-            navbar.classList.add('nav-hidden');
-        } else {
-            navbar.classList.remove('nav-hidden');
-        }
-
-        lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
-    });
 
     // Slider Logic
     $('.slider').each(function () {

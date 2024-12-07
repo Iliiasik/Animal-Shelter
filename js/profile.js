@@ -64,7 +64,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addAnimal.addEventListener('click', function() {
         Swal.fire({
-            html: document.getElementById('addAnimalForm').innerHTML,
+            html: `
+                <div style="position: relative;">
+                    <span class="question-icon" title="Field requirements">
+                        &#x3F; <!-- Символ вопроса -->
+                    </span>
+                    ${document.getElementById('addAnimalForm').innerHTML}
+                </div>
+            `,
             width: '30%',
             confirmButtonText: 'Close',
             showCloseButton: false,
@@ -129,6 +136,32 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     };
                 }
+
+                // Добавляем обработчик для вопросика
+                const questionIcon = document.querySelector('.swal2-container .question-icon');
+                questionIcon.addEventListener('click', () => {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Field Requirements",
+                        html: `
+                            <ul style="text-align: left;">
+                                <li><strong>Name:</strong> Should be at least 3 characters long.</li>
+                                <li><strong>Breed:</strong> Specify the breed of the animal.</li>
+                                <li><strong>Age:</strong> Enter the age in years and months.</li>
+                                <li><strong>Description:</strong> Provide a brief description of the animal.</li>
+                                <li><strong>Location:</strong> Specify the location where the animal is found.</li>
+                                <li><strong>Weight:</strong> Enter the weight in kilograms.</li>
+                                <li><strong>Color:</strong> Specify the color of the animal.</li>
+                            </ul>
+                        `,
+                        confirmButtonText: 'OK',
+                        willClose: () => {
+                            // Возвращаемся на окно формы добавления
+                            addAnimal.click();
+                        }
+                    });
+                });
+
             },
             willClose: () => {
                 const form = document.querySelector('.swal2-container #animalForm');
@@ -139,4 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+
+
+
+
+
 
