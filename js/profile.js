@@ -49,12 +49,10 @@ document.addEventListener("DOMContentLoaded", () => {
             dobDisplay.innerText = "Invalid date"; // Некорректный формат
         }
     }
-
     // Инициализация обновления
     updateDisplay();
-});
 
-document.addEventListener("DOMContentLoaded", () => {
+
     const addAnimal = document.getElementById('addAnimalBtn');
 
     if (!addAnimal) {
@@ -143,12 +141,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span>Has Passport</span>
                 </label><br>
                 <label for="images">Images (up to 4):</label>
-                <input type="file" id="images" name="images" accept="image/*" multiple><br>
+                <div class="file-upload-container">
+                    <input type="file" id="images" name="images" accept="image/*" multiple style="display:none;">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('images').click();">Upload Images</button>
+                    <span id="file-chosen">No files chosen</span>
+                </div>
+
                 <div class="submit-container">
                     <input type="submit" class="animal-submit" value="Add Animal">
                 </div>
             </form>
         </div>`;
+
 
     const openForm = (description = '') => {
         Swal.fire({
@@ -174,6 +178,33 @@ document.addEventListener("DOMContentLoaded", () => {
         descriptionField.addEventListener('click', (e) => handleDescriptionClick(e, form));
 
         if (form) form.onsubmit = (e) => handleFormSubmit(e, form);
+
+        // Устанавливаем слушатель для поля загрузки файлов
+        const fileInput = document.getElementById('images');
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                const fileChosen = document.getElementById('file-chosen');
+
+                if (!fileChosen) {
+                    console.error("Element with id 'file-chosen' not found.");
+                    return;
+                }
+
+                if (fileInput.files.length === 0) {
+                    fileChosen.textContent = 'No files chosen';
+                    fileChosen.removeAttribute('title'); // Убираем подсказку
+                } else if (fileInput.files.length === 1) {
+                    const fileName = fileInput.files[0].name;
+                    fileChosen.textContent = fileName.length > 20 ? fileName.substring(0, 13) + '...' : fileName;
+                    fileChosen.setAttribute('title', fileName); // Показываем полное имя как подсказку
+                } else {
+                    const fileCount = fileInput.files.length;
+                    fileChosen.textContent = `${fileCount} files chosen`;
+                    const fileNames = Array.from(fileInput.files).map(file => file.name).join(', ');
+                    fileChosen.setAttribute('title', fileNames); // Список всех файлов в подсказке
+                }
+            });
+        }
 
         const questionIcon = document.querySelector('.swal2-container .question-icon');
         if (questionIcon) questionIcon.addEventListener('click', () => showFieldRequirements(descriptionField));
@@ -274,6 +305,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addAnimal.addEventListener('click', () => openForm());
 });
-
 
 
