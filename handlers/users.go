@@ -331,7 +331,7 @@ func Login(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		Expires: expiresAt,
 	})
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/?login=success", http.StatusSeeOther)
 }
 
 // Logout handles user logout using GORM

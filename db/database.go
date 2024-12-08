@@ -55,6 +55,8 @@ func ConnectDB() *gorm.DB {
 	// Инициализация ролей
 	initializeRoles(db)
 	initializeGenders(db)
+	initializeAnimalStatus(db)
+	initializeAnimalTypes(db)
 	return db
 }
 
@@ -98,6 +100,51 @@ func initializeGenders(db *gorm.DB) {
 				}
 			} else {
 				log.Printf("Error fetching gender %s: %v\n", gender.Name, err)
+			}
+		}
+	}
+}
+func initializeAnimalStatus(db *gorm.DB) {
+	statuses := []models.AnimalStatus{
+		{StatusName: "Available"},
+		{StatusName: "Booked"},
+		{StatusName: "In treatment"},
+		{StatusName: "Under review"},
+	}
+
+	for _, status := range statuses {
+		var existingStatus models.AnimalStatus
+		if err := db.Where("status_name = ?", status.StatusName).First(&existingStatus).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := db.Create(&status).Error; err != nil {
+					log.Printf("Error creating animal status %s: %v\n", status.StatusName, err)
+				} else {
+					log.Printf("Animal status %s created successfully.\n", status.StatusName)
+				}
+			} else {
+				log.Printf("Error fetching animal status %s: %v\n", status.StatusName, err)
+			}
+		}
+	}
+}
+func initializeAnimalTypes(db *gorm.DB) {
+	types := []models.AnimalType{
+		{TypeName: "Dog"},
+		{TypeName: "Cat"},
+		{TypeName: "Bird"},
+	}
+
+	for _, types2 := range types {
+		var existingTypes models.AnimalType
+		if err := db.Where("type_name = ?", types2.TypeName).First(&existingTypes).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := db.Create(&types).Error; err != nil {
+					log.Printf("Error creating animal type %s: %v\n", types2.TypeName, err)
+				} else {
+					log.Printf("Animal type %s created successfully.\n", types2.TypeName)
+				}
+			} else {
+				log.Printf("Error fetching animal type %s: %v\n", types2.TypeName, err)
 			}
 		}
 	}
