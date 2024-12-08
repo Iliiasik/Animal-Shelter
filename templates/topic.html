@@ -24,6 +24,7 @@
     </div>
 </nav>
 <main class="main-content">
+    <div class="content-wrapper">
     <div class="topic-container">
         <!-- Заголовок и информация о создателе на одном уровне -->
         <div class="topic-header">
@@ -42,9 +43,10 @@
             <form method="POST" action="/create_post">
                 <input type="hidden" name="topic_id" value="{{.IDt}}">
                 <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
-                <button type="submit" class="add-comment">Add Comment</button>
+                <button type="submit" class="add-comment" id="add-comment-btn">Add Comment</button>
             </form>
         </div>
+
 
         <!-- Список комментариев -->
         <ul class="comments-list">
@@ -57,26 +59,36 @@
                 </div>
 
                 <div class="comment-content">
-                    <span class="short-content">
-                        {{if gt (len .Content) 1000}}
-                            {{slice .Content 0 1000}}...
-                            <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
-                        {{else}}
-                            {{.Content}}
-                        {{end}}
-                    </span>
+            <span class="short-content">
+                {{if gt (len .Content) 1000}}
+                    {{slice .Content 0 1000}}...
+                    <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
+                {{else}}
+                    {{.Content}}
+                {{end}}
+            </span>
                     <span class="full-content" style="display:none;">
-                        {{.Content}}
-                        <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
-                    </span>
+                {{.Content}}
+                <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
+            </span>
                 </div>
 
-                <!-- Кнопка для ответа на комментарий -->
-                <div class="reply-button-container">
-                    <button class="reply-button" onclick="showReplyForm('{{.ID}}')">Reply</button>
+                <!-- Reply and Show replies buttons container -->
+                <div class="buttons-container">
+                    <!-- Reply button -->
+                    <div class="reply-button-container">
+                        <button class="text-button" onclick="showReplyForm('{{.ID}}')">Reply</button>
+                    </div>
+
+                    <!-- Show/Hide replies button -->
+                    {{if .Replies}}
+                    <div class="show-replies-button-container">
+                        <button class="text-button" onclick="toggleReplies('{{.ID}}')">Show {{len .Replies}} {{if eq (len .Replies) 1}}Reply{{else}}Replies{{end}}</button>
+                    </div>
+                    {{end}}
                 </div>
 
-                <!-- Форма для ответа на комментарий -->
+                <!-- Reply form -->
                 <div class="reply-form" id="reply-form-{{.ID}}" style="display:none;">
                     <form method="POST" action="/create_post">
                         <input type="hidden" name="topic_id" value="{{.TopicID}}">
@@ -86,9 +98,9 @@
                     </form>
                 </div>
 
-                <!-- Рендерим ответы -->
+                <!-- Replies list -->
                 {{if .Replies}}
-                <ul class="replies-list">
+                <ul class="replies-list" id="replies-{{.ID}}" style="display:none;">
                     {{range .Replies}}
                     <li class="reply">
                         <div class="comment-header">
@@ -97,9 +109,18 @@
                             <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
                         </div>
                         <div class="comment-content">
-                            <span class="short-content">
-                                {{.Content}}
-                            </span>
+                    <span class="short-content">
+                        {{if gt (len .Content) 1000}}
+                            {{slice .Content 0 1000}}...
+                            <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
+                        {{else}}
+                            {{.Content}}
+                        {{end}}
+                    </span>
+                            <span class="full-content" style="display:none;">
+                        {{.Content}}
+                        <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
+                    </span>
                         </div>
                     </li>
                     {{end}}
@@ -109,6 +130,20 @@
             {{end}}
         </ul>
 
+    </div>
+    <div class="side-panel">
+        <label class="like-container">
+            <input type="checkbox" id="likeCheckbox" onchange="toggleLike()"
+                   {{if .IsLiked}} checked {{end}} />
+            <svg class="like-icon" id="Glyph" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <path d="M29.845,17.099l-2.489,8.725C26.989,27.105,25.804,28,24.473,28H11c-0.553,0-1-0.448-1-1V13c0-0.215,0.069-0.425,0.198-0.597l5.392-7.24C16.188,4.414,17.05,4,17.974,4C19.643,4,21,5.357,21,7.026V12h5.002c1.265,0,2.427,0.579,3.188,1.589C29.954,14.601,30.192,15.88,29.845,17.099z" id="XMLID_254_"></path>
+                <path d="M7,12H3c-0.553,0-1,0.448-1,1v14c0,0.552,0.447,1,1,1h4c0.553,0,1-0.448,1-1V13C8,12.448,7.553,12,7,12z M5,25.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.828,0.672-1.5,1.5-1.5c0.828,0,1.5,0.672,1.5,1.5C6.5,24.828,5.828,25.5,5,25.5z" id="XMLID_256_"></path>
+    </svg>
+            <span>{{.LikeCount}} Likes</span>
+        </label>
+
+
+    </div>
     </div>
 </main>
 
@@ -228,25 +263,39 @@
             replyForm.style.display = 'none';   // Скрываем форму
         }
     }
-
-    function toggleContent(link) {
-        var shortContent = link.closest('.comment-content').querySelector('.short-content');
-        var fullContent = link.closest('.comment-content').querySelector('.full-content');
-        var moreLink = link.closest('.comment-content').querySelector('.more-link');
-        var lessLink = link.closest('.comment-content').querySelector('.less-link');
-
-        if (link.classList.contains('more-link')) {
-            shortContent.style.display = 'none';
-            fullContent.style.display = 'block';
-            moreLink.style.display = 'none';
-            lessLink.style.display = 'block';
+    function toggleReplies(commentID) {
+        const repliesContainer = document.getElementById('replies-' + commentID);
+        const button = repliesContainer.previousElementSibling.querySelector('.show-replies-button');
+        if (repliesContainer.style.display === 'none') {
+            repliesContainer.style.display = 'block';
+            button.textContent = 'Hide Replies';
         } else {
-            shortContent.style.display = 'block';
-            fullContent.style.display = 'none';
-            moreLink.style.display = 'block';
-            lessLink.style.display = 'none';
+            repliesContainer.style.display = 'none';
+            button.textContent = 'Show Replies';
         }
     }
 
+    const textarea = document.getElementById("content");
+    const addCommentButton = document.getElementById("add-comment-btn");
+
+    // Следим за событием ввода в textarea
+    textarea.addEventListener("input", function() {
+        if (textarea.value.trim().length > 0) {
+            // Если в поле что-то введено, показываем кнопку
+            addCommentButton.classList.add("show");
+        } else {
+            // Если поле пустое, скрываем кнопку
+            addCommentButton.classList.remove("show");
+        }
+    });
+    function toggleLike() {
+        const topicID = '{{.IDt}}'; // Передаем TopicID
+        const checkbox = document.getElementById("likeCheckbox");
+
+        // Отправляем запрос на сервер для добавления или удаления лайка
+        fetch(`/toggle_like?topic_id=${topicID}`, {
+            method: 'POST'
+        })
+    }
 </script>
 </html>

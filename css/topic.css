@@ -12,9 +12,21 @@ body {
     flex-grow: 1;
 
 }
-
+.side-panel {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+}
+.content-wrapper {
+    display: flex;
+    gap: 20px; /* Расстояние между основным контейнером и окошком */
+}
 .topic-container {
-    width: 80%;
+    flex: 3;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 10px;
@@ -68,10 +80,7 @@ body {
 .comment-form textarea {
     width: 100%;
     height: 100px;
-    padding: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
 }
 
 
@@ -83,12 +92,8 @@ body {
 }
 
 .comment {
-    border: 1px solid #ddd;
-    background-color: #fff;
     padding: 15px;
     margin-bottom: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .comment-header {
@@ -160,15 +165,110 @@ textarea:focus {
     border-radius: 5px;
     background-color: #EADDCA;
     cursor: pointer;
-    transition: all 0.5s;
+    transition: all 0.5s, opacity 0.5s ease-in-out;
     color: #6F4E37;
     text-decoration: none; /* Убирает подчеркивание */
     text-align: center;
     display: block;
     margin: 0 auto;
+    opacity: 0; /* Скрываем кнопку по умолчанию */
+}
+
+.add-comment.show {
+    opacity: 1; /* Показываем кнопку */
 }
 
 .add-comment:hover {
     background-color: #6F4E37;
     color: #EADDCA;
+}
+
+/* Styling for the replies */
+.replies-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    margin-left: 20px; /* Indent replies to the right */
+}
+
+.reply {
+
+    padding: 10px;
+    margin-bottom: 2%;
+    border-radius: 5px;
+}
+
+.reply .comment-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* heart button*/
+.like-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.like-container {
+    display: flex;
+    align-items: center;
+    gap: 7%;
+    cursor: pointer;
+    user-select: none;
+}
+.like-container span {
+    font-weight: 600;
+    font-size: 24px;
+}
+.like-icon {
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    transition: all 0.3s;
+    fill: #666;
+}
+
+.like-icon:hover {
+    transform: scale(1.1) rotate(-10deg);
+}
+
+
+.like-container input:checked ~ svg {
+    fill: #58833e;
+}
+.buttons-container {
+    display: flex;
+    gap: 5%;
+    margin-top: 2%;
+    margin-bottom: 1%;
+}
+/* Основной стиль для кнопок в виде текста */
+.text-button {
+    background: none;  /* Убираем фон */
+    border: none;      /* Убираем границу */
+    color: #6A4E3B;    /* Цвет текста, можно настроить */
+    font-size: 16px;    /* Размер шрифта */
+    font-weight: bold;  /* Полужирный шрифт */
+    text-decoration: none; /* Подчеркивание текста */
+    cursor: pointer;   /* Курсор при наведении */
+    padding: 0;         /* Убираем отступы */
+    display: inline;    /* Сделаем кнопки строчными элементами */
+    transition: color 0.3s ease, transform 0.2s ease; /* Плавный переход для цвета и масштабирования */
+}
+
+/* Стиль для кнопки при наведении */
+.text-button:hover {
+    color: #45220A;  /* Цвет текста при наведении */
+    transform: scale(1.05);  /* Легкое увеличение при наведении */
+}
+
+/* Стиль для кнопки в активном состоянии */
+.text-button:active {
+    color: #3d1e09;  /* Цвет текста при клике */
 }

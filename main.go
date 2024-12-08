@@ -170,6 +170,9 @@ func main() {
 	mux.HandleFunc("/create_post", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreatePost(sqlDB, w, r)
 	})
+	mux.HandleFunc("/toggle_like", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ToggleLike(sqlDB, w, r)
+	})
 	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowTopic(sqlDB, w, r)
 	})
