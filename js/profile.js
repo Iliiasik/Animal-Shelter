@@ -164,6 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
             confirmButtonText: 'Close',
             showCloseButton: false,
             focusConfirm: false,
+            backdrop:'<div class="question-icon-container">\n' +
+                '    <span class="question-icon" title="Field requirements">&#x3F;</span>\n' +
+                '</div>',
             didOpen: setupFormInteractions,
             willClose: resetFormState,
         });
@@ -233,12 +236,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const handleFormSubmit = async (e, form) => {
         e.preventDefault();
-
+        if (!validateFields(form)) {
+            console.warn("Validation failed. Check the question mark for more details.");
+            return;
+        }
         saveFormState(form);
 
         const formData = new FormData(form);
-
-        if (!validateFormFields(form, formData)) return;
 
         try {
             const response = await fetch("/add-animal", { method: "POST", body: formData });
@@ -250,21 +254,80 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const validateFormFields = (form, formData) => {
-        const requiredFields = ["name", "breed", "age_years", "age_months", "description", "location", "weight", "color"];
-        for (const field of requiredFields) {
-            const fieldElement = form.querySelector(`[name="${field}"]`);
-            if (!formData.get(field) || fieldElement.value.trim() === '') {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Warning",
-                    text: `The field "${fieldElement.previousElementSibling.innerText}" is required.`,
-                });
-                return false;
+    const validateFields = (form) => {
+        const validationRules = {
+            name: {
+                maxLength: 15,
+                minLength: 2,
+                message: "Name should not exceed 15 characters."
+            },
+            breed: {
+                maxLength: 50,
+                message: "Breed should not exceed 50 characters."
+            },
+            color: {
+                maxLength: 50,
+                message: "Color should not exceed 50 characters."
+            },
+            location: {
+                maxLength: 50,
+                message: "Location should not exceed 50 characters."
+            },
+            description: {
+                minLength: 50,
+                maxLength: 500,
+                placeholder: "What does your pet like to chew?",
+                message: "Description should be between 50 and 500 characters."
+            },
+            weight: {
+                pattern: /^[0-9]+(\.[0-9]+)?$/,
+                message: "Weight should be a decimal number using a dot (e.g., 4.5)."
+            },
+        };
+
+        const fields = form.querySelectorAll("input, textarea");
+        let isValid = true;
+
+        fields.forEach((field) => {
+            const rule = validationRules[field.name];
+            if (!rule) return;
+
+            if (rule.maxLength && field.value.length > rule.maxLength) {
+                isValid = false;
+                triggerQuestionMark(field);
             }
-        }
-        return true;
+
+            if (rule.minLength && field.value.length < rule.minLength) {
+                isValid = false;
+                triggerQuestionMark(field);
+            }
+
+            if (rule.pattern && !rule.pattern.test(field.value)) {
+                isValid = false;
+                triggerQuestionMark(field);
+            }
+
+            if (field.name === "description" && rule.placeholder) {
+                field.placeholder = rule.placeholder;
+            }
+        });
+
+        return isValid;
     };
+    const triggerQuestionMark = (field) => {
+        const questionIcon = document.querySelector('.swal2-container .question-icon');
+        if (questionIcon) {
+            // Добавляем класс анимации
+            questionIcon.classList.add('shake');
+
+            // Удаляем класс анимации после завершения (0.3s в данном случае)
+            setTimeout(() => {
+                questionIcon.classList.remove('shake');
+            }, 300);
+        }
+    };
+
+
 
     const handleFormSubmitResponse = (response, result) => {
         if (response.ok && result.status === "ok") {
@@ -284,10 +347,10 @@ document.addEventListener("DOMContentLoaded", () => {
             title: "Field Requirements",
             html: `
                 <ul style="text-align: left;">
-                    <li><strong>Name:</strong> Should be at least 3 characters long.</li>
+                    <li><strong>Name:</strong> Should be at least 2 characters long.</li>
                     <li><strong>Breed:</strong> Specify the breed of the animal.</li>
                     <li><strong>Age:</strong> Enter the age in years and months.</li>
-                    <li><strong>Description:</strong> Provide a brief description of the animal.</li>
+                    <li><strong>Description:</strong> Provide a brief description of the animal.<br>Description should be between 50 and 500 characters.</li>
                     <li><strong>Location:</strong> Specify the location where the animal is found.</li>
                     <li><strong>Weight:</strong> Enter the weight in kilograms.</li>
                     <li><strong>Color:</strong> Specify the color of the animal.</li>
