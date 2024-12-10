@@ -111,6 +111,22 @@ document.addEventListener("DOMContentLoaded", function () {
             formattedDate = publicationDate.toISOString().split("T")[0];
         } publicationDateElem.textContent = formattedDate;
     }
+    const navbar = document.querySelector('nav');
+    let lastScrollTop = 0;
+
+    window.addEventListener('scroll', function() {
+        let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (currentScrollTop > lastScrollTop) {
+            // Scrolling down
+            navbar.classList.add('nav-hidden');
+        } else {
+            // Scrolling up
+            navbar.classList.remove('nav-hidden');
+        }
+
+        lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
+    });
 });
 
 // Increment Views after Delay
