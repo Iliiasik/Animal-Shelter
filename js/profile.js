@@ -262,26 +262,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 minLength: 2,
                 message: "Name should not exceed 15 characters."
             },
+            species: {
+                checkSelected: true,
+                message: "Species must be selected."
+            },
             breed: {
                 maxLength: 50,
                 minLength: 3,
                 message: "Breed should not exceed 50 characters."
             },
-            color: {
-                maxLength: 50,
-                minLength: 3,
-                message: "Color should not exceed 50 characters."
+            age_years: {
+                max: 50,
+                min: 0,
+                checkNotEmpty: true,
+                message: "Age (Years) should be between 0 and 50."
+            },
+            age_months: {
+                max: 12,
+                min: 0,
+                checkNotEmpty: true,
+                message: "Age (Months) should be between 0 and 12."
+            },
+            gender: {
+                checkSelected: true,
+                message: "Gender must be selected."
+            },
+            description: {
+                minLength: 50,
+                maxLength: 500,
+                message: "Description should be between 50 and 500 characters.",
             },
             location: {
                 maxLength: 50,
                 minLength: 3,
                 message: "Location should not exceed 50 characters."
             },
-            description: {
-                minLength: 50,
-                maxLength: 500,
-                placeholder: "What does your pet like to chew?",
-                message: "Description should be between 50 and 500 characters."
+            color: {
+                maxLength: 50,
+                minLength: 3,
+                message: "Color should not exceed 50 characters."
+            },
+            weight:{
+                checkNotEmpty: true, // Ensure weight is not empty
             },
             // Проверка на наличие хотя бы одного изображения
             images: {
@@ -290,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        const fields = form.querySelectorAll("input, textarea");
+        const fields = form.querySelectorAll("input, select, textarea");
         let isValid = true;
 
         fields.forEach((field) => {
@@ -298,6 +320,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!rule) return;
 
             let fieldIsValid = true;
+
+            if (rule.checkSelected && field.tagName === "SELECT") {
+                if (field.value === "" || field.value === null) {
+                    fieldIsValid = false;
+                }
+            }
 
             if (rule.maxLength && field.value.length > rule.maxLength) {
                 fieldIsValid = false;
@@ -307,11 +335,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 fieldIsValid = false;
             }
 
-            if (rule.pattern && !rule.pattern.test(field.value)) {
+            if (rule.checkNotEmpty && field.value.trim() === "") {
+                fieldIsValid = false;
+                fieldIsValidMessage = rule.messageEmpty;
+            }
+
+            if (rule.max && parseInt(field.value) > rule.max) {
                 fieldIsValid = false;
             }
 
-            // Дополнительная проверка для поля "images"
+            if (rule.min && parseInt(field.value) < rule.min) {
+                fieldIsValid = false;
+            }
+
             if (rule.checkAtLeastOneImage) {
                 const imageInputs = form.querySelectorAll('input[type="file"]');
                 const hasImage = Array.from(imageInputs).some(input => input.files.length > 0);
@@ -321,7 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const warningElement = document.querySelector(`#${field.name}-warning`);
                     if (warningElement) {
                         warningElement.classList.add('invalid-warning');
-                        warningElement.innerText = rule.message; // Отображаем кастомное сообщение
+                        warningElement.innerText = rule.message;
                     }
                 }
             }
@@ -334,6 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 highlightInvalidField(field); // Подсветка рамки
                 if (warningElement) {
                     warningElement.classList.add('invalid-warning');
+                    warningElement.innerText = rule.message || fieldIsValidMessage;
                 }
             } else {
                 removeHighlight(field); // Убираем подсветку, если поле валидно
@@ -345,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return isValid;
     };
+
     // ФУНКЦИЯ НИЖЕ ДЛЯ ВОЗМОЖНОЙ СМЕНЫ РЕАЛИЗАЦИИ ПОДСВЕТКИ ПОЛЕЙ, ОНА ДЕЛАЕТ ПОДСВЕТКУ ПОЛЕЙ ВРЕМЕННЫМ СВОЙСТВОМ ИНПУТ ПОЛЯ, А НЕ РАБОТАЕТ БЕСКОНЕЧНО
 
     const highlightInvalidField = (field) => {
