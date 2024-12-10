@@ -12,6 +12,9 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 	ParentID  *int      `json:"parent_id"` // ID родительского поста (если это ответ)
 
+	// Рейтинг поста (+ или -)
+	Rating int `json:"rating"` // Общий рейтинг (+ или -)
+
 	// Связь с таблицей Topic
 	Topic Topic `gorm:"foreignKey:TopicID;references:ID"`
 

@@ -12,6 +12,20 @@ body {
     flex-grow: 1;
 
 }
+#commentary-header {
+    display: flex;  /* Используем flexbox для выравнивания */
+    align-items: center;  /* Выравниваем элементы по центру по вертикали */
+}
+
+.down-icon {
+    margin-left: 8px;  /* Отступ между текстом и иконкой */
+    width: 32px;  /* Задаем размер иконки */
+    height: 32px;  /* Задаем размер иконки */
+}
+
+.topic-container h2 {
+    margin-bottom: 2%;
+}
 .side-panel {
     flex: 1;
 }
@@ -39,7 +53,7 @@ body {
 .similar-topics p {
     text-align: center;
     font-weight: 600;
-    color: #1e2172;
+    color: #2f34ab;
 }
 .content-wrapper {
     display: flex;
@@ -51,7 +65,17 @@ body {
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Прятать элементы, которые выходят за пределы */
 }
+
+.comment-content {
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word; /* Разрешить перенос слов */
+    overflow-wrap: break-word; /* Дополнительная поддержка */
+    max-width: 100%; /* Гарантировать, что текст не выйдет за пределы контейнера */
+}
+
 
 .topic-header {
     display: flex;
@@ -139,10 +163,7 @@ body {
     font-size: 12px;
 }
 
-.comment-content {
-    font-size: 16px;
-    line-height: 1.5;
-}
+
 .more-link, .less-link {
     font-weight: bold; /* Сделать жирным */
     text-align: center;
@@ -261,11 +282,65 @@ textarea:focus {
 .like-container input:checked ~ svg {
     fill: #58833e;
 }
+.dislike-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.dislike-container {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dislike-icon {
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    transition: all 0.3s;
+    fill: #666;
+}
+
+.dislike-icon:hover {
+    transform: scale(1.1) rotate(-10deg);
+}
+
+.dislike-container input:checked ~ svg {
+    fill: rgb(185, 51, 51);
+}
+.like-container .like-icon-post, .dislike-container svg {
+    width: 22px;
+    height: 22px;
+}
+
+.like-container input, .dislike-container input {
+    transform: scale(0.5);
+}
+.like-icon-post {
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    transition: all 0.3s;
+    fill: #666;
+}
+
+.like-icon-post:hover {
+    transform: scale(1.1) rotate(-10deg);
+}
 .buttons-container {
     display: flex;
     gap: 5%;
     margin-top: 2%;
     margin-bottom: 1%;
+    align-items: center;
 }
 /* Основной стиль для кнопок в виде текста */
 .text-button {
@@ -361,4 +436,26 @@ textarea:focus {
     text-decoration: none;
     transform: scale(1.03);
     color: #53a232;
+}
+.scroll-up {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: rgba(29, 29, 31, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: bottom .4s, transform .4s;
+    cursor: pointer;
+}
+
+.scroll-up:hover {
+    transform: translateY(-.25rem);
 }
