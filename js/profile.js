@@ -106,9 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <label for="breed">Breed:</label>
                 <input type="text" id="breed" name="breed"><br>
                 <label for="age_years">Age (Years):</label>
-                <input type="number" id="age_years" name="age_years" min="0"><br>
+                <input type="number" id="age_years" name="age_years"><br>
                 <label for="age_months">Age (Months):</label>
-                <input type="number" id="age_months" name="age_months" min="0" max="11"><br>
+                <input type="number" id="age_months" name="age_months"><br>
                 <label for="gender">Gender:</label>
                 <select id="gender" name="gender">
                     <option value="Female">Female</option>
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
 
                 <div class="submit-container">
-                    <input type="submit" class="animal-submit" value="Add Animal">
+                    <button type="submit" class="animal-submit" >Submit</button>
                 </div>
             </form>
         </div>`;
@@ -163,9 +163,10 @@ document.addEventListener("DOMContentLoaded", () => {
             confirmButtonText: 'Close',
             showCloseButton: false,
             focusConfirm: false,
-            backdrop:'<div class="question-icon-container">\n' +
-                '    <span class="question-icon" title="Field requirements">&#x3F;</span>\n' +
-                '</div>',
+            //ТУТ НУЖНА ДОРАБОТКА. ЭТА ЧАСТЬ КОДА БЫЛА НАПИСАНА В ПОПЫТКЕ ПЕРЕМЕСТИТЬ ВОПРОСИК ВНЕ ФОРМЫ
+            // backdrop:'<div class="question-icon-container">\n' +
+            //         '    <span class="question-icon" title="Field requirements">&#x3F;</span>\n' +
+            //         '</div>',
             didOpen: setupFormInteractions,
             willClose: resetFormState,
         });
@@ -235,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const handleFormSubmit = async (e, form) => {
         e.preventDefault();
+
         if (!validateFields(form)) {
             console.warn("Validation failed. Check the question mark for more details.");
             return;
@@ -262,14 +264,17 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             breed: {
                 maxLength: 50,
+                minLength: 3,
                 message: "Breed should not exceed 50 characters."
             },
             color: {
                 maxLength: 50,
+                minLength: 3,
                 message: "Color should not exceed 50 characters."
             },
             location: {
                 maxLength: 50,
+                minLength: 3,
                 message: "Location should not exceed 50 characters."
             },
             description: {
@@ -278,10 +283,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 placeholder: "What does your pet like to chew?",
                 message: "Description should be between 50 and 500 characters."
             },
-            weight: {
-                pattern: /^[0-9]+(\.[0-9]+)?$/,
-                message: "Weight should be a decimal number using a dot (e.g., 4.5)."
-            },
+            // Проверка на наличие хотя бы одного изображения
+            images: {
+                checkAtLeastOneImage: true,
+                message: "At least one image is required."
+            }
         };
 
         const fields = form.querySelectorAll("input, textarea");
@@ -291,28 +297,72 @@ document.addEventListener("DOMContentLoaded", () => {
             const rule = validationRules[field.name];
             if (!rule) return;
 
+            let fieldIsValid = true;
+
             if (rule.maxLength && field.value.length > rule.maxLength) {
-                isValid = false;
-                triggerQuestionMark(field);
+                fieldIsValid = false;
             }
 
             if (rule.minLength && field.value.length < rule.minLength) {
-                isValid = false;
-                triggerQuestionMark(field);
+                fieldIsValid = false;
             }
 
             if (rule.pattern && !rule.pattern.test(field.value)) {
-                isValid = false;
-                triggerQuestionMark(field);
+                fieldIsValid = false;
             }
 
-            if (field.name === "description" && rule.placeholder) {
-                field.placeholder = rule.placeholder;
+            // Дополнительная проверка для поля "images"
+            if (rule.checkAtLeastOneImage) {
+                const imageInputs = form.querySelectorAll('input[type="file"]');
+                const hasImage = Array.from(imageInputs).some(input => input.files.length > 0);
+                if (!hasImage) {
+                    fieldIsValid = false;
+                    isValid = false;
+                    const warningElement = document.querySelector(`#${field.name}-warning`);
+                    if (warningElement) {
+                        warningElement.classList.add('invalid-warning');
+                        warningElement.innerText = rule.message; // Отображаем кастомное сообщение
+                    }
+                }
+            }
+
+            const warningElement = document.querySelector(`#${field.name}-warning`);
+
+            if (!fieldIsValid) {
+                isValid = false;
+                triggerQuestionMark(field); // Вызов функции для иконки
+                highlightInvalidField(field); // Подсветка рамки
+                if (warningElement) {
+                    warningElement.classList.add('invalid-warning');
+                }
+            } else {
+                removeHighlight(field); // Убираем подсветку, если поле валидно
+                if (warningElement) {
+                    warningElement.classList.remove('invalid-warning');
+                }
             }
         });
 
         return isValid;
     };
+    // ФУНКЦИЯ НИЖЕ ДЛЯ ВОЗМОЖНОЙ СМЕНЫ РЕАЛИЗАЦИИ ПОДСВЕТКИ ПОЛЕЙ, ОНА ДЕЛАЕТ ПОДСВЕТКУ ПОЛЕЙ ВРЕМЕННЫМ СВОЙСТВОМ ИНПУТ ПОЛЯ, А НЕ РАБОТАЕТ БЕСКОНЕЧНО
+
+    const highlightInvalidField = (field) => {
+        field.classList.add("invalid-blink");
+        setTimeout(() => {
+            field.classList.remove("invalid-blink");
+        }, 5000); // Мигание будет длиться 5 секунд
+    };
+
+    // const highlightInvalidField = (field) => {
+    //     field.classList.add("invalid-blink");
+    // };
+
+    const removeHighlight = (field) => {
+        field.classList.remove("invalid-blink");
+    };
+
+
     const triggerQuestionMark = (field) => {
         const questionIcon = document.querySelector('.swal2-container .question-icon');
         if (questionIcon) {
@@ -345,15 +395,15 @@ document.addEventListener("DOMContentLoaded", () => {
             icon: "info",
             title: "Field Requirements",
             html: `
-                <ul style="text-align: left;">
-                    <li><strong>Name:</strong> Should be at least 2 characters long.</li>
-                    <li><strong>Breed:</strong> Specify the breed of the animal.</li>
-                    <li><strong>Age:</strong> Enter the age in years and months.</li>
-                    <li><strong>Description:</strong> Provide a brief description of the animal.<br>Description should be between 50 and 500 characters.</li>
-                    <li><strong>Location:</strong> Specify the location where the animal is found.</li>
-                    <li><strong>Weight:</strong> Enter the weight in kilograms.</li>
-                    <li><strong>Color:</strong> Specify the color of the animal.</li>
-                </ul>`,
+        <ul style="text-align: left;">
+            <li id="name-warning" class="field-warning"><strong>Name:</strong> Should be at least 2 characters long.</li>
+            <li id="breed-warning" class="field-warning"><strong>Breed:</strong> Specify the breed of the animal.</li>
+            <li id="age-warning" class="field-warning"><strong>Age:</strong> Enter the age in years and months.</li>
+            <li id="description-warning" class="field-warning"><strong>Description:</strong> Provide a brief description of the animal.<br>Description should be between 50 and 500 characters.</li>
+            <li id="location-warning" class="field-warning"><strong>Location:</strong> Specify the location where the animal is found.</li>
+            <li id="weight-warning" class="field-warning"><strong>Weight:</strong> Enter the weight in kilograms.</li>
+            <li id="color-warning" class="field-warning"><strong>Color:</strong> Specify the color of the animal.</li>
+        </ul>`,
             confirmButtonText: 'OK',
             willClose: () => openForm(descriptionField.value),
         });
