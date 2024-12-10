@@ -111,6 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
             formattedDate = publicationDate.toISOString().split("T")[0];
         } publicationDateElem.textContent = formattedDate;
     }
+
     const navbar = document.querySelector('nav');
     let lastScrollTop = 0;
 

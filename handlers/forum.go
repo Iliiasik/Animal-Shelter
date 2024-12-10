@@ -436,13 +436,12 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Подготавливаем запрос для получения заголовка, описания и информации о создателе темы
-	stmtTopic, err := db.Prepare(`
-        SELECT t.title, t.description, u.username, ui.profile_image 
-        FROM topics t
-        LEFT JOIN users u ON t.user_id = u.id
-        LEFT JOIN user_images ui ON u.id = ui.user_id
-        WHERE t.id = $1
-    `)
+	stmtTopic, err := db.Prepare(
+		`SELECT t.title, t.description, u.username, ui.profile_image 
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN user_images ui ON u.id = ui.user_id
+		WHERE t.id = $1`)
 	if err != nil {
 		http.Error(w, "Error preparing statement for topic", http.StatusInternalServerError)
 		return
@@ -456,13 +455,12 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Подготавливаем запрос для получения постов по ID темы, включая ответы (ParentID)
-	stmtPosts, err := db.Prepare(`
-        SELECT id, content, user_id, created_at, parent_id 
-        FROM posts 
-        WHERE topic_id = $1 
-        ORDER BY created_at
-    `)
+	// Подготовка запроса для получения постов по ID темы
+	stmtPosts, err := db.Prepare(
+		`SELECT id, content, user_id, created_at, parent_id 
+		FROM posts 
+		WHERE topic_id = $1 
+		ORDER BY created_at`)
 	if err != nil {
 		http.Error(w, "Error preparing statement for posts", http.StatusInternalServerError)
 		return
@@ -505,7 +503,10 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 		// Получение username и ProfileImage для каждого поста
 		err = db.QueryRow(
-			"SELECT u.username, ui.profile_image FROM users u LEFT JOIN user_images ui ON u.id = ui.user_id WHERE u.id = $1",
+			`SELECT u.username, ui.profile_image 
+			FROM users u 
+			LEFT JOIN user_images ui ON u.id = ui.user_id 
+			WHERE u.id = $1`,
 			post.UserID,
 		).Scan(&post.Username, &post.ProfileImage)
 
@@ -528,6 +529,73 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		posts[i].Replies = postMap[posts[i].ID]
 	}
 
+	// Получаем userID из сессии
+	userID, userLoggedIn, err := getUserIDFromSession(db, r)
+	if err != nil {
+		http.Error(w, "Error getting user ID from session", http.StatusInternalServerError)
+		return
+	}
+
+	// Проверяем, есть ли лайк на тему
+	var isLiked bool
+	if userLoggedIn {
+		// Проверяем, поставил ли пользователь лайк
+		err = db.QueryRow(
+			`SELECT EXISTS(SELECT 1 FROM likes WHERE user_id = $1 AND topic_id = $2)`,
+			userID, topicIDInt,
+		).Scan(&isLiked)
+		if err != nil {
+			http.Error(w, "Error checking like status", http.StatusInternalServerError)
+			return
+		}
+	}
+	var likeCount int
+	err = db.QueryRow(
+		`SELECT COUNT(*) FROM likes WHERE topic_id = $1`,
+		topicIDInt,
+	).Scan(&likeCount)
+	if err != nil {
+		http.Error(w, "Error fetching like count", http.StatusInternalServerError)
+		return
+	}
+
+	// Запрос для поиска похожих тем (без ResponseCount и CreatedAt)
+	var similarTopics []struct {
+		ID           int
+		Title        string
+		Username     string
+		ProfileImage string
+	}
+	similarTopicsQuery := `
+		SELECT t.id, t.title, u.username, ui.profile_image
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN user_images ui ON u.id = ui.user_id
+		WHERE t.title ILIKE $1 AND t.id != $2
+		ORDER BY t.created_at DESC
+		LIMIT 5
+	`
+	rows, err = db.Query(similarTopicsQuery, "%"+title+"%", topicIDInt)
+	if err != nil {
+		http.Error(w, "Error fetching similar topics", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var similarTopic struct {
+			ID           int
+			Title        string
+			Username     string
+			ProfileImage string
+		}
+		if err := rows.Scan(&similarTopic.ID, &similarTopic.Title, &similarTopic.Username, &similarTopic.ProfileImage); err != nil {
+			http.Error(w, "Error scanning similar topics", http.StatusInternalServerError)
+			return
+		}
+		similarTopics = append(similarTopics, similarTopic)
+	}
+
 	// Передаем данные в шаблон с IDt для темы
 	err = forumTemplates.ExecuteTemplate(w, "topic.html", struct {
 		Title               string
@@ -536,6 +604,14 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		CreatorProfileImage string
 		IDt                 int
 		Posts               []Post
+		IsLiked             bool
+		LikeCount           int
+		SimilarTopics       []struct {
+			ID           int
+			Title        string
+			Username     string
+			ProfileImage string
+		}
 	}{
 		Title:               title,
 		Description:         description,
@@ -543,6 +619,9 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		CreatorProfileImage: creatorProfileImage,
 		IDt:                 topicIDInt, // Передаем topic ID как IDt
 		Posts:               posts,
+		IsLiked:             isLiked,
+		LikeCount:           likeCount,
+		SimilarTopics:       similarTopics,
 	})
 
 	if err != nil {
@@ -654,9 +733,6 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем список ID топиков из формы
 	topicIDs := r.Form["topic_ids[]"] // Обрати внимание на использование topic_ids[]
 
-	// Выводим полученные значения для отладки
-	//log.Println("Received topic IDs: ", topicIDs)
-
 	// Если не выбраны никакие топики
 	if len(topicIDs) == 0 {
 		http.Error(w, "Please select at least one topic to delete", http.StatusBadRequest)
@@ -673,6 +749,14 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Выполняем каскадное удаление для каждого ID
 	for _, id := range topicIDs {
+		// Удаляем связанные лайки
+		if err := tx.Exec("DELETE FROM likes WHERE topic_id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting likes:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 		// Удаляем связанные записи из таблицы posts
 		if err := tx.Exec("DELETE FROM posts WHERE topic_id = ?", id).Error; err != nil {
 			tx.Rollback()
@@ -699,4 +783,85 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Перенаправляем пользователя после успешного удаления
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+}
+
+func getUserIDFromSession(db *sql.DB, r *http.Request) (int, bool, error) {
+	// Получаем куки сессии
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		// Если куки нет, значит пользователь не авторизован
+		return 0, false, nil
+	}
+
+	// Если кука существует, проверяем сессию
+	var userID int
+	err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&userID)
+	if err != nil {
+		log.Printf("Error fetching user ID: %v", err)
+		return 0, false, err
+	}
+
+	// Возвращаем userID и флаг, что пользователь авторизован
+	return userID, true, nil
+}
+func ToggleLike(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем идентификатор пользователя из сессии
+	userID, isAuthorized, err := getUserIDFromSession(db, r)
+	if err != nil {
+		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Если пользователь не авторизован, перенаправляем на страницу входа
+	if !isAuthorized {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Получаем topic_id из URL
+	topicID := r.URL.Query().Get("topic_id")
+	if topicID == "" {
+		http.Error(w, "Topic ID is required", http.StatusBadRequest)
+		return
+	}
+	topicIDInt, err := strconv.Atoi(topicID)
+	if err != nil {
+		http.Error(w, "Invalid topic ID", http.StatusBadRequest)
+		return
+	}
+
+	// Проверка, существует ли лайк
+	var likeID int
+	err = db.QueryRow(
+		"SELECT id FROM likes WHERE user_id = $1 AND topic_id = $2",
+		userID, topicIDInt,
+	).Scan(&likeID)
+
+	if err == nil { // Лайк существует, удаляем
+		_, err := db.Exec("DELETE FROM likes WHERE id = $1", likeID)
+		if err != nil {
+			http.Error(w, "Error deleting like", http.StatusInternalServerError)
+			log.Printf("Error deleting like: %v", err) // Логирование ошибки удаления
+			return
+		}
+		log.Printf("Like deleted for topic_id: %d by user_id: %d", topicIDInt, userID)
+	} else if err == sql.ErrNoRows { // Лайк не существует, добавляем
+		_, err := db.Exec(
+			"INSERT INTO likes (user_id, topic_id) VALUES ($1, $2)",
+			userID, topicIDInt,
+		)
+		if err != nil {
+			http.Error(w, "Error adding like", http.StatusInternalServerError)
+			log.Printf("Error adding like: %v", err) // Логирование ошибки вставки
+			return
+		}
+		log.Printf("Like added for topic_id: %d by user_id: %d", topicIDInt, userID)
+	} else {
+		http.Error(w, "Error checking like existence", http.StatusInternalServerError)
+		log.Printf("Error checking like existence: %v", err) // Логирование ошибки запроса
+		return
+	}
+
+	// Перенаправляем на страницу темы, чтобы обновить состояние
+	http.Redirect(w, r, fmt.Sprintf("/topic?id=%d", topicIDInt), http.StatusSeeOther)
 }
