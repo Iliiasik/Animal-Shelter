@@ -480,6 +480,26 @@ h1 {
     background-color: #6F4E37;
     color: #EADDCA;
 }
+.cTopic {
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 8px 24px;
+    border: none;
+    border-radius: 5px;
+    background-color: #EADDCA;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #6F4E37;
+    text-decoration: none; /* Убирает подчеркивание */
+    text-align: center;
+    display: block;
+    margin: 10px;
+}
+
+.cTopic:hover {
+    background-color: #6F4E37;
+    color: #EADDCA;
+}
 .modal input {
     width: 100%;
     padding: 0.875rem;

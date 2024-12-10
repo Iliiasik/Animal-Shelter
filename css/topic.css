@@ -14,12 +14,32 @@ body {
 }
 .side-panel {
     flex: 1;
+}
+.statistics {
+
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-height: 200px;
     overflow-y: auto;
+    margin-bottom: 10%;
+}
+.side-panel h2, h3 {
+    text-align: center;
+    margin-bottom: 3%;
+}
+.similar-topics {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+}
+.similar-topics p {
+    text-align: center;
+    font-weight: 600;
+    color: #1e2172;
 }
 .content-wrapper {
     display: flex;
@@ -186,9 +206,8 @@ textarea:focus {
 /* Styling for the replies */
 .replies-list {
     list-style-type: none;
-    padding: 0;
-    margin: 0;
     margin-left: 20px; /* Indent replies to the right */
+
 }
 
 .reply {
@@ -271,4 +290,75 @@ textarea:focus {
 /* Стиль для кнопки в активном состоянии */
 .text-button:active {
     color: #3d1e09;  /* Цвет текста при клике */
+}
+.responses-container {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    color: #333;
+    gap: 7%;
+}
+
+.response-icon {
+    width: 40px;
+    height: 40px;
+}
+.responses-container span {
+    font-weight: 600;
+    font-size: 20px;
+}
+.topic {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 5px;
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    transition: transform 0.3s ease; /* Плавная анимация для блока */
+}
+
+.topic:hover {
+    transform: scale(1.03); /* Увеличение размера блока при наведении */
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.created-at {
+    margin-left: auto; /* Сдвигаем дату к правому краю */
+    font-size: 0.9em; /* Уменьшаем размер шрифта для даты, если нужно */
+    color: #666; /* Изменяем цвет текста для лучшего восприятия */
+}
+
+.profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    transition: transform 0.3s ease; /* Плавный переход при изменении масштаба */
+}
+
+.profile-image:hover {
+    transform: scale(1.1); /* Увеличение на 20% при наведении */
+}
+
+.topicT {
+    flex-grow: 1;
+    color: #547e3c;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+    transition: transform 0.3s ease; /* Добавляем плавный переход для трансформации */
+    white-space: nowrap;       /* Запрещаем перенос строки */
+}
+
+.topicT:hover {
+    text-decoration: none;
+    transform: scale(1.03);
+    color: #53a232;
 }

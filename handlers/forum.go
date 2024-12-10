@@ -558,6 +558,44 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error fetching like count", http.StatusInternalServerError)
 		return
 	}
+
+	// Запрос для поиска похожих тем (без ResponseCount и CreatedAt)
+	var similarTopics []struct {
+		ID           int
+		Title        string
+		Username     string
+		ProfileImage string
+	}
+	similarTopicsQuery := `
+		SELECT t.id, t.title, u.username, ui.profile_image
+		FROM topics t
+		LEFT JOIN users u ON t.user_id = u.id
+		LEFT JOIN user_images ui ON u.id = ui.user_id
+		WHERE t.title ILIKE $1 AND t.id != $2
+		ORDER BY t.created_at DESC
+		LIMIT 5
+	`
+	rows, err = db.Query(similarTopicsQuery, "%"+title+"%", topicIDInt)
+	if err != nil {
+		http.Error(w, "Error fetching similar topics", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var similarTopic struct {
+			ID           int
+			Title        string
+			Username     string
+			ProfileImage string
+		}
+		if err := rows.Scan(&similarTopic.ID, &similarTopic.Title, &similarTopic.Username, &similarTopic.ProfileImage); err != nil {
+			http.Error(w, "Error scanning similar topics", http.StatusInternalServerError)
+			return
+		}
+		similarTopics = append(similarTopics, similarTopic)
+	}
+
 	// Передаем данные в шаблон с IDt для темы
 	err = forumTemplates.ExecuteTemplate(w, "topic.html", struct {
 		Title               string
@@ -568,6 +606,12 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Posts               []Post
 		IsLiked             bool
 		LikeCount           int
+		SimilarTopics       []struct {
+			ID           int
+			Title        string
+			Username     string
+			ProfileImage string
+		}
 	}{
 		Title:               title,
 		Description:         description,
@@ -577,6 +621,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Posts:               posts,
 		IsLiked:             isLiked,
 		LikeCount:           likeCount,
+		SimilarTopics:       similarTopics,
 	})
 
 	if err != nil {
@@ -688,9 +733,6 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем список ID топиков из формы
 	topicIDs := r.Form["topic_ids[]"] // Обрати внимание на использование topic_ids[]
 
-	// Выводим полученные значения для отладки
-	//log.Println("Received topic IDs: ", topicIDs)
-
 	// Если не выбраны никакие топики
 	if len(topicIDs) == 0 {
 		http.Error(w, "Please select at least one topic to delete", http.StatusBadRequest)
@@ -707,6 +749,14 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Выполняем каскадное удаление для каждого ID
 	for _, id := range topicIDs {
+		// Удаляем связанные лайки
+		if err := tx.Exec("DELETE FROM likes WHERE topic_id = ?", id).Error; err != nil {
+			tx.Rollback()
+			log.Println("Error deleting likes:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 		// Удаляем связанные записи из таблицы posts
 		if err := tx.Exec("DELETE FROM posts WHERE topic_id = ?", id).Error; err != nil {
 			tx.Rollback()
@@ -734,6 +784,7 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	// Перенаправляем пользователя после успешного удаления
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
+
 func getUserIDFromSession(db *sql.DB, r *http.Request) (int, bool, error) {
 	// Получаем куки сессии
 	cookie, err := r.Cookie("session")

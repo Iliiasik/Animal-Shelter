@@ -132,6 +132,8 @@
 
     </div>
     <div class="side-panel">
+        <div class="statistics">
+        <h2>Topic statistics</h2>
         <label class="like-container">
             <input type="checkbox" id="likeCheckbox" onchange="toggleLike()"
                    {{if .IsLiked}} checked {{end}} />
@@ -139,9 +141,45 @@
         <path d="M29.845,17.099l-2.489,8.725C26.989,27.105,25.804,28,24.473,28H11c-0.553,0-1-0.448-1-1V13c0-0.215,0.069-0.425,0.198-0.597l5.392-7.24C16.188,4.414,17.05,4,17.974,4C19.643,4,21,5.357,21,7.026V12h5.002c1.265,0,2.427,0.579,3.188,1.589C29.954,14.601,30.192,15.88,29.845,17.099z" id="XMLID_254_"></path>
                 <path d="M7,12H3c-0.553,0-1,0.448-1,1v14c0,0.552,0.447,1,1,1h4c0.553,0,1-0.448,1-1V13C8,12.448,7.553,12,7,12z M5,25.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.828,0.672-1.5,1.5-1.5c0.828,0,1.5,0.672,1.5,1.5C6.5,24.828,5.828,25.5,5,25.5z" id="XMLID_256_"></path>
     </svg>
-            <span>{{.LikeCount}} Likes</span>
+            <span>{{if eq .LikeCount 1}}
+            {{.LikeCount}} Like
+        {{else}}
+            {{.LikeCount}} Likes
+        {{end}}</span>
         </label>
+        <div class="responses-container">
+            <img src="system_images/response.svg" alt="Responses Icon" class="response-icon">
+            <span>{{len .Posts}}
+        {{if eq (len .Posts) 1}}
+            Response
+        {{else}}
+            Responses
+        {{end}}</span>
+        </div>
+        </div>
+        <div class="similar-topics">
+            <h3>Similar Topics</h3>
+            <ul>
+                {{if .SimilarTopics}}
+                {{range .SimilarTopics}}
+                <li class="topic">
+                    <div class="user-info">
+                        <a href="/profile/{{.Username}}">
+                            <img src="{{.ProfileImage}}" alt="{{.Username}}'s profile image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        </a>
+                        <span class="username">{{.Username}}</span>
+                    </div>
+                    <a href="/topic?id={{.ID}}" class="topicT">{{.Title}}</a>
+                </li>
+                {{end}}
+                {{else}}
+                <p>
+                    There are no similar topics :(</p>
+                {{end}}
 
+
+            </ul>
+        </div>
 
     </div>
     </div>
@@ -297,5 +335,14 @@
             method: 'POST'
         })
     }
+    document.addEventListener("DOMContentLoaded", function() {
+        const topicTitles = document.querySelectorAll(".topicT");
+
+        topicTitles.forEach(title => {
+            if (title.textContent.length > 18) {
+                title.textContent = title.textContent.slice(0, 18) + "...";
+            }
+        });
+    });
 </script>
 </html>

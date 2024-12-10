@@ -160,7 +160,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 '<textarea id="description" name="description" style="resize: none;"></textarea>',
                 `<textarea id="description" name="description" style="resize: none;">${description}</textarea>`
             ),
-            width: '30%',
             confirmButtonText: 'Close',
             showCloseButton: false,
             focusConfirm: false,
