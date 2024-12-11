@@ -47,7 +47,7 @@
             </form>
         </div>
 
-
+        <h2 id="commentary-header">Commentaries</h2>
         <!-- Список комментариев -->
         <ul class="comments-list">
             {{range .Posts}}
@@ -75,6 +75,26 @@
 
                 <!-- Reply and Show replies buttons container -->
                 <div class="buttons-container">
+                    <label class="like-container">
+                        <button type="button" id="like-button-{{.ID}}" class="rating-button">
+                            <img src="system_images/up.svg" alt="Like" class="rating-icon">
+                        </button>
+                    </label>
+                    {{ if gt .Rating 0 }}
+                    <h4 style="color: green;">+{{.Rating}}</h4>
+                    {{ else if lt .Rating 0 }}
+                    <h4 style="color: red;">{{.Rating}}</h4>
+                    {{ else }}
+                    <!-- Ничего не отображается -->
+                    {{ end }}
+                    <label class="dislike-container">
+                        <button type="button" id="dislike-button-{{.ID}}" class="rating-button">
+                            <img src="system_images/down.svg" alt="Dislike" class="rating-icon">
+                        </button>
+                    </label>
+
+
+
                     <!-- Reply button -->
                     <div class="reply-button-container">
                         <button class="text-button" onclick="showReplyForm('{{.ID}}')">Reply</button>
@@ -183,6 +203,15 @@
 
     </div>
     </div>
+    <a class="scroll-up" onclick="scrollToTop()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0h24v24H0z" fill="none"></path>
+            <path fill="rgba(255,255,255,1)" d="M11.9997 10.8284L7.04996 15.7782L5.63574 14.364L11.9997 8L18.3637 14.364L16.9495 15.7782L11.9997 10.8284Z">
+            </path>
+        </svg>
+    </a>
+
+
 </main>
 
 <footer class="site-footer">
@@ -344,5 +373,55 @@
             }
         });
     });
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+    function updateRating(postID, action) {
+        fetch(`/update-rating?post_id=${postID}&action=${action}`, {
+            method: 'GET',
+        })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                // Обновляем состояние кнопок
+                updateButtonStates(postID, action);
+            })
+            .catch(error => {
+                console.error("Error updating rating:", error);
+            });
+    }
+
+    // Функция для обновления состояния кнопок
+    function updateButtonStates(postID, action) {
+        const likeButton = document.getElementById(`like-button-${postID}`);
+        const dislikeButton = document.getElementById(`dislike-button-${postID}`);
+
+        if (action === "like") {
+            likeButton.classList.add("active");
+            dislikeButton.classList.remove("active");
+        } else if (action === "dislike") {
+            likeButton.classList.remove("active");
+            dislikeButton.classList.add("active");
+        }
+    }
+
+    // Добавляем обработчики для кнопок
+    document.querySelectorAll('.like-container button').forEach(button => {
+        button.addEventListener('click', function() {
+            const postID = this.closest('.comment').id.split('-')[1];
+            updateRating(postID, 'like');
+        });
+    });
+
+    document.querySelectorAll('.dislike-container button').forEach(button => {
+        button.addEventListener('click', function() {
+            const postID = this.closest('.comment').id.split('-')[1];
+            updateRating(postID, 'dislike');
+        });
+    });
+
 </script>
 </html>

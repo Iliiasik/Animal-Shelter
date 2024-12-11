@@ -457,7 +457,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Подготовка запроса для получения постов по ID темы
 	stmtPosts, err := db.Prepare(
-		`SELECT id, content, user_id, created_at, parent_id 
+		`SELECT id, content, user_id, created_at, parent_id, rating 
 		FROM posts 
 		WHERE topic_id = $1 
 		ORDER BY created_at`)
@@ -485,6 +485,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		ProfileImage string
 		Replies      []Post
 		TopicID      int // Добавляем поле TopicID
+		Rating       int
 	}
 
 	var posts []Post
@@ -493,7 +494,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем все посты и ответы
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.ParentID); err != nil {
+		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.ParentID, &post.Rating); err != nil {
 			http.Error(w, "Error scanning posts", http.StatusInternalServerError)
 			return
 		}
@@ -864,4 +865,98 @@ func ToggleLike(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Перенаправляем на страницу темы, чтобы обновить состояние
 	http.Redirect(w, r, fmt.Sprintf("/topic?id=%d", topicIDInt), http.StatusSeeOther)
+}
+func UpdateRating(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем параметры из запроса
+	postID := r.URL.Query().Get("post_id")
+	action := r.URL.Query().Get("action") // "like" или "dislike"
+
+	// Получаем user_id из сессии
+	userID, loggedIn, err := getUserIDFromSession(db, r)
+	if err != nil {
+		http.Error(w, "Error retrieving user ID from session", http.StatusInternalServerError)
+		return
+	}
+	if !loggedIn {
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	// Преобразуем postID в int
+	postIDInt, err := strconv.Atoi(postID)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	// Проверяем, есть ли уже лайк или дизлайк от этого пользователя для данного поста
+	var existingLikeStatus sql.NullBool
+	err = db.QueryRow("SELECT like_status FROM post_likes WHERE post_id = $1 AND user_id = $2", postIDInt, userID).Scan(&existingLikeStatus)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Error checking existing like status", http.StatusInternalServerError)
+		return
+	}
+
+	// Логика для обработки лайков и дизлайков
+	if existingLikeStatus.Valid {
+		// Если уже есть лайк/дизлайк, меняем его
+		if action == "like" && !existingLikeStatus.Bool {
+			_, err = db.Exec("UPDATE post_likes SET like_status = true WHERE post_id = $1 AND user_id = $2", postIDInt, userID)
+			if err != nil {
+				http.Error(w, "Error updating like status", http.StatusInternalServerError)
+				return
+			}
+		} else if action == "dislike" && existingLikeStatus.Bool {
+			_, err = db.Exec("UPDATE post_likes SET like_status = false WHERE post_id = $1 AND user_id = $2", postIDInt, userID)
+			if err != nil {
+				http.Error(w, "Error updating dislike status", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Если выбран тот же статус, то ничего не меняем
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "No change to the rating")
+			return
+		}
+	} else {
+		// Если лайк/дизлайк еще не был поставлен, добавляем его
+		if action == "like" {
+			_, err = db.Exec("INSERT INTO post_likes (post_id, user_id, like_status) VALUES ($1, $2, true)", postIDInt, userID)
+			if err != nil {
+				http.Error(w, "Error inserting like status", http.StatusInternalServerError)
+				return
+			}
+		} else if action == "dislike" {
+			_, err = db.Exec("INSERT INTO post_likes (post_id, user_id, like_status) VALUES ($1, $2, false)", postIDInt, userID)
+			if err != nil {
+				http.Error(w, "Error inserting dislike status", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	// Пересчитываем общий рейтинг поста (обновляем его в таблице)
+	var totalLikes, totalDislikes int
+	err = db.QueryRow("SELECT COUNT(*) FROM post_likes WHERE post_id = $1 AND like_status = true", postIDInt).Scan(&totalLikes)
+	if err != nil {
+		http.Error(w, "Error fetching total likes", http.StatusInternalServerError)
+		return
+	}
+	err = db.QueryRow("SELECT COUNT(*) FROM post_likes WHERE post_id = $1 AND like_status = false", postIDInt).Scan(&totalDislikes)
+	if err != nil {
+		http.Error(w, "Error fetching total dislikes", http.StatusInternalServerError)
+		return
+	}
+
+	// Обновляем рейтинг поста
+	finalRating := totalLikes - totalDislikes
+	_, err = db.Exec("UPDATE posts SET rating = $1 WHERE id = $2", finalRating, postIDInt)
+	if err != nil {
+		http.Error(w, "Error updating post rating", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем ответ
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Rating updated to %d", finalRating)
 }

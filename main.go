@@ -64,6 +64,9 @@ func main() {
 	mux.HandleFunc("/increment_views", func(w http.ResponseWriter, r *http.Request) {
 		handlers.IncrementViews(sqlDB, w, r)
 	})
+	mux.HandleFunc("/update-rating", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdateRating(sqlDB, w, r)
+	})
 
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

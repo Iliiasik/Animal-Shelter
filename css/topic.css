@@ -12,6 +12,14 @@ body {
     flex-grow: 1;
 
 }
+#commentary-header {
+    display: flex;  /* Используем flexbox для выравнивания */
+    align-items: center;  /* Выравниваем элементы по центру по вертикали */
+}
+
+.topic-container h2 {
+    margin-bottom: 2%;
+}
 .side-panel {
     flex: 1;
 }
@@ -39,7 +47,7 @@ body {
 .similar-topics p {
     text-align: center;
     font-weight: 600;
-    color: #1e2172;
+    color: #2f34ab;
 }
 .content-wrapper {
     display: flex;
@@ -51,7 +59,17 @@ body {
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Прятать элементы, которые выходят за пределы */
 }
+
+.comment-content {
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word; /* Разрешить перенос слов */
+    overflow-wrap: break-word; /* Дополнительная поддержка */
+    max-width: 100%; /* Гарантировать, что текст не выйдет за пределы контейнера */
+}
+
 
 .topic-header {
     display: flex;
@@ -139,10 +157,7 @@ body {
     font-size: 12px;
 }
 
-.comment-content {
-    font-size: 16px;
-    line-height: 1.5;
-}
+
 .more-link, .less-link {
     font-weight: bold; /* Сделать жирным */
     text-align: center;
@@ -261,11 +276,29 @@ textarea:focus {
 .like-container input:checked ~ svg {
     fill: #58833e;
 }
+
+
+.rating-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.rating-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+}
+
+.rating-button.active .rating-icon {
+    transform: scale(1.1);
+}
 .buttons-container {
     display: flex;
     gap: 5%;
     margin-top: 2%;
     margin-bottom: 1%;
+    align-items: center;
 }
 /* Основной стиль для кнопок в виде текста */
 .text-button {
@@ -361,4 +394,26 @@ textarea:focus {
     text-decoration: none;
     transform: scale(1.03);
     color: #53a232;
+}
+.scroll-up {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: rgba(29, 29, 31, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: bottom .4s, transform .4s;
+    cursor: pointer;
+}
+
+.scroll-up:hover {
+    transform: translateY(-.25rem);
 }
