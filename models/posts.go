@@ -12,8 +12,8 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 	ParentID  *int      `json:"parent_id"` // ID родительского поста (если это ответ)
 
-	// Рейтинг поста (+ или -)
-	Rating int `json:"rating"` // Общий рейтинг (+ или -)
+	// Рейтинг поста (+ или -), добавляем дефолтное значение
+	Rating int `json:"rating" gorm:"default:0"` // Общий рейтинг (+ или -)
 
 	// Связь с таблицей Topic
 	Topic Topic `gorm:"foreignKey:TopicID;references:ID"`
@@ -24,4 +24,20 @@ type Post struct {
 
 func (Post) TableName() string {
 	return "posts"
+}
+
+type PostLike struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	PostID     uint      `json:"post_id" gorm:"not null;index"` // внешний ключ для поста
+	UserID     uint      `json:"user_id" gorm:"not null;index"` // внешний ключ для пользователя
+	LikeStatus bool      `json:"like_status" gorm:"not null"`   // true для лайка, false для дизлайка
+	CreatedAt  time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"default:CURRENT_TIMESTAMP"`
+
+	Post Post `gorm:"foreignKey:PostID;references:ID;constraint:OnDelete:CASCADE;" json:"post"` // Связь с постом
+	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;" json:"user"` // Связь с пользователем
+}
+
+func (PostLike) TableName() string {
+	return "post_likes"
 }

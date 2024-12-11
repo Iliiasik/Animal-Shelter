@@ -17,12 +17,6 @@ body {
     align-items: center;  /* Выравниваем элементы по центру по вертикали */
 }
 
-.down-icon {
-    margin-left: 8px;  /* Отступ между текстом и иконкой */
-    width: 32px;  /* Задаем размер иконки */
-    height: 32px;  /* Задаем размер иконки */
-}
-
 .topic-container h2 {
     margin-bottom: 2%;
 }
@@ -282,58 +276,22 @@ textarea:focus {
 .like-container input:checked ~ svg {
     fill: #58833e;
 }
-.dislike-container input {
-    position: absolute;
-    opacity: 0;
+
+
+.rating-button {
+    background: none;
+    border: none;
     cursor: pointer;
-    height: 0;
-    width: 0;
 }
 
-.dislike-container {
-    display: block;
-    position: relative;
-    cursor: pointer;
-    user-select: none;
+.rating-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
 }
 
-.dislike-icon {
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 50px;
-    width: 50px;
-    transition: all 0.3s;
-    fill: #666;
-}
-
-.dislike-icon:hover {
-    transform: scale(1.1) rotate(-10deg);
-}
-
-.dislike-container input:checked ~ svg {
-    fill: rgb(185, 51, 51);
-}
-.like-container .like-icon-post, .dislike-container svg {
-    width: 22px;
-    height: 22px;
-}
-
-.like-container input, .dislike-container input {
-    transform: scale(0.5);
-}
-.like-icon-post {
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 50px;
-    width: 50px;
-    transition: all 0.3s;
-    fill: #666;
-}
-
-.like-icon-post:hover {
-    transform: scale(1.1) rotate(-10deg);
+.rating-button.active .rating-icon {
+    transform: scale(1.1);
 }
 .buttons-container {
     display: flex;
