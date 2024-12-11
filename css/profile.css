@@ -243,9 +243,6 @@ body {
         align-items: center;
     }
 }
-.question-icon {
-    position: absolute; top: 10px; right: 10px; cursor: pointer;
-}
 
 
 .animal-form-container {
@@ -395,6 +392,9 @@ body {
 .shake {
     animation: shake 0.3s;
 }
+.input-error {
+    border: 2px solid red;
+}
 
 @keyframes shake {
     0%, 100% {
@@ -407,3 +407,44 @@ body {
         transform: translateX(5px);
     }
 }
+@keyframes blink {
+    0% {
+        border-color: red;
+    }
+    50% {
+        border-color: transparent;
+    }
+    100% {
+        border-color: red;
+    }
+}
+
+.invalid-blink {
+    animation: blink 1s infinite;
+    border-width: 2px;
+}
+.invalid-warning {
+    color: red;
+    text-decoration: underline;
+}
+/*ЭТО СТИЛЬ ДЛЯ ВОПРОСИКА ВНЕ ФОРМЫ*/
+.question-icon-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 9999; /* Ensure it's in front of other elements */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-icon {
+    font-size: 24px; /* Adjust size */
+    color: #333; /* Adjust color */
+    cursor: pointer;
+}
+
+/* ЭТО СТИЛЬ ДЛЯ ВОПРОСИКА НЕПОСРЕДСТВЕННО ВНУТРИ САМОЙ ФОРМЫ*/
+/*.question-icon {*/
+/*     position: absolute; top: 10px; right: 10px; cursor: pointer;*/
+/* }*/
