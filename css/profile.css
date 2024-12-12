@@ -196,6 +196,7 @@ body {
     cursor: pointer;
     transition: all 0.5s;
     transform-origin: left bottom;
+    z-index: 10;
 }
 
 .button-edit {
@@ -210,6 +211,7 @@ body {
     cursor: pointer;
     transition: all 0.5s;
     transform-origin: right bottom;
+    z-index: 10;
 }
 
 .button-home:hover, .button-edit:hover {
@@ -475,7 +477,7 @@ body {
 }
 
 .animal:hover {
-    transform: scale(1.03); /* Увеличение размера блока при наведении */
+    transform: scale(1.02); /* Увеличение размера блока при наведении */
 }
 .animal-info{
     display: flex;

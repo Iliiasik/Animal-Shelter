@@ -8,38 +8,30 @@
   <link rel="stylesheet" href="/css/footer.css">
   <link rel="stylesheet" href="/css/feedback.css">
   <script src = "/js/feedback.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
+
 </head>
 
 <body>
-<div class="content">
-  <div class="form-container">
-    <form id="feedback-form" action="/feedback-save" method="POST">
-      <label for="feedback-text">Your Feedback:</label>
-      <textarea id="feedback-text" name="text" required></textarea>
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+  <div class="content">
+      <div class="form-container">
+          <form id="feedback-form" action="/feedback-save" method="POST">
+            <label for="feedback-text">Your Feedback:</label>
+            <textarea id="feedback-text" name="text" required></textarea>
+            <button type="submit">Submit</button>
+          </form>
+      </div>
 
-  <!-- Круглые дырки для изображений -->
-  <div class="hole1" style="top: 20px; left: 50px;">
-    <img src="/system_images/I-REFUSE.jpg" alt="Image 1">
-  </div>
-  <div class="hole2" style="top: 150px; left: 400px;">
-    <img src="/system_images/hehe.jpg" alt="Image 2">
-  </div>
-  <div class="hole3" style="top: 300px; left: 270px;">
-    <img src="/system_images/workwork.jpg" alt="Image 3">
-  </div>
-</div>
 
-<div id="modal" class="modal hidden">
-  <div class="modal-content">
-    <p id="modal-message"></p>
-    <span id="close-modal" class="close">&times;</span>
-    <img id="modal-image" src="default-image.jpg" alt="Modal Image" style="max-width: 100%; height: auto;">
-  </div>
-</div>
 
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+          <p id="modal-message"></p>
+          <span id="close-modal" class="close">&times;</span>
+          <img id="modal-image" src="default-image.jpg" alt="Modal Image" style="max-width: 100%; height: auto;">
+        </div>
+    </div>
+  </div>
 <!-- Site footer -->
 <footer class="site-footer">
   <div class="footer-links-container">

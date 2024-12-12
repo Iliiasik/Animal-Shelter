@@ -1,34 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("feedback-form");
-    const modal = document.getElementById("modal");
-    const modalMessage = document.getElementById("modal-message");
-    const modalImage = document.getElementById("modal-image"); // Добавлено: элемент для изображения
-    const closeModal = document.getElementById("close-modal");
 
     // Функция для отображения модального окна
     const showModal = (message, success = true) => {
-        modalMessage.textContent = message;
-        modalMessage.style.color = success ? "green" : "red";
+        const imageSrc = success ? "./system_images/thanks.jpg" : "./system_images/I-REFUSE.jpg";
 
-        // Устанавливаем изображение в зависимости от успеха или ошибки
-        modalImage.src = success ? "./system_images/thanks.jpg" : "./system_images/I-REFUSE.jpg";
-
-        modal.style.display = "block";
+        // Отображаем модальное окно с помощью SweetAlert
+        Swal.fire({
+            title: message,
+            text: success ? "Thank you for your feedback!" : "Failed to submit feedback.",
+            icon: success ? "success" : "error",
+            imageUrl: imageSrc,
+            imageWidth: 400,  // Размер изображения по ширине (можно подстроить под ваш макет)
+            imageHeight: 400, // Размер изображения по высоте
+            imageAlt: 'Feedback Image',
+            showConfirmButton: true,
+            confirmButtonText: 'Close',
+            willClose: () => {
+                window.location.href = "/"; // Переадресация на главную страницу после закрытия
+            }
+        });
     };
-
-    // Скрытие модального окна при клике на "X"
-    closeModal.addEventListener("click", () => {
-        modal.style.display = "none";
-        window.location.href = "/"; // Переадресация на главную страницу
-    });
-
-    // Закрытие модального окна при клике вне его
-    window.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-            window.location.href = "/"; // Переадресация на главную страницу
-        }
-    });
 
     // Обработчик отправки формы
     form.addEventListener("submit", async (e) => {
