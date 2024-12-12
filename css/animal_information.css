@@ -278,6 +278,10 @@ a.slide_btn {
     width: 50%;
     padding: 15px;
     background-color: #ffffff;
+    overflow: hidden;
+}
+.animal-description p {
+    overflow-wrap: break-word;
 }
 .stage-two h3 {
     text-align: center;
