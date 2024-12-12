@@ -1,11 +1,10 @@
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%; /* Высота страницы */
-    display: flex;
-    flex-direction: column; /* Flex-контейнер для вертикального расположения */
-}
 
+    background-image: url('/system_images/1179225-512.png'); /* URL of your SVG image */
+    background-repeat: repeat; /* Tiling the background */
+    background-size: 10%; /* Optional: adjust size if needed */
+    background-attachment: fixed; /* Optional: makes the background stay fixed during scroll */
+}
 body {
     background-color: #f9f9f9; /* Опционально: фон страницы */
 }

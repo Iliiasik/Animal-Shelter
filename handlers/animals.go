@@ -70,12 +70,6 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	animal.Weight = weight
 	log.Printf("Animal data: %+v\n", animal)
 
-	// Обработка изображений
-	if fileExt, err := processAnimalImages(db, r, uint(animal.ID)); err != nil {
-		log.Println("Error processing images:", err)
-		respondWithJSON(w, http.StatusInternalServerError, "error", fmt.Sprintf("Error processing images. Invalid extension: %s", fileExt))
-		return
-	}
 	// Обработка связанных данных: species, status, gender
 	if err := processRelation(db, &animal.Species, "type_name", r.FormValue("species")); err != nil {
 		log.Println("Error processing species:", err)
@@ -100,7 +94,12 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Gender: %+v\n", animal.Gender)
-
+	// Проверка изображений перед сохранением
+	if fileExt, err := validateAnimalImages(r); err != nil {
+		log.Println("Error validating images:", err)
+		respondWithJSON(w, http.StatusBadRequest, "error", fmt.Sprintf("Invalid image extension: %s", fileExt))
+		return
+	}
 	// Вставка данных животного
 	if err := db.Create(&animal).Error; err != nil {
 		log.Println("Error inserting animal:", err)
@@ -112,6 +111,12 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if err := saveAnimalAge(db, &animal, r.FormValue("age_years"), r.FormValue("age_months")); err != nil {
 		log.Println("Error saving animal age:", err)
 		respondWithJSON(w, http.StatusInternalServerError, "error", "Error saving animal age")
+		return
+	}
+	// Обработка изображений
+	if fileExt, err := processAnimalImages(db, r, uint(animal.ID)); err != nil {
+		log.Println("Error processing images:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", fmt.Sprintf("Error processing images. Invalid extension: %s", fileExt))
 		return
 	}
 
@@ -155,6 +160,21 @@ func saveAnimalAge(db *gorm.DB, animal *models.Animal, yearsStr, monthsStr strin
 		Months:   months,
 	}
 	return db.Save(&animalAge).Error
+}
+
+// validateAnimalImages проверяет изображения перед сохранением
+func validateAnimalImages(r *http.Request) (string, error) {
+	files := r.MultipartForm.File["images"]
+	if len(files) > 4 {
+		return "", fmt.Errorf("too many images uploaded")
+	}
+	for _, fileHeader := range files {
+		fileExt := strings.ToLower(path.Ext(fileHeader.Filename))
+		if !isValidImageExt(fileExt) {
+			return fileExt, fmt.Errorf("invalid file type")
+		}
+	}
+	return "", nil
 }
 
 // processAnimalImages обрабатывает загрузку изображений

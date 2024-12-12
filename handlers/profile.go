@@ -332,6 +332,21 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Загружаем данные о животных пользователя
+	var animals []models.Animal
+	if err := db.Preload("Species").Preload("Gender").Preload("Status").Preload("Age").Preload("Images").Where("user_id = ?", user.ID).Find(&animals).Error; err != nil {
+		log.Println("Error loading animals:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Для каждого животного выбираем первое изображение
+	for i := range animals {
+		if len(animals[i].Images) > 0 {
+			animals[i].Images = animals[i].Images[:1] // Оставляем только первое изображение
+		}
+	}
+
 	// Загружаем дополнительные данные о пользователе (детали, изображения, конфиденциальность)
 	var userDetail models.UserDetail
 	if err := db.First(&userDetail, "user_id = ?", user.ID).Error; err != nil {
@@ -372,11 +387,13 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		UserDetail  models.UserDetail
 		UserImage   models.UserImage
 		UserPrivacy models.UserPrivacy
+		Animals     []models.Animal
 	}{
 		User:        user,
 		UserDetail:  userDetail,
 		UserImage:   userImage,
 		UserPrivacy: userPrivacy,
+		Animals:     animals,
 	}
 
 	// Отправляем данные в шаблон для рендеринга
@@ -387,7 +404,6 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RenderEditTemplate Rendering the Edit template of current user with his existing info
 // RenderEditTemplate Rendering the Edit template of current user with his existing info
 func RenderEditTemplate(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")
