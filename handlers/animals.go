@@ -70,6 +70,12 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	animal.Weight = weight
 	log.Printf("Animal data: %+v\n", animal)
 
+	// Обработка изображений
+	if fileExt, err := processAnimalImages(db, r, uint(animal.ID)); err != nil {
+		log.Println("Error processing images:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", fmt.Sprintf("Error processing images. Invalid extension: %s", fileExt))
+		return
+	}
 	// Обработка связанных данных: species, status, gender
 	if err := processRelation(db, &animal.Species, "type_name", r.FormValue("species")); err != nil {
 		log.Println("Error processing species:", err)
@@ -106,13 +112,6 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if err := saveAnimalAge(db, &animal, r.FormValue("age_years"), r.FormValue("age_months")); err != nil {
 		log.Println("Error saving animal age:", err)
 		respondWithJSON(w, http.StatusInternalServerError, "error", "Error saving animal age")
-		return
-	}
-
-	// Обработка изображений
-	if err := processAnimalImages(db, r, uint(animal.ID)); err != nil {
-		log.Println("Error processing images:", err)
-		respondWithJSON(w, http.StatusInternalServerError, "error", "Error processing images")
 		return
 	}
 
@@ -159,12 +158,11 @@ func saveAnimalAge(db *gorm.DB, animal *models.Animal, yearsStr, monthsStr strin
 }
 
 // processAnimalImages обрабатывает загрузку изображений
-func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) error {
-
+func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) (string, error) {
 	if _, err := os.Stat(animalImagesDir); os.IsNotExist(err) {
 		if err := os.Mkdir(animalImagesDir, os.ModePerm); err != nil {
 			log.Println("Error creating upload directory:", err)
-			return err
+			return "", err
 		}
 	}
 
@@ -172,30 +170,30 @@ func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) error {
 	log.Printf("Number of images: %d\n", len(files))
 	if len(files) > 4 {
 		log.Println("Too many images uploaded")
-		return fmt.Errorf("You can upload a maximum of 4 images")
+		return "", fmt.Errorf("You can upload a maximum of 4 images")
 	}
 
 	for _, fileHeader := range files {
-		if err := saveImageAnimal(fileHeader, animalImagesDir, animalID, db); err != nil {
-			return err
+		if fileExt, err := saveImageAnimal(fileHeader, animalImagesDir, animalID, db); err != nil {
+			return fileExt, err
 		}
 	}
-	return nil
+	return "", nil
 }
 
 // saveImage сохраняет одно изображение и создает запись в таблице PostImage
-func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalID uint, db *gorm.DB) error {
+func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalID uint, db *gorm.DB) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {
 		log.Println("Error opening file:", err)
-		return err
+		return "", err
 	}
 	defer file.Close()
 
 	fileExt := strings.ToLower(path.Ext(fileHeader.Filename))
 	if !isValidImageExt(fileExt) {
 		log.Println("Invalid file extension:", fileExt)
-		return fmt.Errorf("Invalid file type")
+		return fileExt, fmt.Errorf("Invalid file type")
 	}
 
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
@@ -204,13 +202,13 @@ func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalI
 	outFile, err := os.Create(filePath)
 	if err != nil {
 		log.Println("Error creating file:", err)
-		return err
+		return fileExt, err
 	}
 	defer outFile.Close()
 
 	if _, err := io.Copy(outFile, file); err != nil {
 		log.Println("Error writing file:", err)
-		return err
+		return fileExt, err
 	}
 
 	image := models.PostImage{
@@ -219,10 +217,10 @@ func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalI
 	}
 	if err := db.Create(&image).Error; err != nil {
 		log.Println("Error saving image:", err)
-		return err
+		return fileExt, err
 	}
 	log.Println("Image saved successfully:", image.ImageURL)
-	return nil
+	return fileExt, nil
 }
 
 // isValidImageExt проверяет допустимость расширения файла

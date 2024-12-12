@@ -54,40 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const addAnimal = document.getElementById('addAnimalBtn');
-
     if (!addAnimal) {
         console.error("Element with id 'addAnimalBtn' not found.");
         return;
     }
 
-    let formState = {};
 
-    const saveFormState = (form) => {
-        const inputs = form.querySelectorAll('input, select, textarea');
-        formState = {};
-        inputs.forEach((input) => {
-            if (input.type === "checkbox") {
-                formState[input.name] = input.checked;
-            } else if (input.type === "file") {
-                formState[input.name] = input.files;
-            } else {
-                formState[input.name] = input.value;
-            }
-        });
-    };
-
-    const restoreFormState = (form) => {
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach((input) => {
-            if (input.type === "checkbox") {
-                input.checked = !!formState[input.name];
-            } else if (input.type === "file") {
-                // File inputs are read-only, skipping restoration
-            } else {
-                input.value = formState[input.name] || '';
-            }
-        });
-    };
 
     const getFormHtml = () => `
         <div class="animal-form-container" style="text-align: left; position: relative;">
@@ -163,6 +135,9 @@ document.addEventListener("DOMContentLoaded", () => {
             confirmButtonText: 'Close',
             showCloseButton: false,
             focusConfirm: false,
+            customClass: {
+                confirmButton: 'custom-close-button', // Назначаем класс для кнопки
+            },
             //ТУТ НУЖНА ДОРАБОТКА. ЭТА ЧАСТЬ КОДА БЫЛА НАПИСАНА В ПОПЫТКЕ ПЕРЕМЕСТИТЬ ВОПРОСИК ВНЕ ФОРМЫ
             // backdrop:'<div class="question-icon-container">\n' +
             //         '    <span class="question-icon" title="Field requirements">&#x3F;</span>\n' +
@@ -171,12 +146,91 @@ document.addEventListener("DOMContentLoaded", () => {
             willClose: resetFormState,
         });
     };
+    let formState = {};
+
+    const saveFormState = (form) => {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        formState = {};
+        inputs.forEach((input) => {
+            if (input.type === "checkbox") {
+                formState[input.name] = input.checked;
+            } else if (input.type === "file") {
+                formState[input.name] = input.files;
+            } else {
+                formState[input.name] = input.value;
+            }
+        });
+    };
+
+    const restoreFormState = (form) => {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach((input) => {
+            if (input.type === "checkbox") {
+                input.checked = !!formState[input.name];
+            } else if (input.type === "file") {
+                // File inputs are read-only, skipping restoration
+            } else {
+                input.value = formState[input.name] || '';
+            }
+        });
+    };
+    const applyFieldRestrictions = () => {
+        const ageYearsInput = document.getElementById('age_years');
+        const ageMonthsInput = document.getElementById('age_months');
+        const weightInput = document.getElementById('weight');
+
+        if (ageYearsInput) {
+            ageYearsInput.addEventListener('input', () => {
+                let value = parseInt(ageYearsInput.value, 10);
+                if (isNaN(value) || value < 0) value = 0;
+                if (value > 50) value = 50;
+                ageYearsInput.value = value;
+
+                // Проверка для месяцев при изменении значения года
+                if (ageMonthsInput) {
+                    let monthsValue = parseInt(ageMonthsInput.value, 10);
+                    if (value === 0 && monthsValue === 0) {
+                        ageMonthsInput.value = 1; // Устанавливаем минимум 1, если год равен 0
+                    }
+                }
+            });
+        }
+
+        if (ageMonthsInput) {
+            ageMonthsInput.addEventListener('input', () => {
+                let value = parseInt(ageMonthsInput.value, 10);
+                const ageYearsValue = parseInt(ageYearsInput?.value || 0, 10);
+
+                if (isNaN(value) || value < 0) value = 0;
+                if (value > 11) value = 11;
+
+                // Разрешить 0 только если год больше 0
+                if (value === 0 && ageYearsValue === 0) {
+                    value = 1;
+                }
+
+                ageMonthsInput.value = value;
+            });
+        }
+
+        if (weightInput) {
+            weightInput.addEventListener('input', () => {
+                let value = parseFloat(weightInput.value);
+                if (isNaN(value) || value < 0) value = 0;
+                if (value > 150) value = 150;
+                weightInput.value = value;
+            });
+        }
+    };
 
     const setupFormInteractions = () => {
         const form = document.querySelector('.swal2-container #animalForm');
         const descriptionField = document.querySelector('#description');
 
+
         restoreFormState(form);
+
+        applyFieldRestrictions();
 
         descriptionField.addEventListener('click', (e) => handleDescriptionClick(e, form));
 
@@ -254,8 +308,42 @@ document.addEventListener("DOMContentLoaded", () => {
             Swal.fire({ icon: "error", title: "Error", text: "Failed to communicate with the server." });
         }
     };
+    const handleFormSubmitResponse = (response, result) => {
+        if (response.ok && result.status === "ok") {
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: result.message
+            });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: result.message || "An unexpected error occurred.",
+            }).then(() => {
+                openFormWithState();
+            });
+        }
+    };
+    const openFormWithState = () => {
+        Swal.fire({
+            html: getFormHtml(), // Функция для генерации HTML формы
+            confirmButtonText: 'Close',
+            showCloseButton: false,
+            focusConfirm: false,
+            didOpen: () => {
+                const form = document.querySelector('.swal2-container #animalForm');
+                if (form) {
+                    restoreFormState(form); // Восстанавливаем состояние формы
+                    setupFormInteractions(); // Устанавливаем события для формы
+                }
+            },
+            willClose: resetFormState, // Сброс состояния при закрытии
+        });
+    };
 
     const validateFields = (form) => {
+
         const validationRules = {
             name: {
                 maxLength: 15,
@@ -340,13 +428,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 fieldIsValidMessage = rule.messageEmpty;
             }
 
-            if (rule.max && parseInt(field.value) > rule.max) {
-                fieldIsValid = false;
+            if (rule.min !== undefined || rule.max !== undefined) {
+                const value = parseInt(field.value);
+                if (isNaN(value) || (rule.min !== undefined && value < rule.min) || (rule.max !== undefined && value > rule.max)) {
+                    fieldIsValid = false;
+                }
             }
 
-            if (rule.min && parseInt(field.value) < rule.min) {
-                fieldIsValid = false;
-            }
 
             if (rule.checkAtLeastOneImage) {
                 const imageInputs = form.querySelectorAll('input[type="file"]');
@@ -358,6 +446,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (warningElement) {
                         warningElement.classList.add('invalid-warning');
                         warningElement.innerText = rule.message;
+                    }
+                }
+            }
+
+            // Custom validation for age_years and age_months
+            if (field.name === 'age_years' || field.name === 'age_months') {
+                const ageYearsField = form.querySelector('input[name="age_years"]');
+                const ageMonthsField = form.querySelector('input[name="age_months"]');
+
+                const ageYears = parseInt(ageYearsField.value) || 0;
+                const ageMonths = parseInt(ageMonthsField.value) || 0;
+
+                if (ageYears === 0 && ageMonths === 0) {
+                    fieldIsValid = false;
+                    isValid = false;
+                    const warningElement = document.querySelector(`#age_months-warning`);
+                    if (warningElement) {
+                        warningElement.classList.add('invalid-warning');
+                        warningElement.innerText = "If age is 0 years, months must be at least 1.";
                     }
                 }
             }
@@ -381,9 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         return isValid;
-    };
-
-    // ФУНКЦИЯ НИЖЕ ДЛЯ ВОЗМОЖНОЙ СМЕНЫ РЕАЛИЗАЦИИ ПОДСВЕТКИ ПОЛЕЙ, ОНА ДЕЛАЕТ ПОДСВЕТКУ ПОЛЕЙ ВРЕМЕННЫМ СВОЙСТВОМ ИНПУТ ПОЛЯ, А НЕ РАБОТАЕТ БЕСКОНЕЧНО
+    }
 
     const highlightInvalidField = (field) => {
         field.classList.add("invalid-blink");
@@ -392,11 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 5000); // Мигание будет длиться 5 секунд
     };
 
-    // const highlightInvalidField = (field) => {
-    //     field.classList.add("invalid-blink");
-    // };
-
-    const removeHighlight = (field) => {
+        const removeHighlight = (field) => {
         field.classList.remove("invalid-blink");
     };
 
@@ -415,18 +516,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
 
-
-    const handleFormSubmitResponse = (response, result) => {
-        if (response.ok && result.status === "ok") {
-            Swal.fire({ icon: "success", title: "Success", text: result.message });
-        } else {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: result.message || "An unexpected error occurred.",
-            });
-        }
-    };
 
     const showFieldRequirements = (descriptionField) => {
         Swal.fire({
