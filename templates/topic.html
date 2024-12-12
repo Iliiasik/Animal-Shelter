@@ -113,8 +113,8 @@
                     <form method="POST" action="/create_post">
                         <input type="hidden" name="topic_id" value="{{.TopicID}}">
                         <input type="hidden" name="comment_id" value="{{.ID}}">
-                        <textarea name="content" required placeholder="Enter your reply..."></textarea>
-                        <button type="submit" class="add-reply">Add Reply</button>
+                        <textarea id="reply-content" name="content" required placeholder="Enter your reply..."></textarea>
+                        <button type="submit" class="add-reply" id="add-reply-button">Add Reply</button>
                     </form>
                 </div>
 

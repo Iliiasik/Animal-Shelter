@@ -217,6 +217,25 @@ textarea:focus {
     background-color: #6F4E37;
     color: #EADDCA;
 }
+.add-reply {
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 8px 24px;
+    border: none;
+    border-radius: 5px;
+    background-color: #EADDCA;
+    cursor: pointer;
+    transition: all 0.5s, opacity 0.5s ease-in-out;
+    color: #6F4E37;
+    text-decoration: none; /* Убирает подчеркивание */
+    text-align: center;
+    display: block;
+    margin-top: 1%;
+}
+.add-reply:hover {
+    background-color: #6F4E37;
+    color: #EADDCA;
+}
 
 /* Styling for the replies */
 .replies-list {
