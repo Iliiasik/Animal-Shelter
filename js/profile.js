@@ -135,6 +135,9 @@ document.addEventListener("DOMContentLoaded", () => {
             confirmButtonText: 'Close',
             showCloseButton: false,
             focusConfirm: false,
+            customClass: {
+                confirmButton: 'custom-close-button', // Назначаем класс для кнопки
+            },
             //ТУТ НУЖНА ДОРАБОТКА. ЭТА ЧАСТЬ КОДА БЫЛА НАПИСАНА В ПОПЫТКЕ ПЕРЕМЕСТИТЬ ВОПРОСИК ВНЕ ФОРМЫ
             // backdrop:'<div class="question-icon-container">\n' +
             //         '    <span class="question-icon" title="Field requirements">&#x3F;</span>\n' +
@@ -182,14 +185,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (isNaN(value) || value < 0) value = 0;
                 if (value > 50) value = 50;
                 ageYearsInput.value = value;
+
+                // Проверка для месяцев при изменении значения года
+                if (ageMonthsInput) {
+                    let monthsValue = parseInt(ageMonthsInput.value, 10);
+                    if (value === 0 && monthsValue === 0) {
+                        ageMonthsInput.value = 1; // Устанавливаем минимум 1, если год равен 0
+                    }
+                }
             });
         }
 
         if (ageMonthsInput) {
             ageMonthsInput.addEventListener('input', () => {
                 let value = parseInt(ageMonthsInput.value, 10);
-                if (isNaN(value) || value < 1) value = 1;
+                const ageYearsValue = parseInt(ageYearsInput?.value || 0, 10);
+
+                if (isNaN(value) || value < 0) value = 0;
                 if (value > 11) value = 11;
+
+                // Разрешить 0 только если год больше 0
+                if (value === 0 && ageYearsValue === 0) {
+                    value = 1;
+                }
+
                 ageMonthsInput.value = value;
             });
         }
@@ -199,10 +218,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let value = parseFloat(weightInput.value);
                 if (isNaN(value) || value < 0) value = 0;
                 if (value > 150) value = 150;
-                weightInput.value = value
+                weightInput.value = value;
             });
         }
     };
+
     const setupFormInteractions = () => {
         const form = document.querySelector('.swal2-container #animalForm');
         const descriptionField = document.querySelector('#description');
