@@ -3,10 +3,12 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f0f0f0; /* Цвет фона страницы */
+    display: flex;
+    flex-direction: row;
 }
 
 .profile-background {
-
+    background-color: #ffab4c;
     background-size: cover;       /* Изображение покрывает всю ширину контейнера */
     background-position: center;  /* Центрируем фон */
     height: 30vh;                /* Высота фона */
@@ -27,7 +29,7 @@ body {
     align-items: flex-start;
     justify-content: space-between; /* Разделяем колонки */
     max-width: 90vh;
-    margin: 10% 0 0 15%;
+    margin: 1% 0 0 20%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
@@ -37,7 +39,7 @@ body {
 }
 .profile-options {
     max-width: 40vh;
-    margin: 17% auto 0 2%;
+    margin: 5% auto 0 2%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
@@ -439,7 +441,9 @@ body {
         border-color: red;
     }
 }
-
+.question-icon {
+    position: absolute; top: 10px; right: 10px; cursor: pointer;
+}
 .invalid-blink {
     animation: blink 1s infinite;
     border-width: 2px;
@@ -448,24 +452,36 @@ body {
     color: red;
     text-decoration: underline;
 }
-/*ЭТО СТИЛЬ ДЛЯ ВОПРОСИКА ВНЕ ФОРМЫ*/
-.question-icon-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 9999; /* Ensure it's in front of other elements */
+.content-with-border {
+    margin:2% 0 2% 0;
+    padding: 20px; /* Optional: adds padding inside the border */
+    border: 2px solid #F1F0EA; /* The big border around all content */
+    border-radius: 15px; /* Rounded corners */
+    background-color: #FAFAF8;
+    position: sticky;
+}
+
+.animal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    transition: transform 0.3s ease; /* Плавная анимация для блока */
+}
+
+.animal:hover {
+    transform: scale(1.03); /* Увеличение размера блока при наведении */
+}
+.animal-info{
     display: flex;
     align-items: center;
-    justify-content: center;
 }
-
-.question-icon {
-    font-size: 24px; /* Adjust size */
-    color: #333; /* Adjust color */
-    cursor: pointer;
+.animal-image{
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
 }
-
-/* ЭТО СТИЛЬ ДЛЯ ВОПРОСИКА НЕПОСРЕДСТВЕННО ВНУТРИ САМОЙ ФОРМЫ*/
-/*.question-icon {*/
-/*     position: absolute; top: 10px; right: 10px; cursor: pointer;*/
-/* }*/

@@ -202,7 +202,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ageYearsValue = parseInt(ageYearsInput?.value || 0, 10);
 
                 if (isNaN(value) || value < 0) value = 0;
-                if (value > 11) value = 11;
+
+                // Если значение больше 11, берем последнюю цифру
+                if (value > 11) {
+                    value = parseInt(value.toString().slice(-1), 10);
+                }
 
                 // Разрешить 0 только если год больше 0
                 if (value === 0 && ageYearsValue === 0) {
@@ -222,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     };
+
 
     const setupFormInteractions = () => {
         const form = document.querySelector('.swal2-container #animalForm');
