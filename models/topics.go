@@ -11,7 +11,7 @@ type Topic struct {
 	UserID      uint      `json:"user_id"`
 	CreatedAt   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 
-	User User `gorm:"foreignKey:UserID"`
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 func (Topic) TableName() string {

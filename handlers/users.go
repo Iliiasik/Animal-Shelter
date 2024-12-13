@@ -316,7 +316,7 @@ func Login(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(24 * time.Hour)
 	session := models.Session{
 		SessionID: sessionToken,
-		UserID:    int(user.ID),
+		UserID:    uint(user.ID),
 		ExpiresAt: &expiresAt,
 	}
 	if err := db.Create(&session).Error; err != nil {
