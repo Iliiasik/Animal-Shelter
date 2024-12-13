@@ -550,10 +550,25 @@ document.addEventListener("DOMContentLoaded", () => {
     addAnimal.addEventListener('click', () => openForm());
 });
 document.addEventListener('DOMContentLoaded', function () {
+    // Обработчик клика на контейнер животного
+    const animalElements = document.querySelectorAll('.animal');
+
+    animalElements.forEach(animal => {
+        animal.addEventListener('click', function () {
+            const animalId = this.querySelector('.delete-button').getAttribute('data-animal-id');
+            if (animalId) {
+                // Редирект на страницу информации о животном
+                window.location.href = `/animal_information?id=${animalId}`;
+            }
+        });
+    });
+
+    // Обработчик клика для кнопки удаления
     const deleteButtons = document.querySelectorAll('.delete-button');
 
     deleteButtons.forEach(button => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function (event) {
+            event.stopPropagation(); // Предотвращаем всплытие события клика на родительский контейнер
             const animalId = this.getAttribute('data-animal-id');
 
             Swal.fire({
@@ -604,5 +619,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 
 
