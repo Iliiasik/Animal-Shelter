@@ -67,7 +67,6 @@ func main() {
 	mux.HandleFunc("/update-rating", func(w http.ResponseWriter, r *http.Request) {
 		handlers.UpdateRating(sqlDB, w, r)
 	})
-
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
