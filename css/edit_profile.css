@@ -308,9 +308,10 @@ body {
     display: flex;
     align-items: flex-start;
     flex-direction: row;
-    width: 300px;
+    width: 200px;
     margin-left: 8px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .profile {
@@ -325,7 +326,8 @@ body {
     border-radius: 5vh;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    z-index: 2; /* Профиль выше фона */
+    z-index: 2;
+    gap: 20px;
 }
 
 .profile-image {

@@ -50,6 +50,9 @@ func main() {
 		handlers.AnimalListPage(sqlDB, w, r)
 	})
 
+	mux.HandleFunc("/animals/delete", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DeleteAnimal(gormDB, w, r)
+	})
 	mux.HandleFunc("/add-animal", func(w http.ResponseWriter, r *http.Request) {
 		handlers.AddAnimal(gormDB, w, r)
 	})

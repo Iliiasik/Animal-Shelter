@@ -549,5 +549,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addAnimal.addEventListener('click', () => openForm());
 });
+document.addEventListener('DOMContentLoaded', function () {
+    // Обработчик клика на контейнер животного
+    const animalElements = document.querySelectorAll('.animal');
+
+    animalElements.forEach(animal => {
+        animal.addEventListener('click', function () {
+            const animalId = this.querySelector('.delete-button').getAttribute('data-animal-id');
+            if (animalId) {
+                // Редирект на страницу информации о животном
+                window.location.href = `/animal_information?id=${animalId}`;
+            }
+        });
+    });
+
+    // Обработчик клика для кнопки удаления
+    const deleteButtons = document.querySelectorAll('.delete-button');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.stopPropagation(); // Предотвращаем всплытие события клика на родительский контейнер
+            const animalId = this.getAttribute('data-animal-id');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Отправка запроса на удаление
+                    fetch(`/animals/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ id: parseInt(animalId, 10) }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'ok') {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'Your animal has been deleted.',
+                                    'success'
+                                );
+                                // Удаляем элемент из DOM
+                                this.closest('li').remove();
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    data.message || 'Something went wrong.',
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire(
+                                'Error!',
+                                'Failed to delete the animal.',
+                                'error'
+                            );
+                        });
+                }
+            });
+        });
+    });
+});
+
 
 

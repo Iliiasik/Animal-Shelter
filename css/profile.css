@@ -230,7 +230,7 @@ body {
     cursor: pointer;
     transition: all 0.5s;
     color: #090909;
-    text-decoration: none; /* Убирает подчеркивание */
+    text-decoration: none;
 }
 
 .general-button:hover {
@@ -251,22 +251,22 @@ body {
 
 
 .animal-form-container {
-    background-color: #f9f9f9; /* светлый фон */
-    border: 1px solid #ccc; /* рамка */
-    border-radius: 10px; /* закругленные углы */
-    padding: 20px; /* внутренний отступ */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* тень */
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .animal-form-container h1 {
-    font-size: 1.5rem; /* размер заголовка */
-    color: #333; /* цвет текста */
-    margin-bottom: 15px; /* отступ снизу */
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 15px;
 }
 
 .animal-form-container label {
-    font-weight: bold; /* жирный текст */
-    color: #555; /* цвет текста */
+    font-weight: bold;
+    color: #555;
 }
 
 .animal-form-container input,
@@ -282,12 +282,12 @@ body {
 
 
 .animal-form-container textarea {
-    height: 80px; /* фиксированная высота */
+    height: 80px;
 }
 
 .animal-form-container .submit-container {
-    text-align: center; /* Центрирует кнопку */
-    margin-top: 15px; /* Отступ сверху */
+    text-align: center;
+    margin-top: 15px;
 }
 
 .animal-form-container .animal-submit {
@@ -457,34 +457,119 @@ body {
 }
 .content-with-border {
     margin:2% 0 2% 0;
-    padding: 20px; /* Optional: adds padding inside the border */
-    border: 2px solid #F1F0EA; /* The big border around all content */
-    border-radius: 15px; /* Rounded corners */
+    padding: 20px;
+    border: 2px solid #F1F0EA;
+    border-radius: 15px;
     background-color: #FAFAF8;
     position: sticky;
 }
 
 .animal {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
     padding: 10px;
     border: 2px solid #a8a7a7;
     border-radius: 10px;
     background-color: #f9f9f9;
-    transition: transform 0.3s ease; /* Плавная анимация для блока */
+    transition: transform 0.3s ease;
 }
 
 .animal:hover {
-    transform: scale(1.02); /* Увеличение размера блока при наведении */
+    transform: scale(1.02);
 }
-.animal-info{
+.animal-info {
     display: flex;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
 }
 .animal-image{
     height: 40px;
     width: 40px;
     border-radius: 50%;
+    object-fit: cover;
+}
+.animal-image-container{
+    width: 100px;
+    border-radius: 50%;
+}
+.delete-button {
+    border: 2px solid #6b7280;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition-duration: .4s;
+    cursor: pointer;
+    position: relative;
+    background-color: rgb(255, 255, 255);
+    overflow: hidden;
+}
+
+.delete-button .icon {
+    width: 20px;
+    height: 20px;
+    transition-duration: .3s;
+}
+
+.delete-button .button-text {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    width: unset;
+    font-weight: 600;
+    opacity: 0;
+    transition-duration: .4s;
+    white-space: nowrap;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.delete-button:hover {
+    width: 100px;
+    border-radius: 30px;
+}
+
+.delete-button:hover .button-text {
+    opacity: 1;
+    transition-duration: .4s;
+}
+
+.delete-button:hover .icon {
+    opacity: 0;
+    transition-duration: .3s;
+}
+
+.delete-button:hover {
+    background-color: rgb(255, 0, 0);
+    color: rgb(255, 255, 255);
+}
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
+}
+
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
 }
