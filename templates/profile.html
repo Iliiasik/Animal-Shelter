@@ -84,6 +84,13 @@
     </div>
 <div class="content-with-border">
     <h1>Your listing</h1>
+    {{if eq (len .Animals) 0}}
+    <div class="no-result">
+        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-result-image">
+        <p class="no-result-text">Um, sorry, I didn't find anything :(</p>
+        <p class="no-result-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar. Noo, he works at 3 jobs now(. He has bills to pay...)</p>
+    </div>
+    {{else}}
     <ul>
         {{range $animal := .Animals}}
         <li class="animal">
@@ -115,7 +122,9 @@
         </li>
         {{end}}
     </ul>
+    {{end}}
 </div>
+
 
 
 

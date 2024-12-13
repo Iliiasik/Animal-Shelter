@@ -548,3 +548,27 @@ body {
     background-color: rgb(255, 0, 0);
     color: rgb(255, 255, 255);
 }
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
+}
+
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
+}
