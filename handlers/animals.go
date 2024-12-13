@@ -232,7 +232,7 @@ func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalI
 	}
 
 	image := models.PostImage{
-		AnimalID: int(animalID),
+		AnimalID: uint(animalID),
 		ImageURL: filepath.ToSlash(filePath),
 	}
 	if err := db.Create(&image).Error; err != nil {
