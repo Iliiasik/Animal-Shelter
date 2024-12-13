@@ -86,8 +86,31 @@ editCropButton.addEventListener('click', function () {
         cropper = new Cropper(cropImage, {
             aspectRatio: 1,
             viewMode: 1,
-            autoCropArea: 1
+            autoCropArea: 1,
+            minCropBoxWidth: 100, // Минимальная ширина области обрезки
+            minCropBoxHeight: 100, // Минимальная высота области обрезки
+            scalable: true, // Включаем возможность масштабирования
+            zoomable: true, // Разрешить зум
+            minCanvasWidth: 600, // Минимальный размер холста
+            minCanvasHeight: 600, // Минимальная высота холста
+            ready: function () {
+                cropper.zoomTo(1); // Устанавливаем начальный зум
+            },
         });
+        // Ограничиваем зум с помощью события 'zoom'
+        cropImage.addEventListener('zoom', function (event) {
+            const maxZoom = 1.7; // Максимальный уровень зума
+            const minZoom = 0.5; // Минимальный уровень зума
+
+            if (event.detail.ratio > maxZoom) {
+                event.preventDefault(); // Блокируем увеличение, превышающее maxZoom
+                cropper.zoomTo(maxZoom); // Устанавливаем максимально допустимый зум
+            } else if (event.detail.ratio < minZoom) {
+                event.preventDefault(); // Блокируем уменьшение ниже minZoom
+                cropper.zoomTo(minZoom); // Устанавливаем минимально допустимый зум
+            }
+        });
+
     } else {
         alert("No profile image available to crop.");
     }
