@@ -110,7 +110,6 @@ func initializeAnimalStatus(db *gorm.DB) {
 		{StatusName: "Available"},
 		{StatusName: "Booked"},
 		{StatusName: "In treatment"},
-		{StatusName: "Under review"},
 	}
 
 	for _, status := range statuses {

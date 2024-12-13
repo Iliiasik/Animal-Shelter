@@ -79,7 +79,7 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Species: %+v\n", animal.Species)
 
 	var status models.AnimalStatus
-	if err := db.Where("id = ?", 4).First(&status).Error; err != nil {
+	if err := db.Where("id = ?", 1).First(&status).Error; err != nil {
 		log.Println("Error fetching status with ID 4:", err)
 		respondWithJSON(w, http.StatusInternalServerError, "error", "Error fetching status")
 		return
@@ -252,4 +252,82 @@ func isValidImageExt(ext string) bool {
 		}
 	}
 	return false
+}
+
+// DeleteAnimal handles the deletion of an animal by ID
+func DeleteAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	log.Println("Start DeleteAnimal handler")
+
+	// Set response header to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Проверяем, что метод запроса — POST
+	if r.Method != http.MethodPost {
+		log.Println("Invalid request method")
+		respondWithJSON(w, http.StatusMethodNotAllowed, "error", "Invalid request method")
+		return
+	}
+
+	// Читаем тело запроса
+	var requestData struct {
+		ID int `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		log.Println("Error decoding request body:", err)
+		respondWithJSON(w, http.StatusBadRequest, "error", "Invalid request body")
+		return
+	}
+
+	// Проверяем, что ID указан
+	if requestData.ID == 0 {
+		log.Println("Animal ID not provided")
+		respondWithJSON(w, http.StatusBadRequest, "error", "Animal ID is required")
+		return
+	}
+
+	animalID := requestData.ID
+
+	// Fetch the animal to ensure it exists
+	var animal models.Animal
+	if err := db.Preload("Images").Preload("Age").Where("id = ?", animalID).First(&animal).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("Animal not found")
+			respondWithJSON(w, http.StatusNotFound, "error", "Animal not found")
+			return
+		}
+		log.Println("Error fetching animal:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error fetching animal")
+		return
+	}
+
+	// Delete related images from the filesystem
+	for _, image := range animal.Images {
+		if err := os.Remove(image.ImageURL); err != nil && !os.IsNotExist(err) {
+			log.Printf("Error deleting image file %s: %v\n", image.ImageURL, err)
+		}
+	}
+
+	// Delete related records in the database
+	if err := db.Where("animal_id = ?", animalID).Delete(&models.PostImage{}).Error; err != nil {
+		log.Println("Error deleting related images from database:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting related images")
+		return
+	}
+
+	if err := db.Where("animal_id = ?", animalID).Delete(&models.AnimalAge{}).Error; err != nil {
+		log.Println("Error deleting animal age:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting animal age")
+		return
+	}
+
+	// Delete the animal record
+	if err := db.Delete(&animal).Error; err != nil {
+		log.Println("Error deleting animal:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting animal")
+		return
+	}
+
+	log.Printf("Animal with ID %d deleted successfully\n", animalID)
+	respondWithJSON(w, http.StatusOK, "ok", "Animal deleted successfully")
 }
