@@ -108,6 +108,7 @@ body {
     padding: 10px;
     background-color: #FAFAF8; /* Молочно-желтый фон */
     border-left: 5px solid #543f30; /* Светло-кофейная левая граница для выделения */
+    overflow-wrap: break-word;
 }
 
 
