@@ -109,7 +109,7 @@ func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, age
 	var animals []AnimalSummary
 
 	query := `
-        SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
+        SELECT animals.id, animals.name, animaltypes.name AS species, animals.breed, 
                animals.color, animalages.years, animalages.months, genders.name AS gender,
                (SELECT image_url FROM postimages WHERE animal_id = animals.id LIMIT 1) AS image
         FROM animals
@@ -141,7 +141,7 @@ func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, age
 
 	// Фильтрация по species
 	if species != "" {
-		query += " AND animaltypes.type_name = $" + strconv.Itoa(len(args)+1)
+		query += " AND animaltypes.name = $" + strconv.Itoa(len(args)+1)
 		args = append(args, species)
 	}
 
@@ -228,8 +228,8 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Выполняем SQL-запрос для получения информации о животном
 	query := `
-		SELECT animals.id, animals.name, animaltypes.type_name AS species, animals.breed, 
-		       genders.name AS gender, animalstatus.status_name AS status, animals.publication_date, 
+		SELECT animals.id, animals.name, animaltypes.name AS species, animals.breed, 
+		       genders.name AS gender, animalstatus.name AS status, animals.publication_date, 
 		       animals.description, animals.location, animals.weight, animals.color, 
 		       animals.is_sterilized, animals.has_passport, animals.views
 		FROM animals

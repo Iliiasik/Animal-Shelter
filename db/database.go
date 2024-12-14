@@ -107,44 +107,44 @@ func initializeGenders(db *gorm.DB) {
 }
 func initializeAnimalStatus(db *gorm.DB) {
 	statuses := []models.AnimalStatus{
-		{StatusName: "Available"},
-		{StatusName: "Booked"},
-		{StatusName: "In treatment"},
+		{Name: "Available"},
+		{Name: "Booked"},
+		{Name: "In treatment"},
 	}
 
 	for _, status := range statuses {
 		var existingStatus models.AnimalStatus
-		if err := db.Where("status_name = ?", status.StatusName).First(&existingStatus).Error; err != nil {
+		if err := db.Where("name = ?", status.Name).First(&existingStatus).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if err := db.Create(&status).Error; err != nil {
-					log.Printf("Error creating animal status %s: %v\n", status.StatusName, err)
+					log.Printf("Error creating animal status %s: %v\n", status.Name, err)
 				} else {
-					log.Printf("Animal status %s created successfully.\n", status.StatusName)
+					log.Printf("Animal status %s created successfully.\n", status.Name)
 				}
 			} else {
-				log.Printf("Error fetching animal status %s: %v\n", status.StatusName, err)
+				log.Printf("Error fetching animal status %s: %v\n", status.Name, err)
 			}
 		}
 	}
 }
 func initializeAnimalTypes(db *gorm.DB) {
 	types := []models.AnimalType{
-		{TypeName: "Dog"},
-		{TypeName: "Cat"},
-		{TypeName: "Bird"},
+		{Name: "Dog"},
+		{Name: "Cat"},
+		{Name: "Bird"},
 	}
 
 	for _, types2 := range types {
 		var existingTypes models.AnimalType
-		if err := db.Where("type_name = ?", types2.TypeName).First(&existingTypes).Error; err != nil {
+		if err := db.Where("name = ?", types2.Name).First(&existingTypes).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if err := db.Create(&types).Error; err != nil {
-					log.Printf("Error creating animal type %s: %v\n", types2.TypeName, err)
+					log.Printf("Error creating animal type %s: %v\n", types2.Name, err)
 				} else {
-					log.Printf("Animal type %s created successfully.\n", types2.TypeName)
+					log.Printf("Animal type %s created successfully.\n", types2.Name)
 				}
 			} else {
-				log.Printf("Error fetching animal type %s: %v\n", types2.TypeName, err)
+				log.Printf("Error fetching animal type %s: %v\n", types2.Name, err)
 			}
 		}
 	}

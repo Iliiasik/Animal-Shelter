@@ -5,8 +5,8 @@ import "time"
 // Все модели о животных
 
 type AnimalStatus struct {
-	ID         uint   `json:"id" gorm:"primaryKey"`
-	StatusName string `json:"status_name"`
+	ID   uint   `json:"id" gorm:"primaryKey"`
+	Name string `json:"name"`
 }
 
 func (AnimalStatus) TableName() string {
@@ -14,8 +14,8 @@ func (AnimalStatus) TableName() string {
 }
 
 type AnimalType struct {
-	ID       uint   `json:"id" gorm:"primaryKey"`
-	TypeName string `json:"type_name"`
+	ID   uint   `json:"id" gorm:"primaryKey"`
+	Name string `json:"name"`
 }
 
 func (AnimalType) TableName() string {
