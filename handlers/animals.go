@@ -71,7 +71,7 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Animal data: %+v\n", animal)
 
 	// Обработка связанных данных: species, status, gender
-	if err := processRelation(db, &animal.Species, "type_name", r.FormValue("species")); err != nil {
+	if err := processRelation(db, &animal.Species, "name", r.FormValue("species")); err != nil {
 		log.Println("Error processing species:", err)
 		respondWithJSON(w, http.StatusInternalServerError, "error", "Error processing species")
 		return
