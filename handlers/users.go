@@ -361,7 +361,7 @@ func Logout(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Перенаправляем на главную страницу
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/?logout=success", http.StatusSeeOther)
 }
 
 // generateToken generates a secure token and handles any potential errors
