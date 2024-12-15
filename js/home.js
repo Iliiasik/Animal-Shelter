@@ -49,19 +49,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
             },
-            didClose:()=>{
-                window.location.href = "/";
-            }
         });
 
         Toast.fire({
             icon: 'success',
             title: 'Signed in successfully'
         });
+        // Удалить параметр "login" из URL
+        const url = new URL(window.location);
+        url.searchParams.delete('login');
+        window.history.replaceState({}, document.title, url);
     }
 });
 document.addEventListener('DOMContentLoaded', function() {
-    // Проверьте, если редирект с успешного логина
+    // Проверьте, если редирект с успешного логаута
     const params = new URLSearchParams(window.location.search);
     if (params.has('logout') && params.get('logout') === 'success') {
         const Toast = Swal.mixin({
@@ -77,15 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
             },
-            didClose:()=>{
-                window.location.href = "/";
-            }
         });
 
         Toast.fire({
             icon: 'info',
             title: 'Logged out '
         });
+
+        // Удалить параметр "logout" из URL
+        const url = new URL(window.location);
+        url.searchParams.delete('logout');
+        window.history.replaceState({}, document.title, url);
     }
 });
 document.addEventListener('DOMContentLoaded', () => {

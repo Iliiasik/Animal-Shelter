@@ -520,8 +520,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-
-
     const showFieldRequirements = (descriptionField) => {
         Swal.fire({
             icon: "info",
@@ -619,7 +617,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверьте, если редирект с "already_logged_in"
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('already_logged_in') && params.get('already_logged_in') === 'true') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                container: 'custom-toast-container'
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
 
+        Toast.fire({
+            icon: 'info',
+            title: 'You are already logged in!'
+        });
+
+        // Удаляем параметр из URL после показа уведомления
+        const url = new URL(window.location);
+        url.searchParams.delete('already_logged_in');
+        window.history.replaceState({}, document.title, url);
+    }
+});
 
 
 

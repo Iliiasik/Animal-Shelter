@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/animal_list.css">
     <link rel="stylesheet" href="/css/footer.css">
-    <script src="/js/home.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
 <nav>
@@ -155,69 +155,6 @@
 </footer>
 
 </body>
-<script>
-    // Получаем элементы полей ввода
-    const breedInput = document.getElementById('breed-search');
-    const colorInput = document.getElementById('color-search');
-    const ageYearsInput = document.getElementById('age-years-search');
-    const ageMonthsInput = document.getElementById('age-months-search');
-    const genderSelect = document.getElementById('gender-search');
-
-    // Функция фильтрации
-    function applyFilters() {
-        const breed = breedInput.value;
-        const color = colorInput.value;
-        const ageYears = ageYearsInput.value;
-        const ageMonths = ageMonthsInput.value;
-        const gender = genderSelect.value;
-
-        const url = new URL(window.location.href);
-
-        // Добавляем или удаляем параметры фильтрации
-        if (breed) url.searchParams.set('breed', breed);
-        else url.searchParams.delete('breed');
-
-        if (color) url.searchParams.set('color', color);
-        else url.searchParams.delete('color');
-
-        // Добавляем возраст (годы и месяцы)
-        if (ageYears) url.searchParams.set('age_years', ageYears);
-        else url.searchParams.delete('age_years');
-
-        if (ageMonths) url.searchParams.set('age_months', ageMonths);
-        else url.searchParams.delete('age_months');
-
-        if (gender) url.searchParams.set('gender', gender);
-        else url.searchParams.delete('gender');
-
-        window.location.href = url.toString(); // Перенаправляем на новый URL
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const navbar = document.querySelector('nav');
-        let lastScrollTop = 0;
-
-        window.addEventListener('scroll', function() {
-            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            if (currentScrollTop > lastScrollTop) {
-                // Scrolling down
-                navbar.classList.add('nav-hidden');
-            } else {
-                // Scrolling up
-                navbar.classList.remove('nav-hidden');
-            }
-
-            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
-        });
-    });
-    function filterAnimals(species) {
-        console.log('Filtering animals by species:', species); // Для отладки
-        const url = new URL(window.location.href);
-        url.searchParams.set('species', species);
-        console.log('Redirecting to URL:', url.toString()); // Для отладки
-        window.location.href = url.toString();
-    }
+<script src="/js/animal_list.js">
 </script>
 </html>
