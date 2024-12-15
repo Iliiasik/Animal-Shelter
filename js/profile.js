@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Обработчик клика для кнопки удаления
-    const deleteButtons = document.querySelectorAll('.delete-button');
+    const deleteButtons = document.querySelectorAll('.remove-button');
 
     deleteButtons.forEach(button => {
         button.addEventListener('click', function (event) {
@@ -619,6 +619,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 
 
 

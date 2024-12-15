@@ -58,6 +58,7 @@ func ConnectDB() *gorm.DB {
 	initializeGenders(db)
 	initializeAnimalStatus(db)
 	initializeAnimalTypes(db)
+	initializeAdoptionStatus(db)
 	return db
 }
 
@@ -145,6 +146,27 @@ func initializeAnimalTypes(db *gorm.DB) {
 				}
 			} else {
 				log.Printf("Error fetching animal type %s: %v\n", types2.Name, err)
+			}
+		}
+	}
+}
+func initializeAdoptionStatus(db *gorm.DB) {
+	statuses := []models.AdoptionStatus{
+		{Name: "Under review"},
+		{Name: "Approved"},
+	}
+
+	for _, status := range statuses {
+		var existingStatus models.AdoptionStatus
+		if err := db.Where("name = ?", status.Name).First(&existingStatus).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := db.Create(&status).Error; err != nil {
+					log.Printf("Error creating adoption status %s: %v\n", status.Name, err)
+				} else {
+					log.Printf("Adoption status %s created successfully.\n", status.Name)
+				}
+			} else {
+				log.Printf("Error fetching adoption status %s: %v\n", status.Name, err)
 			}
 		}
 	}

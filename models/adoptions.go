@@ -3,8 +3,8 @@ package models
 import "time"
 
 type AdoptionStatus struct {
-	ID     uint   `json:"id" gorm:"primaryKey"`
-	Status string `json:"status"`
+	ID   uint   `json:"id" gorm:"primaryKey"`
+	Name string `json:"name"`
 }
 
 func (AdoptionStatus) TableName() string {

@@ -64,6 +64,9 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	mux.HandleFunc("/adopt", func(w http.ResponseWriter, r *http.Request) {
+		handlers.RegisterAdoption(sqlDB, w, r)
+	})
 	mux.HandleFunc("/increment_views", func(w http.ResponseWriter, r *http.Request) {
 		handlers.IncrementViews(sqlDB, w, r)
 	})

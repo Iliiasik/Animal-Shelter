@@ -17,9 +17,9 @@ body {
 }
 .profile-container {
     display: flex; /* Выравнивание профилей по горизонтали */
-    justify-content: space-between; /* Равномерное распределение места */
+    justify-content: center;
     align-items: flex-start; /* Выравнивание по верхнему краю */
-    gap: 20px; /* Расстояние между профилями */
+    gap: 30px; /* Расстояние между профилями */
 }
 .profile-image-functions{
     display: flex;
@@ -30,7 +30,7 @@ body {
     align-items: flex-start;
     justify-content: space-between; /* Разделяем колонки */
     max-width: 90vh;
-    margin: 1% 0 0 20%;
+    margin: 1% 0 0 2%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
@@ -40,12 +40,31 @@ body {
 }
 .profile-options {
     max-width: 40vh;
-    margin: 5% auto 0 2%;
+    margin-top: 1%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     gap: 20px; /* Расстояние между колонками */
+}
+.profile-options h3 {
+    color: #2a3e5e;
+    text-align: center;
+    margin-top: 5%;
+}
+.admin-panel-title h2 {
+    color: #6b2828;
+}
+.admin-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 0;
+}
+.admin-lock-icon {
+    width: 25px;
+    height: auto;
 }
 .profile-options h2 {
     text-align: center;
@@ -96,9 +115,10 @@ body {
     object-fit: contain;     /* Сохраняем пропорции */
 }
 .bio-text {
-    font-size: 16px;
     color: #666;
     line-height: 1.5; /* Межстрочный интервал */
+    word-break: break-word;
+
 }
 
 .role {
@@ -141,11 +161,7 @@ body {
     font-size: 20px;
 }
 
-.profile-info p {
-    font-size: 16px;
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
+
 
 
 .profile-info h1 {
@@ -172,52 +188,7 @@ body {
     text-decoration: underline;
 }
 
-.button-home, .button-edit {
-    position: fixed; /* Фиксируем кнопки на экране */
-    bottom: 5vh;    /* Располагаем кнопки внизу страницы */
-    padding: 10px 20px;
-    background-color: #adadad; /* Цвет кнопок */
-    color: #000000;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляем тень */
-}
 
-.button-home {
-    left: -5px;  /* Кнопка слегка выходит за левый край экрана */
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 24px;
-    margin: 12px 0 24px;
-    border: 2px solid #6b7280;
-    border-radius: 5px;
-    background-color: #f6f6f6;
-    cursor: pointer;
-    transition: all 0.5s;
-    transform-origin: left bottom;
-    z-index: 10;
-}
-
-.button-edit {
-    right: -5px; /* Кнопка слегка выходит за правый край экрана */
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 24px;
-    margin: 12px 0 24px;
-    border: 2px solid #6b7280;
-    border-radius: 5px;
-    background-color: #f6f6f6;
-    cursor: pointer;
-    transition: all 0.5s;
-    transform-origin: right bottom;
-    z-index: 10;
-}
-
-.button-home:hover, .button-edit:hover {
-    background-color: #000;
-    color: #eee;
-}
 .general-button {
     width: 100%;
     font-size: 0.9rem;
@@ -456,98 +427,34 @@ body {
     text-decoration: underline;
 }
 .content-with-border {
-    margin:2% 0 2% 0;
+    margin:2% 1% 2% 1%;
     padding: 20px;
     border: 2px solid #F1F0EA;
     border-radius: 15px;
     background-color: #FAFAF8;
+
     position: sticky;
 }
-
-.animal {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 2px solid #a8a7a7;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    transition: transform 0.3s ease;
-}
-
-.animal:hover {
-    transform: scale(1.02);
-}
-.animal-info {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    text-align: center;
-}
-.animal-image{
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-.animal-image-container{
-    width: 100px;
-    border-radius: 50%;
-}
-.delete-button {
-    border: 2px solid #6b7280;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
+.listing-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition-duration: .4s;
-    cursor: pointer;
-    position: relative;
-    background-color: rgb(255, 255, 255);
-    overflow: hidden;
+    justify-content: center; /* Распределяет элементы по краям */
+    gap: 10px; /* Отступ между заголовком и иконкой */
+    padding: 10px 0;
 }
 
-.delete-button .icon {
-    width: 20px;
-    height: 20px;
-    transition-duration: .3s;
-}
 
-.delete-button .button-text {
-    position: absolute;
-    color: rgb(255, 255, 255);
-    width: unset;
+.listing-header h1 {
+    font-size: 24px;
     font-weight: 600;
-    opacity: 0;
-    transition-duration: .4s;
-    white-space: nowrap;
-    left: 50%;
-    transform: translateX(-50%);
+    margin: 0;
+    color: #333;
 }
 
-.delete-button:hover {
-    width: 100px;
-    border-radius: 30px;
-}
 
-.delete-button:hover .button-text {
-    opacity: 1;
-    transition-duration: .4s;
-}
-
-.delete-button:hover .icon {
-    opacity: 0;
-    transition-duration: .3s;
-}
-
-.delete-button:hover {
-    background-color: rgb(255, 0, 0);
-    color: rgb(255, 255, 255);
+.listing-header .listing-icon {
+    width: 35px; /* Размер изображения */
+    height: auto;
 }
 .no-result {
     display: flex;
@@ -572,4 +479,128 @@ body {
 }
 .no-result-small-text{
     font-weight: bold;
+}
+
+
+/* Animal Listing Card Styles */
+.animal-listing {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    justify-content: center;
+
+}
+.animal-listing-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 280px;
+    margin: 15px;
+}
+
+.animal-listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.animal-listing-card .animal-listing-img {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.animal-listing-card .animal-listing-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.animal-listing-card .animal-listing-info {
+    padding: 15px;
+    text-align: center;
+}
+.animal-listing-card a {
+    text-decoration: none;
+}
+.animal-listing-card .animal-listing-info .animal-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 10px 0;
+}
+
+.animal-listing-card .animal-listing-info .animal-status {
+    font-size: 14px;
+    color: #666;
+}
+
+.animal-listing-card .animal-listing-functions {
+    padding: 15px;
+    text-align: center;
+    background: #f9f9f9;
+}
+
+.animal-listing-card .animal-listing-functions .remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ff4d4f;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+
+.animal-listing-card .animal-listing-functions .remove-button:hover {
+    background: #d9363e;
+}
+
+.animal-listing-card .animal-listing-functions .remove-button .icon {
+    margin-right: 8px;
+    fill: #fff;
+}
+
+/* Стиль для фиксированной кнопки */
+.button-home {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background-color: rgba(29, 29, 31, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: bottom .4s, transform .4s;
+    cursor: pointer;
+}
+
+.button-home:hover {
+    transform: translateY(-.25rem);
+}
+
+.icon-home {
+    width: 30px;
+    height: 30px;
 }
