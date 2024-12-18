@@ -1,8 +1,6 @@
 html, body {
 
-    background-image: url('/system_images/1179225-512.png'); /* URL of your SVG image */
-    background-repeat: repeat; /* Tiling the background */
-    background-size: 10%; /* Optional: adjust size if needed */
+    background-image: url('/system_images/sekiro.jpg'); /* URL of your SVG image */
     background-attachment: fixed; /* Optional: makes the background stay fixed during scroll */
 }
 body {
@@ -24,11 +22,14 @@ body {
     display: flex;
     flex-direction: column;  /* Располагаем элементы в колонку */
     gap: 10px; /* Отступы между элементами */
+    text-align: center;
+
 }
 
 label {
     font-weight: bold;  /* Сделать текст жирным */
     font-size: 1.1em;  /* Увеличить шрифт для яркости */
+    margin-bottom: 3%;
 }
 
 textarea {
