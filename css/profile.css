@@ -827,4 +827,6 @@ h1 {
 .decline-button:hover {
     background-color: #8a1c25; /* Ещё темнее при наведении */
 }
-
+.custom-profile-container{
+    top:unset !important;
+}

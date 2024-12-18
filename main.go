@@ -72,6 +72,12 @@ func main() {
 	mux.HandleFunc("/delete_adoption", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeclineAdoption(sqlDB, w, r)
 	})
+	mux.HandleFunc("/deal_canceled", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DealCanceled(sqlDB, w, r)
+	})
+	mux.HandleFunc("/transfer_animal", func(w http.ResponseWriter, r *http.Request) {
+		handlers.TransferAnimal(sqlDB, w, r)
+	})
 	mux.HandleFunc("/increment_views", func(w http.ResponseWriter, r *http.Request) {
 		handlers.IncrementViews(sqlDB, w, r)
 	})

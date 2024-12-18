@@ -151,9 +151,15 @@
     </div>
     <div class="adoptions-list">
         <!-- Сначала отображаем заявки со StatusID = 1 (Under review) -->
+        {{ $hasUnderReview := false }}
+        {{ $hasApproved := false }}
+
         {{ range .Adoptions }}
         {{ if eq .StatusID 1 }}
+        {{ if not $hasUnderReview }}
         <h1>Under review</h1>
+        {{ $hasUnderReview = true }}
+        {{ end }}
         <div class="adoption-card">
             <!-- Слева: Карточка животного -->
             <div class="animal-card">
@@ -194,17 +200,18 @@
                             Decline
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
         {{ end }}
         {{ end }}
 
-        <!-- Затем отображаем заявки со StatusID = 2 (Approved) -->
         {{ range .Adoptions }}
         {{ if eq .StatusID 2 }}
+        {{ if not $hasApproved }}
         <h1>Approved</h1>
+        {{ $hasApproved = true }}
+        {{ end }}
         <div class="adoption-card">
             <!-- Слева: Карточка животного -->
             <div class="animal-card">
@@ -238,14 +245,21 @@
                     <p>{{ .Phone }}</p>
                     <p>Sent on {{ .CreatedAt.Format "02 Jan 2006" }}</p>
                     <div class="adopter-buttons">
-                        <button class="button accept-button">Transferred</button>
-                        <button class="button decline-button">Deal Canceled</button>
+                        <button class="button accept-button"
+                                onclick="transferAnimal('{{ .AdoptionID }}', '{{ .AnimalID }}')">
+                            Transferred
+                        </button>
+                        <button class="button decline-button"
+                                onclick="cancelAdoptionDeal('{{ .AdoptionID }}', '{{ .AnimalID }}')">
+                            Deal Canceled
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         {{ end }}
         {{ end }}
+
     </div>
 
 
@@ -391,6 +405,67 @@
             });
         });
     });
+
+    function cancelAdoptionDeal(adoptionId, animalId) {
+        const url = `/deal_canceled?adoption_id=${adoptionId}&animal_id=${animalId}`;
+
+        // Отправка запроса через fetch
+        fetch(url, {
+            method: 'POST', // Используем POST для отправки данных
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Показываем результат через SweetAlert2
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Перезагружаем страницу после успешной операции
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+    function transferAnimal(adoptionId, animalId) {
+                const url = `/transfer_animal?adoption_id=${adoptionId}&animal_id=${animalId}`;
+
+                // Отправка запроса через fetch
+                fetch(url, {
+                    method: 'POST', // Используем POST для отправки данных
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Показываем результат через SweetAlert2
+                        Swal.fire({
+                            title: data.title,
+                            text: data.text,
+                            icon: data.icon,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Перезагружаем страницу после успешной операции
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Something went wrong. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+    }
 
 
 </script>

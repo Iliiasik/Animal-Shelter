@@ -628,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
             timer: 3000,
             timerProgressBar: true,
             customClass: {
-                container: 'custom-toast-container'
+                container: 'custom-profile-container'
             },
             didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer);

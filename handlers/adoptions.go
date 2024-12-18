@@ -239,3 +239,95 @@ func DeclineAdoption(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Success: Adoption request declined successfully. adoption_id: %d", adoptionID)
 	sendAlert(w, Alert{"Success", "Adoption request declined successfully!", "success"})
 }
+
+func DealCanceled(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем adoption_id и animal_id из параметров запроса
+	adoptionIDStr := r.URL.Query().Get("adoption_id")
+	animalIDStr := r.URL.Query().Get("animal_id")
+	if adoptionIDStr == "" || animalIDStr == "" {
+		log.Printf("Error: Adoption ID and Animal ID are required. adoption_id: %s, animal_id: %s", adoptionIDStr, animalIDStr)
+		sendAlert(w, Alert{"Error", "Adoption ID and Animal ID are required.", "error"})
+		return
+	}
+
+	adoptionID, err := strconv.Atoi(adoptionIDStr)
+	if err != nil {
+		log.Printf("Error: Invalid Adoption ID. adoption_id: %s, error: %v", adoptionIDStr, err)
+		sendAlert(w, Alert{"Error", "Invalid Adoption ID.", "error"})
+		return
+	}
+
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		log.Printf("Error: Invalid Animal ID. animal_id: %s, error: %v", animalIDStr, err)
+		sendAlert(w, Alert{"Error", "Invalid Animal ID.", "error"})
+		return
+	}
+
+	// Удаляем заявку на усыновление
+	_, err = db.Exec("DELETE FROM adoptions WHERE id = $1", adoptionID)
+	if err != nil {
+		log.Printf("Error: Failed to delete adoption request. adoption_id: %d, error: %v", adoptionID, err)
+		sendAlert(w, Alert{"Error", "Failed to delete adoption request.", "error"})
+		return
+	}
+
+	// Обновляем статус животного на "Available"
+	_, err = db.Exec("UPDATE animals SET status_id = (SELECT id FROM animalstatus WHERE name = $1) WHERE id = $2", "Available", animalID)
+	if err != nil {
+		log.Printf("Error: Failed to update animal status. animal_id: %d, error: %v", animalID, err)
+		sendAlert(w, Alert{"Error", "Failed to update animal status.", "error"})
+		return
+	}
+
+	// Успешный ответ
+	log.Printf("Success: Adoption request declined and animal status updated. adoption_id: %d, animal_id: %d", adoptionID, animalID)
+	sendAlert(w, Alert{"Success", "Adoption request canceled successfully. Animal status updated to Available.", "success"})
+}
+
+func TransferAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Получаем параметры из запроса
+	animalIDStr := r.URL.Query().Get("animal_id")
+	adoptionIDStr := r.URL.Query().Get("adoption_id")
+
+	if animalIDStr == "" || adoptionIDStr == "" {
+		log.Printf("Error: Animal ID and Adoption ID are required. animal_id: %s, adoption_id: %s", animalIDStr, adoptionIDStr)
+		sendAlert(w, Alert{"Error", "Animal ID and Adoption ID are required.", "error"})
+		return
+	}
+
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		log.Printf("Error: Invalid Animal ID. animal_id: %s, error: %v", animalIDStr, err)
+		sendAlert(w, Alert{"Error", "Invalid Animal ID.", "error"})
+		return
+	}
+
+	// Получаем имя животного для добавления в таблицу adoption_statistics
+	var animalName string
+	err = db.QueryRow("SELECT name FROM animals WHERE id = $1", animalID).Scan(&animalName)
+	if err != nil {
+		log.Printf("Error: Animal not found. animal_id: %d, error: %v", animalID, err)
+		sendAlert(w, Alert{"Error", "Animal not found.", "error"})
+		return
+	}
+
+	// Добавляем запись в таблицу adoption_statistics
+	_, err = db.Exec("INSERT INTO adoption_statistics (name, adopted_at) VALUES ($1, $2)", animalName, time.Now())
+	if err != nil {
+		log.Printf("Error: Failed to insert into adoption_statistics. animal_name: %s, error: %v", animalName, err)
+		sendAlert(w, Alert{"Error", "Failed to update adoption statistics.", "error"})
+		return
+	}
+
+	// Удаляем животное из таблицы animals
+	_, err = db.Exec("DELETE FROM animals WHERE id = $1", animalID)
+	if err != nil {
+		log.Printf("Error: Failed to delete animal. animal_id: %d, error: %v", animalID, err)
+		sendAlert(w, Alert{"Error", "Failed to delete animal.", "error"})
+		return
+	}
+
+	log.Printf("Success: Animal transferred successfully. animal_id: %d, animal_name: %s", animalID, animalName)
+	sendAlert(w, Alert{"Success", "Animal transferred successfully!", "success"})
+}
