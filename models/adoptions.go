@@ -26,3 +26,13 @@ type Adoption struct {
 func (Adoption) TableName() string {
 	return "adoptions" // Название таблицы
 }
+
+type AdoptionStatistic struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name"`       // Имя животного
+	AdoptedAt time.Time `json:"adopted_at"` // Время усыновления (если пустое, значит не усыновлено)
+}
+
+func (AdoptionStatistic) TableName() string {
+	return "adoption_statistics" // Название таблицы
+}

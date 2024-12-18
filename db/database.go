@@ -39,6 +39,7 @@ func ConnectDB() *gorm.DB {
 		&models.PostImage{},
 		&models.Adoption{},
 		&models.AdoptionStatus{},
+		&models.AdoptionStatistic{},
 		&models.Topic{},
 		&models.Post{},
 		&models.PostLike{},

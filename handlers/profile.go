@@ -340,10 +340,10 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Для каждого животного выбираем первое изображение
+	// Для каждого животного оставляем только первое изображение
 	for i := range animals {
 		if len(animals[i].Images) > 0 {
-			animals[i].Images = animals[i].Images[:1] // Оставляем только первое изображение
+			animals[i].Images = animals[i].Images[:1]
 		}
 	}
 
@@ -381,6 +381,47 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Загружаем заявки на усыновление для животных пользователя
+	var adoptions []struct {
+		AdoptionID   uint
+		AnimalID     uint
+		StatusID     uint
+		AnimalName   string
+		AnimalImage  string
+		UserID       uint
+		CreatedAt    time.Time
+		FirstName    string
+		LastName     string
+		Email        string
+		Phone        string
+		ProfileImage string
+	}
+
+	if err := db.Table("adoptions").
+		Select(`adoptions.id AS adoption_id, 
+            adoptions.animal_id,
+			adoptions.status_id,
+            animals.name AS animal_name, 
+            (SELECT image_url FROM postimages WHERE postimages.animal_id = animals.id LIMIT 1) AS animal_image, 
+            adoptions.user_id,
+            adoptions.adoption_date AS created_at, 
+            user_details.first_name, 
+            user_details.last_name, 
+            users.email, 
+            user_details.phone_number AS phone,
+            user_images.profile_image`).
+		Joins("JOIN animals ON adoptions.animal_id = animals.id").
+		Joins("JOIN users ON adoptions.user_id = users.id").
+		Joins("JOIN user_details ON user_details.user_id = users.id").
+		Joins("LEFT JOIN user_images ON user_images.user_id = users.id").
+		Where("adoptions.animal_id IN (?)", db.Table("animals").Select("id").Where("user_id = ?", user.ID)).
+		Order("adoptions.adoption_date DESC").
+		Scan(&adoptions).Error; err != nil {
+		log.Println("Error loading adoptions:", err)
+		http.Error(w, "Error loading adoptions", http.StatusInternalServerError)
+		return
+	}
+
 	// Формируем структурированные данные для шаблона
 	profileData := struct {
 		User        models.User
@@ -388,12 +429,27 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		UserImage   models.UserImage
 		UserPrivacy models.UserPrivacy
 		Animals     []models.Animal
+		Adoptions   []struct {
+			AdoptionID   uint
+			AnimalID     uint
+			StatusID     uint
+			AnimalName   string
+			AnimalImage  string
+			UserID       uint
+			CreatedAt    time.Time
+			FirstName    string
+			LastName     string
+			Email        string
+			Phone        string
+			ProfileImage string
+		}
 	}{
 		User:        user,
 		UserDetail:  userDetail,
 		UserImage:   userImage,
 		UserPrivacy: userPrivacy,
 		Animals:     animals,
+		Adoptions:   adoptions, // Передаем плоскую структуру adoptions
 	}
 
 	// Отправляем данные в шаблон для рендеринга

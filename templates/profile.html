@@ -95,7 +95,7 @@
         {{end}}
     </div>
 <div class="content-with-border">
-    <div class="listing-header">
+    <div class="listing-header" id="listing">
         <h1>Your listing</h1>
         <img src="system_images/list.svg" alt="Listing icon" class="listing-icon" />
     </div>
@@ -143,8 +143,126 @@
     {{end}}
 
 </div>
+{{ if gt (len .Adoptions) 0 }}
+<div class="content-with-border">
+    <div class="listing-header" id="adoptions">
+        <h1>Applications for adoption of your animals</h1>
+        <img src="system_images/request.svg" alt="Request icon" class="listing-icon" />
+    </div>
+    <div class="adoptions-list">
+        <!-- Сначала отображаем заявки со StatusID = 1 (Under review) -->
+        {{ range .Adoptions }}
+        {{ if eq .StatusID 1 }}
+        <h1>Under review</h1>
+        <div class="adoption-card">
+            <!-- Слева: Карточка животного -->
+            <div class="animal-card">
+                <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
+                    <div class="card-content">
+                        <div class="card-image">
+                            <img src="{{.AnimalImage}}" alt="{{.AnimalName}}">
+                        </div>
+                        <div class="card-title">
+                            <p>{{.AnimalName}}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="center-icon">
+                <img src="/system_images/arrow.svg" alt="Center Icon">
+            </div>
+
+            <!-- Справа: Информация о заявителе -->
+            <div class="adopter-info">
+                <img src="{{ .ProfileImage }}" alt="Profile Image" class="adopter-image" />
+                <div class="adopter-details">
+                    <h3>Requester</h3>
+                    <div class="info-item">
+                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <h4>{{ .FirstName }} {{ .LastName }}</h4>
+                    </div>
+                    <h5>Contact info</h5>
+                    <p>{{ .Email }}</p>
+                    <p>{{ .Phone }}</p>
+                    <p>Sent on {{ .CreatedAt.Format "02 Jan 2006" }}</p>
+                    <div class="adopter-buttons">
+                        <button class="button accept-button" data-adoption-id="{{ .AdoptionID }}" data-animal-id="{{ .AnimalID }}">
+                            Accept
+                        </button>
+                        <button class="button decline-button" data-adoption-id="{{ .AdoptionID }}" data-animal-id="{{ .AnimalID }}">
+                            Decline
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        {{ end }}
+
+        <!-- Затем отображаем заявки со StatusID = 2 (Approved) -->
+        {{ range .Adoptions }}
+        {{ if eq .StatusID 2 }}
+        <h1>Approved</h1>
+        <div class="adoption-card">
+            <!-- Слева: Карточка животного -->
+            <div class="animal-card">
+                <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
+                    <div class="card-content">
+                        <div class="card-image">
+                            <img src="{{.AnimalImage}}" alt="{{.AnimalName}}">
+                        </div>
+                        <div class="card-title">
+                            <p>{{.AnimalName}}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="center-icon">
+                <img src="/system_images/arrow.svg" alt="Center Icon">
+            </div>
+
+            <!-- Справа: Информация о заявителе -->
+            <div class="adopter-info">
+                <img src="{{ .ProfileImage }}" alt="Profile Image" class="adopter-image" />
+                <div class="adopter-details">
+                    <h3>Requester</h3>
+                    <div class="info-item">
+                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <h4>{{ .FirstName }} {{ .LastName }}</h4>
+                    </div>
+                    <h5>Contact info</h5>
+                    <p>{{ .Email }}</p>
+                    <p>{{ .Phone }}</p>
+                    <p>Sent on {{ .CreatedAt.Format "02 Jan 2006" }}</p>
+                    <div class="adopter-buttons">
+                        <button class="button accept-button">Transferred</button>
+                        <button class="button decline-button">Deal Canceled</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        {{ end }}
+    </div>
 
 
+</div>
+</div>
+{{ end }}
+
+
+
+
+
+<a href="#listing" class="button-scroll" id="button-listing">
+    <span class="button-text">Listing</span>
+</a>
+<a href="#adoptions" class="button-scroll" id="button-adoptions">
+    <span class="button-text">Adoptions</span>
+</a>
 
 
 <a href="/" class="button-home">
@@ -196,4 +314,86 @@
     </div>
 </footer>
 </body>
+<script>
+    function updateAdoptionStatus(adoptionId, animalId, action) {
+        let url = "";
+
+        // Определяем URL в зависимости от действия (accept/decline)
+        if (action === "accept") {
+            url = `/update_adoption_status?adoption_id=${adoptionId}&animal_id=${animalId}&action=${action}`;
+        } else if (action === "decline") {
+            url = `/delete_adoption?adoption_id=${adoptionId}&animal_id=${animalId}&action=${action}`;
+        }
+
+        // Отправка запроса через fetch
+        fetch(url, {
+            method: 'POST', // POST метод для отправки данных
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Показываем alert с полученными данными
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Обновляем страницу после завершения операции
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Something went wrong.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+    document.querySelectorAll('.accept-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const adoptionId = e.target.dataset.adoptionId;
+            const animalId = e.target.dataset.animalId;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You are about to approve this adoption.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, approve!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateAdoptionStatus(adoptionId, animalId, "accept");
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.decline-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const adoptionId = e.target.dataset.adoptionId;
+            const animalId = e.target.dataset.animalId;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "This adoption request will be declined.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, decline!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateAdoptionStatus(adoptionId, animalId, "decline");
+                }
+            });
+        });
+    });
+
+
+</script>
+
+
 </html>

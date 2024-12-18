@@ -348,6 +348,9 @@ func InitAdmin(db *gorm.DB) *admin.Admin {
 	Admin.AddResource(&models.AdoptionStatus{}, &admin.Config{
 		Menu: []string{"Adoptions menu"},
 	})
+	Admin.AddResource(&models.AdoptionStatistic{}, &admin.Config{
+		Menu: []string{"Adoptions menu"},
+	})
 
 	// Форум
 	Admin.AddResource(&models.Topic{}, &admin.Config{

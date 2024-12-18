@@ -1,3 +1,6 @@
+html {
+    scroll-behavior: smooth;
+}
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,7 +10,9 @@ body {
     flex-direction: row;
     height: unset !important;
 }
-
+a {
+    text-decoration: none;
+}
 .profile-background {
     background-color: #ffab4c;
     background-size: cover;       /* Изображение покрывает всю ширину контейнера */
@@ -443,13 +448,38 @@ body {
     padding: 10px 0;
 }
 
-
-.listing-header h1 {
+h1 {
     font-size: 24px;
     font-weight: 600;
     margin: 0;
     color: #333;
 }
+.adoptions-list h1 {
+    position: relative; /* Для позиционирования псевдоэлементов */
+    text-align: center;
+    margin: 2%;
+    font-size: 24px; /* Установите подходящий размер шрифта */
+    color: #333; /* Цвет текста */
+}
+
+.adoptions-list h1::before,
+.adoptions-list h1::after {
+    content: "";
+    position: absolute;
+    top: 50%; /* Центрируем линии по вертикали */
+    width: 30%; /* Длина линий */
+    height: 2px; /* Толщина линий */
+    background-color: #ccc; /* Цвет линий */
+}
+
+.adoptions-list h1::before {
+    left: 10%; /* Линия слева */
+}
+
+.adoptions-list h1::after {
+    right: 10%; /* Линия справа */
+}
+
 
 
 .listing-header .listing-icon {
@@ -604,3 +634,197 @@ body {
     width: 30px;
     height: 30px;
 }
+.button-scroll {
+    position: absolute;
+    margin-left: 1%;
+    z-index: 10;
+    width: 120px;
+    height: 30px;
+    border-radius: 4px;
+    background-color: rgba(42, 42, 44, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: transform .4s, opacity .4s ease-in-out;
+    cursor: pointer;
+
+}
+
+.button-scroll:hover {
+    transform: translateY(-.25rem);
+}
+
+.button-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Позиционирование кнопок */
+#button-listing {
+    top: 3.5rem; /* Для размещения ниже первой кнопки */
+}
+
+#button-adoptions {
+    top: 1rem; /* Для размещения выше второй кнопки */
+}
+
+.adoption-card {
+    justify-content: center;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 3%;
+}
+.animal-card {
+    width: 350px;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    transition: all 300ms;
+}
+
+.animal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+.animal-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.animal-card .card-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.animal-card .card-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.animal-card .card-title {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    font-size: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin: 0;
+}
+
+.animal-card .card-title p {
+    margin: 0;
+}
+
+.adopter-info {
+    display: flex;
+    width: 500px; /* Фиксированная ширина карточки */
+    height: 250px; /* Фиксированная высота карточки */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 1px rgba(0, 0, 0, 0.08);
+
+}
+
+.adopter-info .adopter-image {
+    width: 40%;
+    height: 100%;
+    object-fit: cover; /* Картинка полностью покрывает свою часть */
+}
+
+.adopter-info .adopter-details {
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    width: 60%;
+}
+.adopter-details h3 {
+    text-align: center;
+
+}
+
+.adopter-info h4 {
+    font-size: 18px;
+    font-weight: 500;
+}
+.adopter-info h5 {
+    font-size: 15px;
+}
+.adopter-info .info-item {
+    margin-top: 4%;
+}
+
+.adopter-info .adopter-details p {
+    margin: 5px 0;
+    color: #3A3B3C;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.adopter-info .adopter-details strong {
+    font-weight: bold;
+    color: #333;
+}
+.center-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px; /* Фиксированная ширина для SVG */
+    height: 50px; /* Фиксированная высота для SVG */
+}
+.center-icon img {
+    width: 100%;
+    height: auto;
+}
+
+
+.adopter-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Отступ между кнопками */
+    margin-top: 15px; /* Отступ сверху */
+}
+
+.button {
+    padding: 6px 12px; /* Уменьшенные отступы */
+    font-size: 13px; /* Меньший шрифт */
+    font-weight: 500;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.accept-button {
+    background-color: #1e7e34; /* Более тёмный зелёный */
+}
+
+.accept-button:hover {
+    background-color: #155724; /* Ещё темнее при наведении */
+}
+
+.decline-button {
+    background-color: #c82333; /* Более тёмный красный */
+}
+
+.decline-button:hover {
+    background-color: #8a1c25; /* Ещё темнее при наведении */
+}
+
