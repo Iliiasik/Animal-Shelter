@@ -498,7 +498,7 @@ label {
     position: fixed;
     top: 30vh;
     left: -35vh; /* по умолчанию скрыта за пределами экрана */
-    width: 25vh;
+    width: 30vh;
     height: 100vh;
     background-color: #f4f4f4;
     padding: 2vh;
@@ -854,36 +854,4 @@ textarea {
     stroke-dashoffset: 0;
 }
 
-@media (max-width: 990px) {
-    .profile{
-        width:50vh;
-        flex-direction: column;
-        align-items: center;
-        z-index: 0;
-        margin-top: 30vh;
-    }
-    .profile-background{
-        z-index: 0;
-        align-items: center;
-        height: 32vh;
-    }
-    form{
-        width: 40vh;
-    }
 
-}
-@media (max-width: 1300px) {
-    .sidebar{
-        border: 2px solid #6b7280;
-    }
-
-    .sidebar-toggle-button .button-text {
-        position:relative;
-    }
-    .sidebar-toggle-button .icon {
-        position: absolute;
-    }
-    .sidebar-toggle-button:hover{
-        width: 100px;
-    }
-}
