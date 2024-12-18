@@ -86,8 +86,31 @@ editCropButton.addEventListener('click', function () {
         cropper = new Cropper(cropImage, {
             aspectRatio: 1,
             viewMode: 1,
-            autoCropArea: 1
+            autoCropArea: 1,
+            minCropBoxWidth: 100, // Минимальная ширина области обрезки
+            minCropBoxHeight: 100, // Минимальная высота области обрезки
+            scalable: true, // Включаем возможность масштабирования
+            zoomable: true, // Разрешить зум
+            minCanvasWidth: 600, // Минимальный размер холста
+            minCanvasHeight: 600, // Минимальная высота холста
+            ready: function () {
+                cropper.zoomTo(1); // Устанавливаем начальный зум
+            },
         });
+        // Ограничиваем зум с помощью события 'zoom'
+        cropImage.addEventListener('zoom', function (event) {
+            const maxZoom = 1.7; // Максимальный уровень зума
+            const minZoom = 0.5; // Минимальный уровень зума
+
+            if (event.detail.ratio > maxZoom) {
+                event.preventDefault(); // Блокируем увеличение, превышающее maxZoom
+                cropper.zoomTo(maxZoom); // Устанавливаем максимально допустимый зум
+            } else if (event.detail.ratio < minZoom) {
+                event.preventDefault(); // Блокируем уменьшение ниже minZoom
+                cropper.zoomTo(minZoom); // Устанавливаем минимально допустимый зум
+            }
+        });
+
     } else {
         alert("No profile image available to crop.");
     }
@@ -286,16 +309,26 @@ function saveSettings() {
         });
 }
 document.getElementById('logout').addEventListener('click', function () {
-    const confirmLogout = confirm('This action will redirect you to the Home Page and will log you out. ' +
-        'Are you sure?');
-    if (confirmLogout) {
-        // Действие при подтверждении
-        window.location.href = '/logout'; // Ссылка на выход
-    } else {
-        // Действие при отмене (если нужно)
-        console.log('Пользователь отменил выход');
-    }
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This action will redirect you to the Home Page and will log you out.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, log me out',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Действие при подтверждении
+            window.location.href = '/logout'; // Ссылка на выход
+        } else {
+            // Действие при отмене (если нужно)
+            console.log('Пользователь отменил выход');
+        }
+    });
 });
+
 
 document.addEventListener("DOMContentLoaded", function() {
     const phoneNumberInput = document.getElementById('phone');

@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Shelter</title>
+    <link rel="website icon" type="svg" href="system_images/logo.svg">
     <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/footer.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
+    <script src="/js/home.js"></script>
 </head>
 <body>
 <nav>
     <div class="wrapper">
-        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <span class="logo-text">Animal Shelter</span>
+            </a>
+        </div>
         <ul class="nav-links">
             <li><a href="/forum">Forum</a></li>
-            <li><a href="#">Feedback</a></li>
+            <li><a href="/feedback">Feedback</a></li>
             {{if .LoggedIn}}
             <li><a href="/profile">Profile</a></li>
             <li><a href="/logout">Logout</a></li>
@@ -29,7 +37,7 @@
     <div class="carousel">
         <img src="https://images.pexels.com/photos/736530/pexels-photo-736530.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
         <img src="https://images.pexels.com/photos/7862080/pexels-photo-7862080.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
-        <img src="https://images.pexels.com/photos/7862080/pexels-photo-7862080.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
+        <img src="https://images.pexels.com/photos/6547837/pexels-photo-6547837.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
     </div>
     <div class="intro-text">
         <h1>Adopt a Friend from the Shelter</h1>
@@ -45,7 +53,7 @@
 
     </p>
 
-    <p>If you're looking to adopt a new companion, explore our "Choose Your Friend" section where you can find pets ready to be part of your family.
+    <p>If you're looking to adopt a new companion, explore our "Choose your Friend" section where you can find pets ready to be part of your family.
 
     </p>
 
@@ -56,20 +64,16 @@
 
 
 
-<!-- Choose Your Friend Section -->
 
+<!-- Choose Your Friend Section -->
 <section class="choose-friend">
-    <h2>Choose Your Friend</h2>
-    <div class="cards-list">
+    <h2>Choose your Friend</h2>
+    <div class="cards-list home-list">
         {{range $index, $animal := .Animals}}
         {{if lt $index 3}} <!-- Display only the first three animals -->
         <a href="/animal_information?id={{$animal.ID}}" class="card">
             <div class="card_image">
-                {{if $animal.Images}}
-                <img src="{{(index $animal.Images 0).ImageURL}}" class="d-block w-100" alt="{{$animal.Name}}">
-                {{else}}
-                <img src="/images/default.png" class="d-block w-100" alt="Default Image">
-                {{end}}
+                <img src="{{$animal.Image}}" class="d-block w-100" alt="{{$animal.Name}}">
             </div>
             <div class="card_title">
                 <p>{{$animal.Name}}</p>
@@ -84,15 +88,33 @@
 </section>
 <!-- News Section -->
 <section class="news-section">
+    <h2>Support animal protection funds <img src="system_images/care.svg" alt="care-icon" class="care-icon"></h2>
+    <p>By supporting animal protection funds, you play a key role in helping rescue, rehabilitate, and protect animals in need.</p>
+    <div class="news-center">
+        <a href="https://www.internationalanimalrescue.org/adopt" class="news-card">
+            <div class="news-content">
+                <p class="news-title">Animal rescue fund</p>
+                <p class="news-description">The "Adopt an Animal" page on the International Animal Rescue website allows you to support rescued animals by adopting them.</p>
+            </div>
+            <img src="https://images.pexels.com/photos/767219/pexels-photo-767219.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="fund-image" />
+        </a>
 
-    <h2>Latest News</h2>
-    <p>Stay updated with the latest news and events from our shelter. Whether it's a successful adoption story or a community event, we have plenty of heartwarming updates to share!</p>
+        <a href="https://www.worldwildlife.org/initiatives" class="news-card">
+            <div class="news-content">
+                <p class="news-title">Wildlife protection fund</p>
+                <p class="news-description">Help us protect endangered species and their habitats. Your support makes a world of difference to wildlife conservation.</p>
+            </div>
+            <img src="https://images.pexels.com/photos/1661535/pexels-photo-1661535.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="fund-image" />
+        </a>
 
-    <p>We are excited to announce our upcoming charity event this weekend. Join us to help raise funds for shelter animals and meet our furry friends in person.</p>
-
-    <p>Don’t forget to follow us on social media for real-time updates and behind-the-scenes moments from the shelter.</p>
-
-    <h3>Thank you for your support!</h3>
+        <a href="https://monkeyworld.org/" class="news-card">
+            <div class="news-content">
+                <p class="news-title">Monkey world ape rescue centre</p>
+                <p class="news-description">The rescue centre has assisted governments around the world to stop the smuggling of primates from the wild since 1987.</p>
+            </div>
+            <img src="https://images.pexels.com/photos/26926257/pexels-photo-26926257/free-photo-of-baby-orangutan-on-tree.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="fund-image" />
+        </a>
+    </div>
 </section>
 
 <!-- Site footer -->
@@ -138,39 +160,6 @@
     </div>
 </footer>
 </body>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const images = document.querySelectorAll('.carousel-image');
-        let index = 0;
-
-        function showNextImage() {
-            images[index].style.opacity = 0; // Скрываем текущее изображение
-            index = (index + 1) % images.length; // Переход к следующему изображению
-            images[index].style.opacity = 1; // Показываем следующее изображение
-        }
-
-        // Показ следующего изображения сразу после загрузки
-        showNextImage();
-
-        setInterval(showNextImage, 6000); // Изменить изображение каждые 3 секунды
-    });
-    document.addEventListener("DOMContentLoaded", function() {
-        const navbar = document.querySelector('nav');
-        let lastScrollTop = 0;
-
-        window.addEventListener('scroll', function() {
-            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            if (currentScrollTop > lastScrollTop) {
-                // Scrolling down
-                navbar.classList.add('nav-hidden');
-            } else {
-                // Scrolling up
-                navbar.classList.remove('nav-hidden');
-            }
-
-            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
-        });
-    });
-    </script>
+<script src="/js/home.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
 </html>

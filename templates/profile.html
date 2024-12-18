@@ -6,48 +6,469 @@
     <title>Profile of {{.User.Username}}</title>
     <link rel="stylesheet" type="text/css" href="/css/profile.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
     <script src="/js/profile.js"></script>
 
 </head>
 <body>
 <div class="profile-background" style="background-image: url('{{.UserImage.ProfileBgImage}}');">
 
-    <div class="profile">
+</div>
 
-        <div class="profile-image">
-            <img src="{{.UserImage.ProfileImage}}" alt="Profile Image" >
-        </div>
-
-        <div class="profile-info">
-
-            <h1> {{.User.Username}}</h1>
-            <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
-
-            <div class="contact-info">
-                <p>{{.UserDetail.Bio}}</p>
-                <!-- Условное отображение email -->
-                {{if .UserPrivacy.ShowEmail}}
-                <p><strong>Email:</strong> {{.User.Email}}</p>
+    <div class="profile-container">
+        <!-- Первый профиль -->
+        <div class="profile">
+            <!-- Левая колонка: Аватар и имя пользователя -->
+            <div class="profile-left">
+                <div class="profile-image">
+                    <img src="{{.UserImage.ProfileImage}}" alt="Profile Image">
+                </div>
+                <h1 class="username">{{.User.Username}}</h1>
+                {{if eq .User.Role.Name "Veterinarian"}}
+                <div class="info-item">
+                    <img src="/system_images/Medicine.svg" alt="Veterinarian Icon" class="info-icon">
+                    <span class="role veterinarian-role">{{.User.Role.Name}}</span>
+                </div>
+                {{else if eq .User.Role.Name "Moderator"}}
+                <div class="info-item">
+                    <img src="/system_images/access.svg" alt="Moderator Icon" class="info-icon">
+                    <span class="role moderator-role">{{.User.Role.Name}}</span>
+                </div>
+                {{else if eq .User.Role.Name "Admin"}}
+                <div class="info-item">
+                    <img src="/system_images/access.svg" alt="Administrator Icon" class="info-icon">
+                    <span class="role administrator-role">{{.User.Role.Name}}</span>
+                </div>
                 {{end}}
-                <!-- Условное отображение телефона -->
-                {{if .UserPrivacy.ShowPhone}}
-                <p><strong>Phone Number:</strong> {{.UserDetail.PhoneNumber}}</p>
-                {{end}}
-                <strong>Date of Birth:</strong> <span id="dob-display">{{.UserDetail.DateOfBirth}}</span><br>
-
             </div>
 
+            <!-- Правая колонка: Личная информация -->
+            <div class="profile-info">
+                <h2 class="section-title">Personal Information</h2>
+                <div class="info-item">
+                    <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                    <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
+                </div>
+                <p class="bio-text">{{.UserDetail.Bio}}</p>
+                {{if .UserPrivacy.ShowEmail}}
+                <div class="info-item">
+                    <img src="/system_images/email.svg" alt="Email Icon" class="info-icon">
+                    <span>{{.User.Email}}</span>
+                </div>
+                {{end}}
+
+                {{if .UserPrivacy.ShowPhone}}
+                <div class="info-item">
+                    <img src="/system_images/phone.svg" alt="Phone Icon" class="info-icon">
+                    <span>{{.UserDetail.PhoneNumber}}</span>
+                </div>
+                {{end}}
+
+                <div class="info-item">
+                    <img src="/system_images/Date.svg" alt="Date Icon" class="info-icon">
+                    <span id="dob-display">{{.UserDetail.DateOfBirth}}</span>
+                </div>
+            </div>
         </div>
+
+        <!-- Второй профиль -->
+        <div class="profile-options">
+            <h2>Options</h2>
+
+                <button class="general-button" id="addAnimalBtn">Add Animal</button>
+            <button class="general-button" onclick="window.location.href='/edit-profile'">Edit Profile</button>
+            <h3>Community</h3>
+            <button class="general-button" onclick="window.location.href='/forum'">Forum</button>
+            <button class="general-button" onclick="window.location.href='/feedback'">Feedback</button>
+
+        </div>
+        {{if eq .User.Role.Name "Admin"}}
+        <div class="profile-options">
+            <div class="admin-panel-title">
+            <h2>Administration</h2>
+            <img src="system_images/admin_lock.svg" alt="Admin lock icon" class="admin-lock-icon" />
+            </div>
+            <button class="general-button" onclick="window.location.href='/admin'">Admin panel</button>
+        </div>
+        {{end}}
+    </div>
+<div class="content-with-border">
+    <div class="listing-header" id="listing">
+        <h1>Your listing</h1>
+        <img src="system_images/list.svg" alt="Listing icon" class="listing-icon" />
+    </div>
+
+    {{if eq (len .Animals) 0}}
+    <div class="no-result">
+        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-result-image">
+        <p class="no-result-text">Um, sorry, I didn't find anything :(</p>
+        <p class="no-result-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar. Noo, he works at 3 jobs now (He has bills to pay...)</p>
+    </div>
+    {{else}}
+    <ul class="animal-listing">
+        {{range $animal := .Animals}}
+        <li class="animal-listing-card">
+            <div class="animal-listing-img">
+                {{if gt (len $animal.Images) 0}}
+                <img src="{{(index $animal.Images 0).ImageURL}}" alt="Animal Image">
+                {{else}}
+                <img src="default-animal-image.png" alt="Default Animal Image">
+                {{end}}
+            </div>
+            <a href="/animal_information?id={{$animal.ID}}">
+            <div class="animal-listing-info">
+                    <p class="animal-name">{{$animal.Name}}</p>
+                    <p class="animal-status">{{$animal.Status.Name}}</p>
+            </div>
+            </a>
+            <div class="animal-listing-functions">
+                <button type="button" data-animal-id="{{$animal.ID}}" class="remove-button">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M5.16565 10.1534C5.07629 8.99181 5.99473 8 7.15975 8H16.8402C18.0053 8 18.9237 8.9918 18.8344 10.1534L18.142 19.1534C18.0619 20.1954 17.193 21 16.1479 21H7.85206C6.80699 21 5.93811 20.1954 5.85795 19.1534L5.16565 10.1534Z" stroke="#fff" stroke-width="2"/>
+                        <path d="M19.5 5H4.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M10 3C10 2.44772 10.4477 2 11 2H13C13.5523 2 14 2.44772 14 3V5H10V3Z" stroke="#fff" stroke-width="2"/>
+                        <path d="M14 12V17" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M10 12V17" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Remove
+                </button>
+
+            </div>
+        </li>
+        {{end}}
+    </ul>
+
+    {{end}}
+
+</div>
+{{ if gt (len .Adoptions) 0 }}
+<div class="content-with-border">
+    <div class="listing-header" id="adoptions">
+        <h1>Applications for adoption of your animals</h1>
+        <img src="system_images/request.svg" alt="Request icon" class="listing-icon" />
+    </div>
+    <div class="adoptions-list">
+        <!-- Сначала отображаем заявки со StatusID = 1 (Under review) -->
+        {{ $hasUnderReview := false }}
+        {{ $hasApproved := false }}
+
+        {{ range .Adoptions }}
+        {{ if eq .StatusID 1 }}
+        {{ if not $hasUnderReview }}
+        <h1>Under review</h1>
+        {{ $hasUnderReview = true }}
+        {{ end }}
+        <div class="adoption-card">
+            <!-- Слева: Карточка животного -->
+            <div class="animal-card">
+                <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
+                    <div class="card-content">
+                        <div class="card-image">
+                            <img src="{{.AnimalImage}}" alt="{{.AnimalName}}">
+                        </div>
+                        <div class="card-title">
+                            <p>{{.AnimalName}}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="center-icon">
+                <img src="/system_images/arrow.svg" alt="Center Icon">
+            </div>
+
+            <!-- Справа: Информация о заявителе -->
+            <div class="adopter-info">
+                <img src="{{ .ProfileImage }}" alt="Profile Image" class="adopter-image" />
+                <div class="adopter-details">
+                    <h3>Requester</h3>
+                    <div class="info-item">
+                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <h4>{{ .FirstName }} {{ .LastName }}</h4>
+                    </div>
+                    <h5>Contact info</h5>
+                    <p>{{ .Email }}</p>
+                    <p>{{ .Phone }}</p>
+                    <p>Sent on {{ .CreatedAt.Format "02 Jan 2006" }}</p>
+                    <div class="adopter-buttons">
+                        <button class="button accept-button" data-adoption-id="{{ .AdoptionID }}" data-animal-id="{{ .AnimalID }}">
+                            Accept
+                        </button>
+                        <button class="button decline-button" data-adoption-id="{{ .AdoptionID }}" data-animal-id="{{ .AnimalID }}">
+                            Decline
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        {{ end }}
+
+        {{ range .Adoptions }}
+        {{ if eq .StatusID 2 }}
+        {{ if not $hasApproved }}
+        <h1>Approved</h1>
+        {{ $hasApproved = true }}
+        {{ end }}
+        <div class="adoption-card">
+            <!-- Слева: Карточка животного -->
+            <div class="animal-card">
+                <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
+                    <div class="card-content">
+                        <div class="card-image">
+                            <img src="{{.AnimalImage}}" alt="{{.AnimalName}}">
+                        </div>
+                        <div class="card-title">
+                            <p>{{.AnimalName}}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="center-icon">
+                <img src="/system_images/arrow.svg" alt="Center Icon">
+            </div>
+
+            <!-- Справа: Информация о заявителе -->
+            <div class="adopter-info">
+                <img src="{{ .ProfileImage }}" alt="Profile Image" class="adopter-image" />
+                <div class="adopter-details">
+                    <h3>Requester</h3>
+                    <div class="info-item">
+                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <h4>{{ .FirstName }} {{ .LastName }}</h4>
+                    </div>
+                    <h5>Contact info</h5>
+                    <p>{{ .Email }}</p>
+                    <p>{{ .Phone }}</p>
+                    <p>Sent on {{ .CreatedAt.Format "02 Jan 2006" }}</p>
+                    <div class="adopter-buttons">
+                        <button class="button accept-button"
+                                onclick="transferAnimal('{{ .AdoptionID }}', '{{ .AnimalID }}')">
+                            Transferred
+                        </button>
+                        <button class="button decline-button"
+                                onclick="cancelAdoptionDeal('{{ .AdoptionID }}', '{{ .AnimalID }}')">
+                            Deal Canceled
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        {{ end }}
 
     </div>
 
+
 </div>
+</div>
+{{ end }}
 
-<!-- Кнопка Home (слева) -->
-<a href="/home" class="button-home">Home</a>
 
-<!-- Кнопка Edit Profile (справа) -->
-<a href="/edit-profile" class="button-edit">Edit Profile</a>
 
+
+
+<a href="#listing" class="button-scroll" id="button-listing">
+    <span class="button-text">Listing</span>
+</a>
+<a href="#adoptions" class="button-scroll" id="button-adoptions">
+    <span class="button-text">Adoptions</span>
+</a>
+
+
+<a href="/" class="button-home">
+    <img src="system_images/home.svg" alt="Home Icon" class="icon-home">
+</a>
+
+
+
+<!-- Site footer -->
+<footer class="site-footer">
+    <div class="footer-links-container">
+        <div class="footer-links">
+            <h6>About</h6>
+            <p>We are a non-profit organization dedicated to animal rescue and adoption.</p>
+        </div>
+        <div class="footer-links">
+            <h6>Categories</h6>
+            <ul>
+                <li><a href="/animal_list?species=1">Dogs</a></li>
+                <li><a href="/animal_list?species=2">Cats</a></li>
+                <li><a href="/animal_list?species=3">Birds</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <h6>Quick Links</h6>
+            <ul>
+                <li><a href="/register">Register</a></li>
+                <li><a href="#">Adopt</a></li>
+                <li><a href="/forum">Forum</a></li>
+                <li><a href="/terms-of-service">User Agreement</a></li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+        <p>&copy; 2024 Animal Shelter. All rights reserved.</p>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+            <span class="text">Github</span>
+        </button>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M248,8C111.033,8,0,119.033,0,256s111.033,248,248,248s248-111.033,248-248S384.967,8,248,8z M362.235,153.392 L325.716,335.721c-3.948,17.96-14.463,22.394-29.329,13.953l-81.141-59.765l-39.115,37.61c-4.328,4.328-7.957,7.957-16.22,7.957l5.807-82.641 l149.494-134.93c6.537-5.809-1.467-9.071-10.122-3.262L153.299,259.185l-81.126-25.391c-17.589-5.491-17.96-17.589,3.689-26.013 L345.66,133.424C356.071,129.615,366.494,137.046,362.235,153.392z"></path>
+            </svg>
+            <span class="text">Telegram</span>
+        </button>
+
+    </div>
+</footer>
 </body>
+<script>
+    function updateAdoptionStatus(adoptionId, animalId, action) {
+        let url = "";
+
+        // Определяем URL в зависимости от действия (accept/decline)
+        if (action === "accept") {
+            url = `/update_adoption_status?adoption_id=${adoptionId}&animal_id=${animalId}&action=${action}`;
+        } else if (action === "decline") {
+            url = `/delete_adoption?adoption_id=${adoptionId}&animal_id=${animalId}&action=${action}`;
+        }
+
+        // Отправка запроса через fetch
+        fetch(url, {
+            method: 'POST', // POST метод для отправки данных
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Показываем alert с полученными данными
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Обновляем страницу после завершения операции
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Something went wrong.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+    document.querySelectorAll('.accept-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const adoptionId = e.target.dataset.adoptionId;
+            const animalId = e.target.dataset.animalId;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You are about to approve this adoption.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, approve!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateAdoptionStatus(adoptionId, animalId, "accept");
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.decline-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const adoptionId = e.target.dataset.adoptionId;
+            const animalId = e.target.dataset.animalId;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "This adoption request will be declined.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, decline!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateAdoptionStatus(adoptionId, animalId, "decline");
+                }
+            });
+        });
+    });
+
+    function cancelAdoptionDeal(adoptionId, animalId) {
+        const url = `/deal_canceled?adoption_id=${adoptionId}&animal_id=${animalId}`;
+
+        // Отправка запроса через fetch
+        fetch(url, {
+            method: 'POST', // Используем POST для отправки данных
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Показываем результат через SweetAlert2
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Перезагружаем страницу после успешной операции
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+    function transferAnimal(adoptionId, animalId) {
+                const url = `/transfer_animal?adoption_id=${adoptionId}&animal_id=${animalId}`;
+
+                // Отправка запроса через fetch
+                fetch(url, {
+                    method: 'POST', // Используем POST для отправки данных
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Показываем результат через SweetAlert2
+                        Swal.fire({
+                            title: data.title,
+                            text: data.text,
+                            icon: data.icon,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Перезагружаем страницу после успешной операции
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Something went wrong. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+    }
+
+
+</script>
+
+
 </html>

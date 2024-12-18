@@ -2,17 +2,16 @@ package main
 
 import (
 	"Animals_Shelter/admin"
-	"Animals_Shelter/admin/auth"
 	"Animals_Shelter/admin/db_old"
-	"Animals_Shelter/admin/middleware"
+	"Animals_Shelter/auth"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
+	"Animals_Shelter/middleware"
 	"fmt"
 	"regexp"
 
 	"log"
 	"net/http"
-	"time"
 )
 
 func main() {
@@ -46,21 +45,17 @@ func main() {
 		handlers.HomePage(sqlDB, w, r)
 	})
 
-	// Другие маршруты
 	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
 		handlers.AnimalListPage(sqlDB, w, r)
 	})
 
-	mux.HandleFunc("/animals", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			handlers.ShowAddAnimalForm(w, r)
-		case "POST":
-			handlers.AddAnimal(sqlDB, w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
+	mux.HandleFunc("/animals/delete", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DeleteAnimal(gormDB, w, r)
 	})
+	mux.HandleFunc("/add-animal", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AddAnimal(gormDB, w, r)
+	})
+
 	mux.HandleFunc("/animal_information", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handlers.AnimalInformation(sqlDB, w, r)
@@ -68,17 +63,28 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
-	mux.HandleFunc("/medical_records", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			handlers.ShowAddMedicalRecordForm(sqlDB, w, r)
-		case "POST":
-			handlers.AddMedicalRecord(sqlDB, w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
+	mux.HandleFunc("/adopt", func(w http.ResponseWriter, r *http.Request) {
+		handlers.RegisterAdoption(sqlDB, w, r)
 	})
-	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/update_adoption_status", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AcceptAdoption(sqlDB, w, r)
+	})
+	mux.HandleFunc("/delete_adoption", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DeclineAdoption(sqlDB, w, r)
+	})
+	mux.HandleFunc("/deal_canceled", func(w http.ResponseWriter, r *http.Request) {
+		handlers.DealCanceled(sqlDB, w, r)
+	})
+	mux.HandleFunc("/transfer_animal", func(w http.ResponseWriter, r *http.Request) {
+		handlers.TransferAnimal(sqlDB, w, r)
+	})
+	mux.HandleFunc("/increment_views", func(w http.ResponseWriter, r *http.Request) {
+		handlers.IncrementViews(sqlDB, w, r)
+	})
+	mux.HandleFunc("/update-rating", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdateRating(sqlDB, w, r)
+	})
+	mux.HandleFunc("/register", middleware.RedirectIfLoggedIn(gormDB, func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			handlers.ShowRegisterForm(w)
@@ -87,8 +93,9 @@ func main() {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	}))
+
+	mux.HandleFunc("/login", middleware.RedirectIfLoggedIn(gormDB, func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			handlers.ShowLoginForm(w)
@@ -97,7 +104,8 @@ func main() {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
+
 	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handlers.Logout(gormDB, w, r)
@@ -154,7 +162,10 @@ func main() {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
 		}
 	})
-
+	mux.HandleFunc("/feedback", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoadFeedbackPage(w, r) // Обработчик для отображения страницы отзывов
+	})
+	mux.HandleFunc("/feedback-save", handlers.SaveFeedback(gormDB)) // Обработчик для сохранения отзыва
 	mux.HandleFunc("/forum", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowForum(sqlDB, w, r)
 	})
@@ -164,6 +175,9 @@ func main() {
 	mux.HandleFunc("/create_post", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreatePost(sqlDB, w, r)
 	})
+	mux.HandleFunc("/toggle_like", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ToggleLike(sqlDB, w, r)
+	})
 	mux.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
 		handlers.ShowTopic(sqlDB, w, r)
 	})
@@ -172,7 +186,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/terms-of-service", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TermsOfServicePage(sqlDB, w, r)
+		handlers.TermsOfServicePage(w, r)
 	})
 
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
@@ -181,7 +195,7 @@ func main() {
 	mux.Handle("/system_images/", http.StripPrefix("/system_images/", http.FileServer(http.Dir("system_images"))))
 
 	// Оборачиваем маршрутизатор в middleware логирования
-	loggedMux := LoggerMiddleware(mux)
+	loggedMux := middleware.LoggerMiddleware(mux)
 
 	port := 8080
 	address := fmt.Sprintf("http://localhost:%d", port)
@@ -189,28 +203,4 @@ func main() {
 
 	log.Println("Server started on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", loggedMux))
-}
-
-// LoggerMiddleware - middleware для логирования HTTP-запросов и ответов
-func LoggerMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		// Создаем ResponseWriter обертку
-		ww := &responseWriter{w, http.StatusOK}
-		// Вызываем следующий обработчик
-		next.ServeHTTP(ww, r)
-		// Логируем запрос и ответ
-		log.Printf("%s %s %d %s", r.Method, r.RequestURI, ww.status, time.Since(start))
-	})
-}
-
-// responseWriter - обертка для http.ResponseWriter, чтобы захватывать статус код
-type responseWriter struct {
-	http.ResponseWriter
-	status int
-}
-
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	rw.status = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
 }

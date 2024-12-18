@@ -1,7 +1,7 @@
 /* Стили для полей ввода и select */
 input, select {
     width: 200px;
-    padding: 12px 20px;
+    padding: 10px 10px;
     border: 2px solid #ccc;
     outline: 0;
     border-radius: 5px;
@@ -10,7 +10,9 @@ input, select {
     font-weight: 600;
     transition: all 0.5s;
 }
-
+.age {
+    width: 100px; /* Ширина полей ввода, чтобы они были маленькими, как одна клеточка */
+}
 /* Уменьшаем ширину select */
 select {
     width: 160px; /* Уменьшенная ширина для select */
@@ -94,12 +96,7 @@ input:focus, select:focus {
     display: flex;
     flex-direction: column;
     align-items: center; /* Центрирует содержимое по горизонтали */
-    justify-content: center; /* Центрирует содержимое по вертикали */
     height: 100%; /* Занимает всю высоту родительского контейнера */
-    position: absolute; /* Позволяет расположить блок в центре */
-    top: 60%; /* Сдвигаем вниз на 60% */
-    left: 50%; /* Сдвигаем вправо на 50% */
-    transform: translate(-50%, -50%); /* Центрируем по середине */
     text-align: center; /* Центрирование текста */
 }
 
@@ -118,4 +115,19 @@ input:focus, select:focus {
 }
 .no-results-small-text{
     font-weight: bold;
+}
+.tips p {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 600;
+    background-color: #fafafa;
+    border-radius: 10px;
+}
+.care-icon {
+    margin-right: 5px;
+    width: 40px;
+    height: auto;
 }

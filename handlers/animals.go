@@ -2,283 +2,332 @@ package handlers
 
 import (
 	"Animals_Shelter/models"
-	"database/sql"
-	"html/template"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-type AnimalWithImages struct {
-	models.Animal
-	Images      []models.PostImage
-	Status      string
-	SpeciesName string
-}
-
-// ShowAddAnimalForm displays the form to add a new animal
-func ShowAddAnimalForm(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/add_animal.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, nil)
-}
+const animalImagesDir = "uploads/animals"
 
 // AddAnimal handles the submission of the add animal form
-func AddAnimal(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	log.Println("Start AddAnimal handler")
+
+	// Устанавливаем заголовок ответа как JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Парсим форму с ограничением 10 МБ
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		log.Println("Error parsing form data:", err)
+		respondWithJSON(w, http.StatusBadRequest, "error", "Error parsing form data")
 		return
 	}
 
-	var animal models.Animal
-	animal.Name = r.FormValue("name")
-
-	// Получаем или создаем запись о виде (species)
-	speciesName := r.FormValue("species")
-	var speciesID int
-	err := db.QueryRow("SELECT id FROM animaltypes WHERE type_name = $1", speciesName).Scan(&speciesID)
-	if err == sql.ErrNoRows {
-		// Если вид отсутствует, добавляем его
-		err = db.QueryRow("INSERT INTO animaltypes (type_name) VALUES ($1) RETURNING id", speciesName).Scan(&speciesID)
-		if err != nil {
-			http.Error(w, "Error inserting species", http.StatusInternalServerError)
-			return
-		}
-	} else if err != nil {
-		http.Error(w, "Error fetching species", http.StatusInternalServerError)
+	// Обработка сессии
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		log.Println("Session not found:", err)
+		respondWithJSON(w, http.StatusUnauthorized, "error", "Session not found")
 		return
 	}
-	animal.SpeciesID = speciesID
 
-	// Получаем или создаем запись о статусе
-	statusName := r.FormValue("status_id")
-	var statusID int
-	err = db.QueryRow("SELECT id FROM animalstatus WHERE status_name = $1", statusName).Scan(&statusID)
-	if err == sql.ErrNoRows {
-		// Если статус отсутствует, добавляем его
-		err = db.QueryRow("INSERT INTO animalstatus (status_name) VALUES ($1) RETURNING id", statusName).Scan(&statusID)
-		if err != nil {
-			http.Error(w, "Error inserting status", http.StatusInternalServerError)
-			return
-		}
-	} else if err != nil {
-		http.Error(w, "Error fetching status", http.StatusInternalServerError)
+	var session Session
+	if err := db.Where("session_id = ?", cookie.Value).First(&session).Error; err != nil {
+		log.Println("Error fetching user ID from session:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error fetching user ID from session")
 		return
 	}
-	animal.StatusID = statusID
+	log.Printf("UserID: %d\n", session.UserID)
 
-	// Остальные данные животного
-	animal.Breed = r.FormValue("breed")
-	animal.Age, _ = strconv.Atoi(r.FormValue("age"))
-	animal.ArrivalDate = r.FormValue("arrival_date")
-	animal.Description = r.FormValue("description")
+	// Создаем новый объект Animal
+	animal := models.Animal{
+		Name:        r.FormValue("name"),
+		Breed:       r.FormValue("breed"),
+		Description: r.FormValue("description"),
+		Location:    r.FormValue("location"),
+		Color:       r.FormValue("color"),
 
-	// Создаем директорию "uploads", если она не существует
-	uploadDir := "uploads"
-
-	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-		err = os.Mkdir(uploadDir, os.ModePerm)
-		if err != nil {
-			http.Error(w, "Error creating upload directory", http.StatusInternalServerError)
-			return
-		}
+		UserID:       session.UserID,
+		IsSterilized: parseBool(r.FormValue("is_sterilized")),
+		HasPassport:  parseBool(r.FormValue("has_passport")),
 	}
 
-	var filePaths []string
+	weight, err := strconv.ParseFloat(r.FormValue("weight"), 64)
+	if err != nil {
+		weight = 0.0
+	}
+	animal.Weight = weight
+	log.Printf("Animal data: %+v\n", animal)
 
-	// Обрабатываем загрузку нескольких изображений
+	// Обработка связанных данных: species, status, gender
+	if err := processRelation(db, &animal.Species, "name", r.FormValue("species")); err != nil {
+		log.Println("Error processing species:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error processing species")
+		return
+	}
+	log.Printf("Species: %+v\n", animal.Species)
+
+	var status models.AnimalStatus
+	if err := db.Where("id = ?", 1).First(&status).Error; err != nil {
+		log.Println("Error fetching status with ID 4:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error fetching status")
+		return
+	}
+	animal.Status = status
+
+	log.Printf("Status: %+v\n", animal.Status)
+
+	if err := processRelation(db, &animal.Gender, "name", r.FormValue("gender")); err != nil {
+		log.Println("Error processing gender:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error processing gender")
+		return
+	}
+	log.Printf("Gender: %+v\n", animal.Gender)
+	// Проверка изображений перед сохранением
+	if fileExt, err := validateAnimalImages(r); err != nil {
+		log.Println("Error validating images:", err)
+		respondWithJSON(w, http.StatusBadRequest, "error", fmt.Sprintf("Invalid image extension: %s", fileExt))
+		return
+	}
+	// Вставка данных животного
+	if err := db.Create(&animal).Error; err != nil {
+		log.Println("Error inserting animal:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error inserting animal")
+		return
+	}
+
+	// Обработка возраста животного
+	if err := saveAnimalAge(db, &animal, r.FormValue("age_years"), r.FormValue("age_months")); err != nil {
+		log.Println("Error saving animal age:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error saving animal age")
+		return
+	}
+	// Обработка изображений
+	if fileExt, err := processAnimalImages(db, r, uint(animal.ID)); err != nil {
+		log.Println("Error processing images:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", fmt.Sprintf("Error processing images. Invalid extension: %s", fileExt))
+		return
+	}
+
+	log.Println("Animal inserted successfully with ID:", animal.ID)
+	respondWithJSON(w, http.StatusOK, "ok", "Animal added successfully")
+}
+
+// respondWithJSON отправляет JSON-ответ
+func respondWithJSON(w http.ResponseWriter, statusCode int, status, message string) {
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  status,
+		"message": message,
+	})
+}
+
+// parseBool преобразует строковое значение в bool
+func parseBool(value string) bool {
+	result, _ := strconv.ParseBool(value)
+	return result
+}
+
+// processRelation обрабатывает связанные данные: species, status, gender
+func processRelation(db *gorm.DB, relation interface{}, column, value string) error {
+	return db.Where(fmt.Sprintf("%s = ?", column), value).FirstOrCreate(relation).Error
+}
+
+// saveAnimalAge сохраняет возраст животного
+func saveAnimalAge(db *gorm.DB, animal *models.Animal, yearsStr, monthsStr string) error {
+	years, err := strconv.Atoi(yearsStr)
+	if err != nil {
+		years = 0
+	}
+	months, err := strconv.Atoi(monthsStr)
+	if err != nil {
+		months = 0
+	}
+	animalAge := models.AnimalAge{
+		AnimalID: animal.ID,
+		Years:    years,
+		Months:   months,
+	}
+	return db.Save(&animalAge).Error
+}
+
+// validateAnimalImages проверяет изображения перед сохранением
+func validateAnimalImages(r *http.Request) (string, error) {
 	files := r.MultipartForm.File["images"]
 	if len(files) > 4 {
-		http.Error(w, "You can upload a maximum of 4 images", http.StatusBadRequest)
-		return
+		return "", fmt.Errorf("too many images uploaded")
+	}
+	for _, fileHeader := range files {
+		fileExt := strings.ToLower(path.Ext(fileHeader.Filename))
+		if !isValidImageExt(fileExt) {
+			return fileExt, fmt.Errorf("invalid file type")
+		}
+	}
+	return "", nil
+}
+
+// processAnimalImages обрабатывает загрузку изображений
+func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) (string, error) {
+	if _, err := os.Stat(animalImagesDir); os.IsNotExist(err) {
+		if err := os.Mkdir(animalImagesDir, os.ModePerm); err != nil {
+			log.Println("Error creating upload directory:", err)
+			return "", err
+		}
+	}
+
+	files := r.MultipartForm.File["images"]
+	log.Printf("Number of images: %d\n", len(files))
+	if len(files) > 4 {
+		log.Println("Too many images uploaded")
+		return "", fmt.Errorf("You can upload a maximum of 4 images")
 	}
 
 	for _, fileHeader := range files {
-		file, err := fileHeader.Open()
-		if err != nil {
-			http.Error(w, "Error opening file", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		// Генерация уникального имени файла
-		fileExt := path.Ext(fileHeader.Filename)
-		fileName := strconv.FormatInt(time.Now().UnixNano(), 10) + fileExt
-		filePath := path.Join(uploadDir, fileName)
-
-		// Сохранение файла на сервере
-		outFile, err := os.Create(filePath)
-		if err != nil {
-			http.Error(w, "Error saving file", http.StatusInternalServerError)
-			return
-		}
-		defer outFile.Close()
-
-		_, err = file.Seek(0, 0)
-		if err != nil {
-			http.Error(w, "Error seeking file", http.StatusInternalServerError)
-			return
-		}
-
-		_, err = outFile.ReadFrom(file)
-		if err != nil {
-			http.Error(w, "Error writing file", http.StatusInternalServerError)
-			return
-		}
-
-		// Конвертируем обратные слеши в прямые для правильного пути файла
-		filePath = filepath.ToSlash(filePath)
-		filePaths = append(filePaths, filePath)
-	}
-
-	// Вставка данных о животном в базу данных
-	query := `
-        INSERT INTO animals (name, species, breed, age, gender, status_id, arrival_date, description)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id
-    `
-	var animalID int
-	err = db.QueryRow(query, animal.Name, animal.SpeciesID, animal.Breed, animal.Age, animal.Gender, animal.StatusID, animal.ArrivalDate, animal.Description).Scan(&animalID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Вставка данных изображений в базу данных
-	imageQuery := `
-        INSERT INTO postimages (animal_id, image_url)
-        VALUES ($1, $2)
-    `
-	for _, filePath := range filePaths {
-		_, err = db.Exec(imageQuery, animalID, filePath)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		if fileExt, err := saveImageAnimal(fileHeader, animalImagesDir, animalID, db); err != nil {
+			return fileExt, err
 		}
 	}
-
-	// Перенаправление на главную страницу после успешной обработки
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return "", nil
 }
 
-// ShowAddMedicalRecordForm displays the form to add a new medical record
-func ShowAddMedicalRecordForm(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Fetch animals from the database to populate the dropdown
-	rows, err := db.Query("SELECT id, name FROM animals")
+// saveImage сохраняет одно изображение и создает запись в таблице PostImage
+func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalID uint, db *gorm.DB) (string, error) {
+	file, err := fileHeader.Open()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println("Error opening file:", err)
+		return "", err
 	}
-	defer rows.Close()
+	defer file.Close()
 
-	var animals []models.Animal
-	for rows.Next() {
-		var animal models.Animal
-		if err := rows.Scan(&animal.ID, &animal.Name); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		animals = append(animals, animal)
+	fileExt := strings.ToLower(path.Ext(fileHeader.Filename))
+	if !isValidImageExt(fileExt) {
+		log.Println("Invalid file extension:", fileExt)
+		return fileExt, fmt.Errorf("Invalid file type")
 	}
 
-	// Pass animals to the template
-	tmpl, err := template.ParseFiles("templates/add_medical_record.html")
+	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+	filePath := path.Join(uploadDir, fileName)
+
+	outFile, err := os.Create(filePath)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println("Error creating file:", err)
+		return fileExt, err
 	}
-	tmpl.Execute(w, struct{ Animals []models.Animal }{Animals: animals})
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, file); err != nil {
+		log.Println("Error writing file:", err)
+		return fileExt, err
+	}
+
+	image := models.PostImage{
+		AnimalID: uint(animalID),
+		ImageURL: filepath.ToSlash(filePath),
+	}
+	if err := db.Create(&image).Error; err != nil {
+		log.Println("Error saving image:", err)
+		return fileExt, err
+	}
+	log.Println("Image saved successfully:", image.ImageURL)
+	return fileExt, nil
 }
 
-// AddMedicalRecord handles the submission of the add medical record form
-func AddMedicalRecord(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	animalID, err := strconv.Atoi(r.FormValue("animal_id"))
-	if err != nil {
-		http.Error(w, "Invalid animal ID", http.StatusBadRequest)
-		return
+// isValidImageExt проверяет допустимость расширения файла
+func isValidImageExt(ext string) bool {
+	validExts := []string{".jpg", ".jpeg", ".png", ".gif"}
+	for _, v := range validExts {
+		if ext == v {
+			return true
+		}
 	}
-	checkupDate := r.FormValue("checkup_date")
-	notes := r.FormValue("notes")
-	vetName := r.FormValue("vet_name")
-
-	query := `
-		INSERT INTO medicalrecords (animal_id, checkup_date, notes, vet_id)
-		VALUES ($1, $2, $3, (SELECT id FROM users WHERE name = $4))
-	`
-	_, err = db.Exec(query, animalID, checkupDate, notes, vetName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return false
 }
 
-// AnimalInformation handles the request to view a specific animal's information
-func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	animalIDStr := r.URL.Query().Get("id")
-	if animalIDStr == "" {
-		http.Error(w, "Animal ID is required", http.StatusBadRequest)
-		return
-	}
-	animalID, err := strconv.Atoi(animalIDStr)
-	if err != nil {
-		http.Error(w, "Invalid Animal ID", http.StatusBadRequest)
+// DeleteAnimal handles the deletion of an animal by ID
+func DeleteAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	log.Println("Start DeleteAnimal handler")
+
+	// Set response header to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Проверяем, что метод запроса — POST
+	if r.Method != http.MethodPost {
+		log.Println("Invalid request method")
+		respondWithJSON(w, http.StatusMethodNotAllowed, "error", "Invalid request method")
 		return
 	}
 
-	// Fetch animal information
-	var animal AnimalWithImages
-	query := `
-        SELECT a.id, a.name, a.species, t.type_name, a.breed, a.age, a.gender, a.status_id, s.status_name, a.arrival_date, a.description
-        FROM animals a
-        JOIN animalstatus s ON a.status_id = s.id
-        JOIN animaltypes t ON a.species_id = t.id
-        WHERE a.id = $1
-    `
-	err = db.QueryRow(query, animalID).Scan(&animal.ID, &animal.Name, &animal.SpeciesID, &animal.SpeciesName, &animal.Breed, &animal.Age, &animal.Gender, &animal.StatusID, &animal.Status, &animal.ArrivalDate, &animal.Description)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
+	// Читаем тело запроса
+	var requestData struct {
+		ID int `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		log.Println("Error decoding request body:", err)
+		respondWithJSON(w, http.StatusBadRequest, "error", "Invalid request body")
+		return
+	}
+
+	// Проверяем, что ID указан
+	if requestData.ID == 0 {
+		log.Println("Animal ID not provided")
+		respondWithJSON(w, http.StatusBadRequest, "error", "Animal ID is required")
+		return
+	}
+
+	animalID := requestData.ID
+
+	// Fetch the animal to ensure it exists
+	var animal models.Animal
+	if err := db.Preload("Images").Preload("Age").Where("id = ?", animalID).First(&animal).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("Animal not found")
+			respondWithJSON(w, http.StatusNotFound, "error", "Animal not found")
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error fetching animal:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error fetching animal")
 		return
 	}
 
-	// Fetch animal images
-	query = `SELECT image_url FROM postimages WHERE animal_id = $1`
-	rows, err := db.Query(query, animalID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var image models.PostImage
-		if err := rows.Scan(&image.ImageURL); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+	// Delete related images from the filesystem
+	for _, image := range animal.Images {
+		if err := os.Remove(image.ImageURL); err != nil && !os.IsNotExist(err) {
+			log.Printf("Error deleting image file %s: %v\n", image.ImageURL, err)
 		}
-		animal.Images = append(animal.Images, image)
 	}
-	tmpl, err := template.ParseFiles("templates/animal_information.html")
-	if err != nil {
-		log.Printf("Error parsing template: %v\n", err)
-		http.Error(w, "Failed to parse template", http.StatusInternalServerError)
+
+	// Delete related records in the database
+	if err := db.Where("animal_id = ?", animalID).Delete(&models.PostImage{}).Error; err != nil {
+		log.Println("Error deleting related images from database:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting related images")
 		return
 	}
-	if err := tmpl.Execute(w, animal); err != nil {
-		log.Printf("Error executing template: %v\n", err)
-		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+
+	if err := db.Where("animal_id = ?", animalID).Delete(&models.AnimalAge{}).Error; err != nil {
+		log.Println("Error deleting animal age:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting animal age")
 		return
 	}
+
+	// Delete the animal record
+	if err := db.Delete(&animal).Error; err != nil {
+		log.Println("Error deleting animal:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error deleting animal")
+		return
+	}
+
+	log.Printf("Animal with ID %d deleted successfully\n", animalID)
+	respondWithJSON(w, http.StatusOK, "ok", "Animal deleted successfully")
 }

@@ -2,20 +2,17 @@ package handlers
 
 import (
 	"Animals_Shelter/models"
-	_ "database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
+	"html/template"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
-
-	/*"github.com/gorilla/mux"*/
-	"html/template"
 )
 
 var profileTemplate = template.Must(template.ParseFiles("templates/profile.html", "templates/edit_profile.html"))
@@ -29,6 +26,8 @@ type UserProfile struct {
 
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
+const profileImageDir = "uploads/profile_images"
+const backgroundImageDir = "uploads/profile_images/background"
 
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -74,8 +73,8 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	oldBackgroundImagePath := userImage.ProfileBgImage
 
 	// Handle image updates
-	profileImagePath := handleImageUpdate(r, "croppedImage", "uploads/profile_images", removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
-	backgroundImagePath := handleImageUpdate(r, "backgroundImage", "uploads/profile_images/background", removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
+	profileImagePath := handleImageUpdate(r, "croppedImage", profileImageDir, removeProfileImage, oldProfileImagePath, defaultProfileImagePath)
+	backgroundImagePath := handleImageUpdate(r, "backgroundImage", backgroundImageDir, removeBackgroundImage, oldBackgroundImagePath, defaultBackgroundImagePath)
 
 	// Update user details and images
 	err = updateUserProfile(db, userID, firstName, lastName, bio, phone, dob, profileImagePath, backgroundImagePath)
@@ -333,6 +332,21 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Загружаем данные о животных пользователя
+	var animals []models.Animal
+	if err := db.Preload("Species").Preload("Gender").Preload("Status").Preload("Age").Preload("Images").Where("user_id = ?", user.ID).Find(&animals).Error; err != nil {
+		log.Println("Error loading animals:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Для каждого животного оставляем только первое изображение
+	for i := range animals {
+		if len(animals[i].Images) > 0 {
+			animals[i].Images = animals[i].Images[:1]
+		}
+	}
+
 	// Загружаем дополнительные данные о пользователе (детали, изображения, конфиденциальность)
 	var userDetail models.UserDetail
 	if err := db.First(&userDetail, "user_id = ?", user.ID).Error; err != nil {
@@ -367,17 +381,75 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Загружаем заявки на усыновление для животных пользователя
+	var adoptions []struct {
+		AdoptionID   uint
+		AnimalID     uint
+		StatusID     uint
+		AnimalName   string
+		AnimalImage  string
+		UserID       uint
+		CreatedAt    time.Time
+		FirstName    string
+		LastName     string
+		Email        string
+		Phone        string
+		ProfileImage string
+	}
+
+	if err := db.Table("adoptions").
+		Select(`adoptions.id AS adoption_id, 
+            adoptions.animal_id,
+			adoptions.status_id,
+            animals.name AS animal_name, 
+            (SELECT image_url FROM postimages WHERE postimages.animal_id = animals.id LIMIT 1) AS animal_image, 
+            adoptions.user_id,
+            adoptions.adoption_date AS created_at, 
+            user_details.first_name, 
+            user_details.last_name, 
+            users.email, 
+            user_details.phone_number AS phone,
+            user_images.profile_image`).
+		Joins("JOIN animals ON adoptions.animal_id = animals.id").
+		Joins("JOIN users ON adoptions.user_id = users.id").
+		Joins("JOIN user_details ON user_details.user_id = users.id").
+		Joins("LEFT JOIN user_images ON user_images.user_id = users.id").
+		Where("adoptions.animal_id IN (?)", db.Table("animals").Select("id").Where("user_id = ?", user.ID)).
+		Order("adoptions.adoption_date DESC").
+		Scan(&adoptions).Error; err != nil {
+		log.Println("Error loading adoptions:", err)
+		http.Error(w, "Error loading adoptions", http.StatusInternalServerError)
+		return
+	}
+
 	// Формируем структурированные данные для шаблона
 	profileData := struct {
 		User        models.User
 		UserDetail  models.UserDetail
 		UserImage   models.UserImage
 		UserPrivacy models.UserPrivacy
+		Animals     []models.Animal
+		Adoptions   []struct {
+			AdoptionID   uint
+			AnimalID     uint
+			StatusID     uint
+			AnimalName   string
+			AnimalImage  string
+			UserID       uint
+			CreatedAt    time.Time
+			FirstName    string
+			LastName     string
+			Email        string
+			Phone        string
+			ProfileImage string
+		}
 	}{
 		User:        user,
 		UserDetail:  userDetail,
 		UserImage:   userImage,
 		UserPrivacy: userPrivacy,
+		Animals:     animals,
+		Adoptions:   adoptions, // Передаем плоскую структуру adoptions
 	}
 
 	// Отправляем данные в шаблон для рендеринга
@@ -388,7 +460,6 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RenderEditTemplate Rendering the Edit template of current user with his existing info
 // RenderEditTemplate Rendering the Edit template of current user with his existing info
 func RenderEditTemplate(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")

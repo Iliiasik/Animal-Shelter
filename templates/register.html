@@ -4,17 +4,26 @@
     <title>Register</title>
     <link rel="stylesheet" type="text/css" href="/css/home.css">
     <link rel="stylesheet" type="text/css" href="/css/register.css">
+    <link rel="stylesheet" href="/css/footer.css">
+
 
 </head>
 <body>
 <nav>
     <div class="wrapper">
-        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <span class="logo-text">Animal Shelter</span>
+            </a>
+        </div>
         <ul class="nav-links">
-            <li><a href="#">Feedback</a></li>
+            <li><a href="/forum">Forum</a></li>
+            <li><a href="/feedback">Feedback</a></li>
         </ul>
     </div>
 </nav>
+
 <main>
     <div class="left-side-reg"></div>
     <div class="right-side">
@@ -23,45 +32,106 @@
         <div class="error-message">{{.ErrorMessage}}</div>
         {{end}}
 
-        <form action="/register" method="post" enctype="multipart/form-data">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
+        <form id="registrationForm" action="/register" method="post" enctype="multipart/form-data">
+            <!-- First Step -->
+            <div id="step1">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required><br>
 
-            <label for="first_name">First Name:</label>
-            <input type="text" id="first_name" name="first_name" required><br>
+                <label for="phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" name="phone_number" placeholder="+996 " required><br>
 
-            <label for="last_name">Last Name:</label>
-            <input type="text" id="last_name" name="last_name" required><br>
-            <label for="date_of_birth">Date of Birth:</label>
-            <input type="date" id="date_of_birth" name="date_of_birth" required><br>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required><br>
 
-            <label for="bio">Bio:</label>
-            <input type="text" id="bio" name="bio" required><br>
-
-            <label for="phone_number">Phone Number:</label>
-            <input type="text" id="phone_number" name="phone_number" placeholder="+996 " required><br>
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br>
-
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required><br>
-            <!-- Кастомная кнопка для загрузки изображения профиля -->
-            <label for="profile_image">Profile Image:</label>
-            <div class="file-upload-container">
-                <input type="file" id="profile_image" name="profile_image" style="display:none;" >
-                <button type="button" class="login-btn" onclick="document.getElementById('profile_image').click();">Upload Profile Image</button>
-                <span id="file-chosen">No file chosen</span>
-            </div><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required><br>
 
 
-            <input type="submit" class="login-btn" value="Register">
+
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required><br>
+                <div id="password-strength" class="strength-bar">
+                    <span id="strength-text"></span>
+                </div>
+                <div id="fillStep" style="color: #2f34ab;font-weight: bold; display: none;">Please fill out all fields</div>
+                <button type="button" class="login-btn" onclick="nextStep(1)">Next</button>
+                <p>Already have an account? <a href="/login">Login here</a>.</p>
+            </div>
+
+            <!-- Second Step -->
+            <div id="step2" style="display:none;">
+                <h4>Add more information about Yourself</h4>
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required><br>
+
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required><br>
+
+                <label for="date_of_birth">Date of Birth:</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" required><br>
+
+                <label for="bio">Bio:</label>
+                <input type="text" id="bio" name="bio" required><br>
+
+                <label for="profile_image">Profile Image:</label>
+                <div class="file-upload-container">
+                    <input type="file" id="profile_image" name="profile_image" style="display:none;">
+                    <button type="button" class="login-btn" onclick="document.getElementById('profile_image').click();">Upload Profile Image</button>
+                    <span id="file-chosen">No file chosen</span>
+                </div><br>
+
+                <input type="submit" class="login-btn" value="Register">
+            </div>
         </form>
-        <p>Already have an account? <a href="/login">Login here</a>.</p>
+
     </div>
+
 </main>
+
+
+<footer class="site-footer">
+    <div class="footer-links-container">
+        <div class="footer-links">
+            <h6>About</h6>
+            <p>We are a non-profit organization dedicated to animal rescue and adoption.</p>
+        </div>
+        <div class="footer-links">
+            <h6>Categories</h6>
+            <ul>
+                <li><a href="/animal_list?species=1">Dogs</a></li>
+                <li><a href="/animal_list?species=2">Cats</a></li>
+                <li><a href="/animal_list?species=3">Birds</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <h6>Quick Links</h6>
+            <ul>
+                <li><a href="/register">Register</a></li>
+                <li><a href="#">Adopt</a></li>
+                <li><a href="/forum">Forum</a></li>
+                <li><a href="/terms-of-service">User Agreement</a></li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <div class="footer-bottom">
+        <p>&copy; 2024 Animal Shelter. All rights reserved.</p>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+            <span class="text">Github</span>
+        </button>
+        <button class="Btn">
+            <svg class="svgIcon" viewBox="0 0 496 512" height="1.4em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M248,8C111.033,8,0,119.033,0,256s111.033,248,248,248s248-111.033,248-248S384.967,8,248,8z M362.235,153.392 L325.716,335.721c-3.948,17.96-14.463,22.394-29.329,13.953l-81.141-59.765l-39.115,37.61c-4.328,4.328-7.957,7.957-16.22,7.957l5.807-82.641 l149.494-134.93c6.537-5.809-1.467-9.071-10.122-3.262L153.299,259.185l-81.126-25.391c-17.589-5.491-17.96-17.589,3.689-26.013 L345.66,133.424C356.071,129.615,366.494,137.046,362.235,153.392z"></path>
+            </svg>
+            <span class="text">Telegram</span>
+        </button>
+
+    </div>
+</footer>
+</body>
 
 <script>
     document.getElementById('profile_image').addEventListener('change', function() {
@@ -69,7 +139,102 @@
         const fileChosen = document.getElementById('file-chosen');
 
         fileChosen.textContent = fileName.length > 20 ? fileName.substring(0, 13) + '...' : fileName;
-        fileChosen.setAttribute('title', fileName);  // Добавляем полное имя файла в атрибут title для всплывающего окна
+        fileChosen.setAttribute('title', fileName);  // Add the full file name as title for tooltip
+    });
+
+    function nextStep(step) {
+        const currentStep = document.getElementById(`step${step}`);
+        const nextStep = document.getElementById(`step${step + 1}`);
+        const errorMessage = document.getElementById('fillStep');
+
+        // Check if all required fields in the current step are filled out
+        const requiredFields = currentStep.querySelectorAll('[required]');
+        let allFieldsFilled = true;
+
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                allFieldsFilled = false;
+            }
+        });
+
+        if (allFieldsFilled) {
+            // Hide error message and move to the next step
+            errorMessage.style.display = 'none';
+            currentStep.style.display = 'none';
+            nextStep.style.display = 'block';
+        } else {
+            // Show error message
+            errorMessage.style.display = 'block';
+        }
+    }
+
+    // Enable the "Next" button only when all fields are filled
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById('registrationForm');
+        const nextButton = form.querySelector('.login-btn');
+
+        form.addEventListener('input', function() {
+            const requiredFields = form.querySelectorAll('#step1 [required]');
+            let allFieldsFilled = true;
+
+            requiredFields.forEach(function(field) {
+                if (!field.value.trim()) {
+                    allFieldsFilled = false;
+                }
+            });
+
+            nextButton.disabled = !allFieldsFilled;  // Disable the button if any required field is empty
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const phoneNumberInput = document.getElementById('phone_number');
+
+        phoneNumberInput.value = '+996 ';
+
+        phoneNumberInput.addEventListener('input', function(e) {
+            let input = e.target.value.replace(/\D/g, ''); // Remove all non-digit characters
+
+            if (!input.startsWith('996')) {
+                input = '996' + input;
+            }
+
+            input = input.slice(0, 13);
+
+            let formattedNumber = '+996 ';
+            if (input.length > 3) {
+                formattedNumber += input.slice(3, 6);  // XXX
+            }
+            if (input.length > 6) {
+                formattedNumber += ' ' + input.slice(6, 8);  // XX
+            }
+            if (input.length > 8) {
+                formattedNumber += ' ' + input.slice(8, 10);  // XX
+            }
+            if (input.length > 10) {
+                formattedNumber += ' ' + input.slice(10, 12);  // XX
+            }
+
+            e.target.value = formattedNumber;
+        });
+
+        phoneNumberInput.addEventListener('focus', function() {
+            if (phoneNumberInput.value === '') {
+                phoneNumberInput.value = '+996 ';
+            }
+        });
+
+        phoneNumberInput.addEventListener('blur', function() {
+            if (phoneNumberInput.value === '+996 ') {
+                phoneNumberInput.value = '';
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const dateOfBirthInput = document.getElementById('date_of_birth');
+        const today = new Date().toISOString().split('T')[0];
+        dateOfBirthInput.setAttribute('max', today);
     });
     document.addEventListener("DOMContentLoaded", function() {
         const navbar = document.querySelector('nav');
@@ -89,60 +254,67 @@
             lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
         });
     });
-    document.addEventListener("DOMContentLoaded", function() {
-        const phoneNumberInput = document.getElementById('phone_number');
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strengthBar = document.getElementById('password-strength');
+        const strengthText = document.getElementById('strength-text');
 
-        // Устанавливаем начальное значение "+996 "
-        phoneNumberInput.value = '+996 ';
+        // Если поле пароля пустое, скрываем индикатор и текст
+        if (!password) {
+            strengthBar.style.display = 'none';
+            strengthText.style.display = 'none';
+            return;
+        }
 
-        phoneNumberInput.addEventListener('input', function(e) {
-            let input = e.target.value.replace(/\D/g, ''); // Удаляем все нецифровые символы
+        // Показать индикатор и текст, если есть значение
+        strengthBar.style.display = 'block';
+        strengthText.style.display = 'block';
 
-            // Предзаполняем код страны "+996"
-            if (!input.startsWith('996')) {
-                input = '996' + input;
-            }
+        // Оценка силы пароля
+        const strength = evaluatePasswordStrength(password);
 
-            // Обрезаем до максимальной длины номера (9 цифр после кода страны)
-            input = input.slice(0, 13);
+        // Обновляем текст, ширину полосы и цвет текста
+        let strengthIndicator = strengthBar.querySelector('span');
+        if (!strengthIndicator) {
+            strengthIndicator = document.createElement('span');
+            strengthBar.appendChild(strengthIndicator);
+        }
 
-            // Форматируем номер в вид +996 XXX XX XX XX
-            let formattedNumber = '+996 ';
-            if (input.length > 3) {
-                formattedNumber += input.slice(3, 6);  // XXX
-            }
-            if (input.length > 6) {
-                formattedNumber += ' ' + input.slice(6, 8);  // XX
-            }
-            if (input.length > 8) {
-                formattedNumber += ' ' + input.slice(8, 10);  // XX
-            }
-            if (input.length > 10) {
-                formattedNumber += ' ' + input.slice(10, 12);  // XX
-            }
-
-            e.target.value = formattedNumber;
-        });
-
-        phoneNumberInput.addEventListener('focus', function() {
-            // Если поле пустое, подставляем "+996 " при фокусе
-            if (phoneNumberInput.value === '') {
-                phoneNumberInput.value = '+996 ';
-            }
-        });
-
-        phoneNumberInput.addEventListener('blur', function() {
-            // Если после потери фокуса введен только "+996 ", очищаем поле
-            if (phoneNumberInput.value === '+996 ') {
-                phoneNumberInput.value = '';
-            }
-        });
+        if (strength === 'weak') {
+            strengthIndicator.className = 'weak';
+            strengthIndicator.style.width = '33%';
+            strengthText.textContent = 'Weak';
+            strengthText.style.color = 'red';
+        } else if (strength === 'medium') {
+            strengthIndicator.className = 'medium';
+            strengthIndicator.style.width = '66%';
+            strengthText.textContent = 'Medium';
+            strengthText.style.color = 'orange';
+        } else if (strength === 'strong') {
+            strengthIndicator.className = 'strong';
+            strengthIndicator.style.width = '100%';
+            strengthText.textContent = 'Strong';
+            strengthText.style.color = 'green';
+        }
     });
-    document.addEventListener("DOMContentLoaded", function() {
-        const dateOfBirthInput = document.getElementById('date_of_birth');
-        const today = new Date().toISOString().split('T')[0]; // Получаем текущую дату в формате YYYY-MM-DD
-        dateOfBirthInput.setAttribute('max', today); // Устанавливаем максимальную дату как сегодняшний день
-    });
+
+    // Функция для оценки силы пароля
+    function evaluatePasswordStrength(password) {
+        let strength = 'weak';
+        const lengthCriteria = password.length >= 8;
+        const numberCriteria = /\d/.test(password);
+        const specialCharCriteria = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (lengthCriteria && numberCriteria && specialCharCriteria) {
+            strength = 'strong';
+        } else if (lengthCriteria && (numberCriteria || specialCharCriteria)) {
+            strength = 'medium';
+        }
+
+        return strength;
+    }
+
+
+
 </script>
-</body>
 </html>

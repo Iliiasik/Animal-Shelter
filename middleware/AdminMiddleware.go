@@ -14,7 +14,7 @@ func AdminAuthMiddleware(db *gorm.DB, next http.Handler, isLoggedInCheck func(db
 		}
 
 		if !isAdminCheck(db, r) {
-			http.Error(w, "Access Denied", http.StatusForbidden)
+			http.Error(w, "Page Not Found", http.StatusNotFound)
 			return
 		}
 

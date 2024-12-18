@@ -1,52 +1,173 @@
+html {
+    scroll-behavior: smooth;
+}
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f0f0f0; /* Цвет фона страницы */
+    display: flex;
+    flex-direction: row;
+    height: unset !important;
 }
-
+a {
+    text-decoration: none;
+}
 .profile-background {
-
+    background-color: #ffab4c;
     background-size: cover;       /* Изображение покрывает всю ширину контейнера */
     background-position: center;  /* Центрируем фон */
-    height: 300px;                /* Высота фона */
+    height: 30vh;                /* Высота фона */
     position: relative;           /* Для позиционирования содержимого */
 }
-
+.profile-container {
+    display: flex; /* Выравнивание профилей по горизонтали */
+    justify-content: center;
+    align-items: flex-start; /* Выравнивание по верхнему краю */
+    gap: 30px; /* Расстояние между профилями */
+}
 .profile-image-functions{
     display: flex;
     align-items: flex-start;
 }
 .profile {
     display: flex;
-    align-items: flex-start;      /* Выравниваем элементы по вертикали сверху */
-    max-width: 800px;
-    margin: 200px auto 0 auto;    /* Центрируем блок и сдвигаем его вверх, чтобы аватар выходил за фон */
+    align-items: flex-start;
+    justify-content: space-between; /* Разделяем колонки */
+    max-width: 90vh;
+    margin: 1% 0 0 2%;
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тень */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     flex-direction: row;
+    gap: 20px; /* Расстояние между колонками */
+}
+.profile-options {
+    max-width: 40vh;
+    margin-top: 1%;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    gap: 20px; /* Расстояние между колонками */
+}
+.profile-options h3 {
+    color: #2a3e5e;
+    text-align: center;
+    margin-top: 5%;
+}
+.admin-panel-title h2 {
+    color: #6b2828;
+}
+.admin-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 0;
+}
+.admin-lock-icon {
+    width: 25px;
+    height: auto;
+}
+.profile-options h2 {
+    text-align: center;
+}
+.profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрируем содержимое */
+    text-align: center; /* Выравниваем текст по центру */
+    margin-right: 2%;
 }
 
 .profile-image {
-    width: 150px;   /* Фиксируем ширину */
-    height: 150px;  /* Фиксируем высоту */
-    margin-right: 20px;
-    overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
-    border-radius: 50%;  /* Делаем круглый контейнер */
+    width: 15vh;
+    height: 15vh;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border-radius: 50%;
 }
 
 .profile-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Изображение заполняет контейнер, сохраняя пропорции */
-    display: block;    /* Убираем любые возможные отступы вокруг изображения */
+    object-fit: cover;
+    display: block;
 }
 
-.profile-info {
-    flex: 1;                      /* Информация о профиле занимает оставшееся пространство */
+.username {
+    font-size: 20px;
+    margin-bottom: 7%;
+    font-weight: bold;
+    color: #333;
 }
+/* Контейнер для элемента информации */
+.info-item {
+    display: flex;           /* Горизонтальное выравнивание */
+    align-items: center;     /* Вертикальное выравнивание */
+    gap: 10px;               /* Расстояние между иконкой и текстом */
+    font-size: 16px;         /* Размер текста */
+    font-weight: 600;
+    margin-bottom: 5%;     /* Отступ между элементами */
+}
+
+/* Иконки */
+.info-icon {
+    width: 24px;             /* Ширина иконки */
+    height: 24px;            /* Высота иконки */
+    object-fit: contain;     /* Сохраняем пропорции */
+}
+.bio-text {
+    color: #666;
+    line-height: 1.5; /* Межстрочный интервал */
+    word-break: break-word;
+
+}
+
+.role {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+
+.veterinarian-role {
+    color: green;
+}
+
+.moderator-role {
+    color: #5656da;
+}
+
+.administrator-role {
+    color: darkred;
+}
+
+
+
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.section-title {
+    font-size: 22px; /* Размер текста заголовка */
+    font-weight: bold; /* Жирный шрифт */
+    color: #333; /* Темный цвет текста */
+    margin-bottom: 15px; /* Отступ снизу */
+    border-bottom: 2px solid #ccc; /* Линия под заголовком */
+    padding-bottom: 5px; /* Расстояние между текстом и линией */
+}
+
+.profile-info h3 {
+    font-size: 20px;
+}
+
+
+
 
 .profile-info h1 {
     font-size: 24px;
@@ -71,47 +192,24 @@ body {
 .contact-info a:hover {
     text-decoration: underline;
 }
-.button-home, .button-edit {
-    position: fixed; /* Фиксируем кнопки на экране */
-    bottom: 50px;    /* Располагаем кнопки внизу страницы */
-    padding: 10px 20px;
-    background-color: #adadad; /* Цвет кнопок */
-    color: #000000;
+
+
+.general-button {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    border: 2px solid #6b7280;
+    margin-top: 7%;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #090909;
     text-decoration: none;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляем тень */
 }
 
-.button-home {
-    left: -5px;  /* Кнопка слегка выходит за левый край экрана */
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 24px;
-    margin: 12px 0 24px;
-    border: 2px solid #6b7280;
-    border-radius: 5px;
-    background-color: #f6f6f6;
-    cursor: pointer;
-    transition: all 0.5s;
-    transform-origin: left bottom;
-}
-
-.button-edit {
-    right: -5px; /* Кнопка слегка выходит за правый край экрана */
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 24px;
-    margin: 12px 0 24px;
-    border: 2px solid #6b7280;
-    border-radius: 5px;
-    background-color: #f6f6f6;
-    cursor: pointer;
-    transition: all 0.5s;
-    transform-origin: right bottom;
-}
-
-.button-home:hover, .button-edit:hover {
+.general-button:hover {
     background-color: #000;
     color: #eee;
 }
@@ -125,4 +223,610 @@ body {
         flex-direction: column;
         align-items: center;
     }
+}
+
+
+.animal-form-container {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.animal-form-container h1 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.animal-form-container label {
+    font-weight: bold;
+    color: #555;
+}
+
+.animal-form-container input,
+.animal-form-container select,
+.animal-form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+
+.animal-form-container textarea {
+    height: 80px;
+}
+
+.animal-form-container .submit-container {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.animal-form-container .animal-submit {
+    width: 50%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.animal-form-container .animal-submit:hover {
+    background-color: #000;
+    color: #eee;
+}
+.custom-close-button{
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    margin: 12px 0 24px;
+    border: 2px solid #6b7280;
+    border-radius: 5px;
+    background-color: #f6f6f6;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+.custom-close-button:hover{
+    background-color: #000;
+    color: #eee;
+}
+
+.animal-form-container .question-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.2rem;
+    color: #888;
+    cursor: pointer;
+}
+
+.animal-form-container .question-icon:hover {
+    color: #555;
+}
+.checkbox-wrapper-31 {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+}
+
+.checkbox-wrapper-31 svg {
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #6cbe45;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
+}
+.upload-btn {
+     width: 50%;
+     font-size: 0.9rem;
+     font-weight: 600;
+     padding: 8px 24px;
+     margin: 12px 0 24px;
+     border: 2px solid #6b7280;
+     border-radius: 5px;
+     background-color: #f6f6f6;
+     cursor: pointer;
+     transition: all 0.5s;
+ }
+.upload-btn:hover {
+    background-color: #000;
+    color: #eee;
+}
+/* Класс для анимации тряски */
+.shake {
+    animation: shake 0.3s;
+}
+.input-error {
+    border: 2px solid red;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-5px);
+    }
+    40%, 80% {
+        transform: translateX(5px);
+    }
+}
+@keyframes blink {
+    0% {
+        border-color: red;
+    }
+    50% {
+        border-color: transparent;
+    }
+    100% {
+        border-color: red;
+    }
+}
+.question-icon {
+    position: absolute; top: 10px; right: 10px; cursor: pointer;
+}
+.invalid-blink {
+    animation: blink 1s infinite;
+    border-width: 2px;
+}
+.invalid-warning {
+    color: red;
+    text-decoration: underline;
+}
+.content-with-border {
+    margin:2% 1% 2% 1%;
+    padding: 20px;
+    border: 2px solid #F1F0EA;
+    border-radius: 15px;
+    background-color: #FAFAF8;
+
+    position: sticky;
+}
+.listing-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Распределяет элементы по краям */
+    gap: 10px; /* Отступ между заголовком и иконкой */
+    padding: 10px 0;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+.adoptions-list h1 {
+    position: relative; /* Для позиционирования псевдоэлементов */
+    text-align: center;
+    margin: 2%;
+    font-size: 24px; /* Установите подходящий размер шрифта */
+    color: #333; /* Цвет текста */
+}
+
+.adoptions-list h1::before,
+.adoptions-list h1::after {
+    content: "";
+    position: absolute;
+    top: 50%; /* Центрируем линии по вертикали */
+    width: 30%; /* Длина линий */
+    height: 2px; /* Толщина линий */
+    background-color: #ccc; /* Цвет линий */
+}
+
+.adoptions-list h1::before {
+    left: 10%; /* Линия слева */
+}
+
+.adoptions-list h1::after {
+    right: 10%; /* Линия справа */
+}
+
+
+
+.listing-header .listing-icon {
+    width: 35px; /* Размер изображения */
+    height: auto;
+}
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
+}
+
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
+}
+
+
+/* Animal Listing Card Styles */
+.animal-listing {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    justify-content: center;
+
+}
+.animal-listing-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 280px;
+    margin: 15px;
+}
+
+.animal-listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.animal-listing-card .animal-listing-img {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.animal-listing-card .animal-listing-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.animal-listing-card .animal-listing-info {
+    padding: 15px;
+    text-align: center;
+}
+.animal-listing-card a {
+    text-decoration: none;
+}
+.animal-listing-card .animal-listing-info .animal-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 10px 0;
+}
+
+.animal-listing-card .animal-listing-info .animal-status {
+    font-size: 14px;
+    color: #666;
+}
+
+.animal-listing-card .animal-listing-functions {
+    padding: 15px;
+    text-align: center;
+    background: #f9f9f9;
+}
+
+.animal-listing-card .animal-listing-functions .remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ff4d4f;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+
+.animal-listing-card .animal-listing-functions .remove-button:hover {
+    background: #d9363e;
+}
+
+.animal-listing-card .animal-listing-functions .remove-button .icon {
+    margin-right: 8px;
+    fill: #fff;
+}
+
+/* Стиль для фиксированной кнопки */
+.button-home {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background-color: rgba(29, 29, 31, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: bottom .4s, transform .4s;
+    cursor: pointer;
+}
+
+.button-home:hover {
+    transform: translateY(-.25rem);
+}
+
+.icon-home {
+    width: 30px;
+    height: 30px;
+}
+.button-scroll {
+    position: absolute;
+    margin-left: 1%;
+    z-index: 10;
+    width: 120px;
+    height: 30px;
+    border-radius: 4px;
+    background-color: rgba(42, 42, 44, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: transform .4s, opacity .4s ease-in-out;
+    cursor: pointer;
+
+}
+
+.button-scroll:hover {
+    transform: translateY(-.25rem);
+}
+
+.button-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Позиционирование кнопок */
+#button-listing {
+    top: 3.5rem; /* Для размещения ниже первой кнопки */
+}
+
+#button-adoptions {
+    top: 1rem; /* Для размещения выше второй кнопки */
+}
+
+.adoption-card {
+    justify-content: center;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 3%;
+}
+.animal-card {
+    width: 350px;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    transition: all 300ms;
+}
+
+.animal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+.animal-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.animal-card .card-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.animal-card .card-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.animal-card .card-title {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    font-size: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin: 0;
+}
+
+.animal-card .card-title p {
+    margin: 0;
+}
+
+.adopter-info {
+    display: flex;
+    width: 500px; /* Фиксированная ширина карточки */
+    height: 250px; /* Фиксированная высота карточки */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 1px rgba(0, 0, 0, 0.08);
+
+}
+
+.adopter-info .adopter-image {
+    width: 40%;
+    height: 100%;
+    object-fit: cover; /* Картинка полностью покрывает свою часть */
+}
+
+.adopter-info .adopter-details {
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    width: 60%;
+}
+.adopter-details h3 {
+    text-align: center;
+
+}
+
+.adopter-info h4 {
+    font-size: 18px;
+    font-weight: 500;
+}
+.adopter-info h5 {
+    font-size: 15px;
+}
+.adopter-info .info-item {
+    margin-top: 4%;
+}
+
+.adopter-info .adopter-details p {
+    margin: 5px 0;
+    color: #3A3B3C;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.adopter-info .adopter-details strong {
+    font-weight: bold;
+    color: #333;
+}
+.center-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px; /* Фиксированная ширина для SVG */
+    height: 50px; /* Фиксированная высота для SVG */
+}
+.center-icon img {
+    width: 100%;
+    height: auto;
+}
+
+
+.adopter-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Отступ между кнопками */
+    margin-top: 15px; /* Отступ сверху */
+}
+
+.button {
+    padding: 6px 12px; /* Уменьшенные отступы */
+    font-size: 13px; /* Меньший шрифт */
+    font-weight: 500;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.accept-button {
+    background-color: #1e7e34; /* Более тёмный зелёный */
+}
+
+.accept-button:hover {
+    background-color: #155724; /* Ещё темнее при наведении */
+}
+
+.decline-button {
+    background-color: #c82333; /* Более тёмный красный */
+}
+
+.decline-button:hover {
+    background-color: #8a1c25; /* Ещё темнее при наведении */
+}
+.custom-profile-container{
+    top:unset !important;
 }

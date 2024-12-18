@@ -13,7 +13,6 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    align-items: flex-start;
     font-family: "Quicksand", sans-serif;
 }
 label {
@@ -24,7 +23,6 @@ main {
     display: grid;
     grid-template-columns: 1fr; /* Один столбец для мобильных устройств */
     place-items: center;
-    width: 90%; /* Ширина подстраивается под экран */
     max-width: 1200px; /* Ограничение максимальной ширины */
     border-radius: 20px;
     background-color: #fff;
@@ -42,14 +40,17 @@ main {
 
 .left-side-reg {
     height: 100%;
-    width: 100%;
-    background-image: url(https://i.pinimg.com/736x/13/23/69/13236951531b80214b9bfee45acdcd5e.jpg);
+    width: 75%; /* Reduce width to make it narrower */
+    background-image: url(https://i.pinimg.com/enabled_lo_mid/736x/03/c3/f6/03c3f61fa2416101a06f2b0c030210c1.jpg);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     pointer-events: none;
     border-radius: 20px 0 0 20px;
+    overflow: hidden;
+    max-height: 90vh;
 }
+
 
 .right-side {
     padding: 20px; /* Добавим немного пространства для контента справа */
@@ -182,7 +183,7 @@ a:hover,
 a:active {
     text-decoration: none;
 }
-a {
+.right-side a {
     color: #000;
     font-size: 0.88rem;
     font-weight: 600;
@@ -198,3 +199,52 @@ a:hover {
     color: red;
     font-weight: bold;
 }
+h4 {
+    color: #0A597C;
+}
+.strength-bar {
+    height: 4px;
+    margin-top: 5px;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    position: relative;  /* Добавленное свойство для корректного позиционирования текста */
+}
+
+.strength-bar {
+    height: 0; /* Убираем высоту полосы */
+    margin-top: 5px;
+    border-radius: 2px;
+    position: relative; /* Для позиционирования текста */
+    text-align: center;
+}
+
+.strength-bar span {
+    display: block;
+    height: 4px; /* Высота полосы прогресса */
+    border-radius: 2px;
+    width: 0%; /* Начальная ширина полосы - 0% */
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.weak {
+    background-color: red;
+}
+
+.medium {
+    background-color: orange;
+}
+
+.strong {
+    background-color: green;
+}
+
+#strength-text {
+    position: absolute;
+    top: -15px; /* Расположение текста над полосой */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 17px;
+    font-weight: 700;
+    color: #000000; /* Начальный цвет текста */
+}
+

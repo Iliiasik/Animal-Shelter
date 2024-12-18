@@ -11,37 +11,209 @@
 <body>
 <nav>
     <div class="wrapper">
-        <div class="logo"><a href="/">Animal Shelter</a></div>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <span class="logo-text">Animal Shelter</span>
+            </a>
+        </div>
         <ul class="nav-links">
             <li><a href="/forum">Forum</a></li>
-            <li><a href="#">Feedback</a></li>
+            <li><a href="/feedback">Feedback</a></li>
         </ul>
     </div>
 </nav>
+<main class="main-content">
+    <div class="content-wrapper">
+    <div class="topic-container">
+        <!-- Заголовок и информация о создателе на одном уровне -->
+        <div class="topic-header">
+            <h1 class="topic-title">{{.Title}}</h1>
+            <div class="creator-info">
+                <img src="{{.CreatorProfileImage}}" alt="Profile Image" class="creator-avatar">
+                <span class="creator-username">{{.CreatorUsername}}</span>
+            </div>
+        </div>
 
-<div class="container">
-    <h1 class="topic-title">Topic: {{.Title}}</h1>
+        <!-- Описание темы -->
+        <p class="topic-description">{{.Description}}</p>
 
-    <!-- Форма для добавления нового комментария -->
-    <div class="comment-form">
-        <form method="POST" action="/create_post">
-            <input type="hidden" name="topic_id" value="{{.ID}}">
-            <label for="content">Add a Comment:</label>
-            <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
-            <button type="submit">Add Comment</button>
-        </form>
+        <!-- Форма для добавления комментария -->
+        <div class="comment-form">
+            <form method="POST" action="/create_post">
+                <input type="hidden" name="topic_id" value="{{.IDt}}">
+                <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
+                <button type="submit" class="add-comment" id="add-comment-btn">Add Comment</button>
+            </form>
+        </div>
+
+        <h2 id="commentary-header">Commentaries</h2>
+        <!-- Список комментариев -->
+        <ul class="comments-list">
+            {{range .Posts}}
+            <li class="comment" id="comment-{{.ID}}">
+                <div class="comment-header">
+                    <img src="{{.ProfileImage}}" alt="User Avatar" class="user-avatar">
+                    <span class="username">{{.Username}}</span>
+                    <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
+                </div>
+
+                <div class="comment-content">
+            <span class="short-content">
+                {{if gt (len .Content) 1000}}
+                    {{slice .Content 0 1000}}...
+                    <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
+                {{else}}
+                    {{.Content}}
+                {{end}}
+            </span>
+                    <span class="full-content" style="display:none;">
+                {{.Content}}
+                <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
+            </span>
+                </div>
+
+                <!-- Reply and Show replies buttons container -->
+                <div class="buttons-container">
+                    <label class="like-container">
+                        <button type="button" id="like-button-{{.ID}}" class="rating-button">
+                            <img src="system_images/up.svg" alt="Like" class="rating-icon">
+                        </button>
+                    </label>
+                    {{ if gt .Rating 0 }}
+                    <h4 style="color: green;">+{{.Rating}}</h4>
+                    {{ else if lt .Rating 0 }}
+                    <h4 style="color: red;">{{.Rating}}</h4>
+                    {{ else }}
+                    <!-- Ничего не отображается -->
+                    {{ end }}
+                    <label class="dislike-container">
+                        <button type="button" id="dislike-button-{{.ID}}" class="rating-button">
+                            <img src="system_images/down.svg" alt="Dislike" class="rating-icon">
+                        </button>
+                    </label>
+
+
+
+                    <!-- Reply button -->
+                    <div class="reply-button-container">
+                        <button class="text-button" onclick="showReplyForm('{{.ID}}')">Reply</button>
+                    </div>
+
+                    <!-- Show/Hide replies button -->
+                    {{if .Replies}}
+                    <div class="show-replies-button-container">
+                        <button class="text-button" onclick="toggleReplies('{{.ID}}')">Show {{len .Replies}} {{if eq (len .Replies) 1}}Reply{{else}}Replies{{end}}</button>
+                    </div>
+                    {{end}}
+                </div>
+
+                <!-- Reply form -->
+                <div class="reply-form" id="reply-form-{{.ID}}" style="display:none;">
+                    <form method="POST" action="/create_post">
+                        <input type="hidden" name="topic_id" value="{{.TopicID}}">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <textarea id="reply-content" name="content" required placeholder="Enter your reply..."></textarea>
+                        <button type="submit" class="add-reply" id="add-reply-button">Add Reply</button>
+                    </form>
+                </div>
+
+                <!-- Replies list -->
+                {{if .Replies}}
+                <ul class="replies-list" id="replies-{{.ID}}" style="display:none;">
+                    {{range .Replies}}
+                    <li class="reply">
+                        <div class="comment-header">
+                            <img src="{{.ProfileImage}}" alt="User Avatar" class="user-avatar">
+                            <span class="username">{{.Username}}</span>
+                            <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
+                        </div>
+                        <div class="comment-content">
+                    <span class="short-content">
+                        {{if gt (len .Content) 1000}}
+                            {{slice .Content 0 1000}}...
+                            <a href="javascript:void(0)" class="more-link" onclick="toggleContent(this)">More</a>
+                        {{else}}
+                            {{.Content}}
+                        {{end}}
+                    </span>
+                            <span class="full-content" style="display:none;">
+                        {{.Content}}
+                        <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
+                    </span>
+                        </div>
+                    </li>
+                    {{end}}
+                </ul>
+                {{end}}
+            </li>
+            {{end}}
+        </ul>
+
     </div>
+    <div class="side-panel">
+        <div class="statistics">
+        <h2>Topic statistics</h2>
+        <label class="like-container">
+            <input type="checkbox" id="likeCheckbox" onchange="toggleLike()"
+                   {{if .IsLiked}} checked {{end}} />
+            <svg class="like-icon" id="Glyph" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <path d="M29.845,17.099l-2.489,8.725C26.989,27.105,25.804,28,24.473,28H11c-0.553,0-1-0.448-1-1V13c0-0.215,0.069-0.425,0.198-0.597l5.392-7.24C16.188,4.414,17.05,4,17.974,4C19.643,4,21,5.357,21,7.026V12h5.002c1.265,0,2.427,0.579,3.188,1.589C29.954,14.601,30.192,15.88,29.845,17.099z" id="XMLID_254_"></path>
+                <path d="M7,12H3c-0.553,0-1,0.448-1,1v14c0,0.552,0.447,1,1,1h4c0.553,0,1-0.448,1-1V13C8,12.448,7.553,12,7,12z M5,25.5c-0.828,0-1.5-0.672-1.5-1.5c0-0.828,0.672-1.5,1.5-1.5c0.828,0,1.5,0.672,1.5,1.5C6.5,24.828,5.828,25.5,5,25.5z" id="XMLID_256_"></path>
+    </svg>
+            <span>{{if eq .LikeCount 1}}
+            {{.LikeCount}} Like
+        {{else}}
+            {{.LikeCount}} Likes
+        {{end}}</span>
+        </label>
+        <div class="responses-container">
+            <img src="system_images/response.svg" alt="Responses Icon" class="response-icon">
+            <span>{{len .Posts}}
+        {{if eq (len .Posts) 1}}
+            Response
+        {{else}}
+            Responses
+        {{end}}</span>
+        </div>
+        </div>
+        <div class="similar-topics">
+            <h3>Similar Topics</h3>
+            <ul>
+                {{if .SimilarTopics}}
+                {{range .SimilarTopics}}
+                <li class="topic">
+                    <div class="user-info">
+                        <a href="/profile/{{.Username}}">
+                            <img src="{{.ProfileImage}}" alt="{{.Username}}'s profile image" class="profile-image" onerror="this.onerror=null;this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';">
+                        </a>
+                        <span class="username">{{.Username}}</span>
+                    </div>
+                    <a href="/topic?id={{.ID}}" class="topicT">{{.Title}}</a>
+                </li>
+                {{end}}
+                {{else}}
+                <p>
+                    There are no similar topics :(</p>
+                {{end}}
 
-    <!-- Список комментариев -->
-    <ul class="comments-list">
-        {{range .Posts}}
-        <li class="comment">
-            <div class="comment-content">{{.Content}}</div>
-            <div class="comment-date">{{.CreatedAt}}</div>
-        </li>
-        {{end}}
-    </ul>
-</div>
+
+            </ul>
+        </div>
+
+    </div>
+    </div>
+    <a class="scroll-up" onclick="scrollToTop()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0h24v24H0z" fill="none"></path>
+            <path fill="rgba(255,255,255,1)" d="M11.9997 10.8284L7.04996 15.7782L5.63574 14.364L11.9997 8L18.3637 14.364L16.9495 15.7782L11.9997 10.8284Z">
+            </path>
+        </svg>
+    </a>
+
+
+</main>
+
 <footer class="site-footer">
     <div class="footer-links-container">
         <div class="footer-links">
@@ -85,4 +257,171 @@
 </footer>
 
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const navbar = document.querySelector('nav');
+        let lastScrollTop = 0;
+
+        window.addEventListener('scroll', function() {
+            let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop) {
+                navbar.classList.add('nav-hidden');
+            } else {
+                navbar.classList.remove('nav-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+        });
+    });
+    function toggleContent(link) {
+        var shortContent = link.closest('.comment-content').querySelector('.short-content');
+        var fullContent = link.closest('.comment-content').querySelector('.full-content');
+        var moreLink = link.closest('.comment-content').querySelector('.more-link');
+        var lessLink = link.closest('.comment-content').querySelector('.less-link');
+
+        if (link.classList.contains('more-link')) {
+            shortContent.style.display = 'none';
+            fullContent.style.display = 'block';
+            moreLink.style.display = 'none';
+            lessLink.style.display = 'block';
+        } else {
+            shortContent.style.display = 'block';
+            fullContent.style.display = 'none';
+            moreLink.style.display = 'block';
+            lessLink.style.display = 'none';
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        var commentDates = document.querySelectorAll('.comment-date');
+
+        commentDates.forEach(function(dateElement) {
+            var createdAt = dateElement.getAttribute('data-created-at');
+            var createdAtTime = new Date(createdAt);
+
+            var currentYear = new Date().getFullYear();
+            var formattedDate;
+
+            if (createdAtTime.getFullYear() === currentYear) {
+                formattedDate = createdAtTime.toLocaleString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                formattedDate = createdAtTime.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            formattedDate = formattedDate.replace(/\//g, '-');
+            dateElement.textContent = formattedDate;
+        });
+    });
+    function showReplyForm(commentId) {
+        var replyForm = document.getElementById('reply-form-' + commentId);
+        if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+            replyForm.style.display = 'block';  // Показываем форму
+        } else {
+            replyForm.style.display = 'none';   // Скрываем форму
+        }
+    }
+    function toggleReplies(commentID) {
+        const repliesContainer = document.getElementById('replies-' + commentID);
+        const button = repliesContainer.previousElementSibling.querySelector('.show-replies-button');
+        if (repliesContainer.style.display === 'none') {
+            repliesContainer.style.display = 'block';
+            button.textContent = 'Hide Replies';
+        } else {
+            repliesContainer.style.display = 'none';
+            button.textContent = 'Show Replies';
+        }
+    }
+
+    const textarea = document.getElementById("content");
+    const addCommentButton = document.getElementById("add-comment-btn");
+
+    // Следим за событием ввода в textarea
+    textarea.addEventListener("input", function() {
+        if (textarea.value.trim().length > 0) {
+            // Если в поле что-то введено, показываем кнопку
+            addCommentButton.classList.add("show");
+        } else {
+            // Если поле пустое, скрываем кнопку
+            addCommentButton.classList.remove("show");
+        }
+    });
+    function toggleLike() {
+        const topicID = '{{.IDt}}'; // Передаем TopicID
+        const checkbox = document.getElementById("likeCheckbox");
+
+        // Отправляем запрос на сервер для добавления или удаления лайка
+        fetch(`/toggle_like?topic_id=${topicID}`, {
+            method: 'POST'
+        })
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const topicTitles = document.querySelectorAll(".topicT");
+
+        topicTitles.forEach(title => {
+            if (title.textContent.length > 18) {
+                title.textContent = title.textContent.slice(0, 18) + "...";
+            }
+        });
+    });
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+    function updateRating(postID, action) {
+        fetch(`/update-rating?post_id=${postID}&action=${action}`, {
+            method: 'GET',
+        })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                // Обновляем состояние кнопок
+                updateButtonStates(postID, action);
+            })
+            .catch(error => {
+                console.error("Error updating rating:", error);
+            });
+    }
+
+    // Функция для обновления состояния кнопок
+    function updateButtonStates(postID, action) {
+        const likeButton = document.getElementById(`like-button-${postID}`);
+        const dislikeButton = document.getElementById(`dislike-button-${postID}`);
+
+        if (action === "like") {
+            likeButton.classList.add("active");
+            dislikeButton.classList.remove("active");
+        } else if (action === "dislike") {
+            likeButton.classList.remove("active");
+            dislikeButton.classList.add("active");
+        }
+    }
+
+    // Добавляем обработчики для кнопок
+    document.querySelectorAll('.like-container button').forEach(button => {
+        button.addEventListener('click', function() {
+            const postID = this.closest('.comment').id.split('-')[1];
+            updateRating(postID, 'like');
+        });
+    });
+
+    document.querySelectorAll('.dislike-container button').forEach(button => {
+        button.addEventListener('click', function() {
+            const postID = this.closest('.comment').id.split('-')[1];
+            updateRating(postID, 'dislike');
+        });
+    });
+
+</script>
 </html>

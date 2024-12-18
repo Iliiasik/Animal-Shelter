@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/animal_list.css">
     <link rel="stylesheet" href="/css/forum.css">
     <link rel="stylesheet" href="/css/footer.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Forum</title>
 </head>
 <body>
@@ -64,7 +65,7 @@
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
                 <h2 style="display: flex; align-items: center;">
-                    Create New Topic
+                    Create new Topic
                     <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="#000000" width="34" height="34" style="margin-left: 8px;">
                         <g id="color">
                             <path fill="#6A462F" stroke="none" d="M24.7544,17.9188l-6.6667-5.3333l-8.1667,1l-3,4.6667l0.5,6.6667l3.8333,5.8333 c0,0,1.8333,1.1667,2.6667,1.6667l-2.5,7.6667l-0.3333,6.3333l1.5,5.5l2.8333,3.6667l5.5,3.8333c0,0,15.6667,9,30.6667,0.1667 l5.8333-4.8333l3.1667-6l0.6667-4.6667l-1.3333-8.8333l-1.6667-2.5l2.8333-2.1667l2.5-4.8333l1.6667-5.3333l-1.6667-5l-4.3333-3 l-4.1667-0.1667l-6,3.8333l-1.3333,1.5l-8.3333-1.6667h-8.1667L24.7544,17.9188z"></path>
@@ -159,7 +160,7 @@
 
                     {{if .User.Topics}}
                     <!-- Форма для удаления топиков с чекбоксами -->
-                    <form method="POST" action="/delete-topics" onsubmit="return validateForm()">
+                    <form id="delete-topics-form" method="POST" action="/delete-topics" onsubmit="return validateForm()">
                         <div class="topics-list">
                             <!-- Первый столбец -->
                             <div class="topics-column">
@@ -216,7 +217,7 @@
                         <div class="select-buttons">
                             <button class="createTopic" type="button" onclick="selectAllCheckboxes()">Select All</button>
                             <button class="createTopic" type="button" onclick="unselectAllCheckboxes()">Unselect All</button>
-                            <button class="delete-button" type="submit">
+                            <button id="delete-button" class="delete-button" type="submit">
                                 <p class="paragraph"> delete </p>
                                 <span class="icon-wrapper">
             <svg class="icon" width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -504,6 +505,56 @@
 
     // Инициализация при загрузке страницы
     updateSelectedCount();
+    function confirmDelete(event) {
+        // Сначала проверяем форму
+        if (!validateForm()) {
+            return false; // Если форма не прошла валидацию, не показываем SweetAlert
+        }
 
+        event.preventDefault(); // Предотвращаем отправку формы
+
+        // Всплывающее окно SweetAlert2 с подтверждением
+        const swalWithCustomButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "cTopic btn btn-success",  // Применяем стиль createTopic
+                cancelButton: "cTopic btn btn-danger"    // Применяем стиль createTopic
+            },
+            buttonsStyling: false  // Отключаем стандартные стили SweetAlert2
+        });
+
+        swalWithCustomButtons.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!",
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Если пользователь подтвердил удаление, отправляем форму
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "Your topics have been deleted.",
+                    icon: "success",
+                    timer: 2000, // Закрытие через 2 секунды
+                    showConfirmButton: false // Скрытие кнопки "OK"
+                }).then(() => {
+                    // После отображения сообщения об успехе отправляем форму
+                    document.getElementById("delete-topics-form").submit();
+                });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your topics are safe :)",
+                    icon: "error",
+                    timer: 2000, // Закрытие через 2 секунды
+                    showConfirmButton: false // Скрытие кнопки "OK"
+                });
+            }
+        });
+    }
+    // Назначаем обработчик события для кнопки удаления
+    document.getElementById("delete-button").addEventListener("click", confirmDelete);
 </script>
 </html>
