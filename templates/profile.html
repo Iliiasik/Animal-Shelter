@@ -267,6 +267,7 @@
 </div>
 
 {{ end }}
+{{ if gt (len .SentAdoptions) 0 }}
 <div class="content-with-border">
     <div class="listing-header" id="sent-adoptions">
         <h1>Applications you sent</h1>
@@ -322,6 +323,8 @@
         {{ end }}
     </div>
 </div>
+{{ end }}
+
 
 
 

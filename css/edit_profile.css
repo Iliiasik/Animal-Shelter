@@ -710,7 +710,7 @@ label {
 }
 
 .button-save:hover {
-    background-color: rgb(134, 204, 134);
+    background-color: rgb(86, 140, 86);
     color: rgb(255, 255, 255);
 }
 
@@ -765,7 +765,7 @@ label {
 }
 
 .button-cancel:hover {
-    background-color: rgb(255, 45, 45);
+    background-color: rgb(168, 47, 47);
     color: rgb(255, 255, 255);
 }
 .form-buttons{
