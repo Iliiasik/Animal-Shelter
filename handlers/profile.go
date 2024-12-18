@@ -422,6 +422,32 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Загружаем заявки, отправленные текущим пользователем
+	var sentAdoptions []struct {
+		AdoptionID  uint
+		StatusID    uint
+		AnimalID    uint
+		AnimalName  string
+		AnimalImage string
+		CreatedAt   time.Time
+	}
+
+	if err := db.Table("adoptions").
+		Select(`adoptions.id AS adoption_id, 
+			adoptions.status_id,
+            adoptions.animal_id, 
+            animals.name AS animal_name, 
+            (SELECT image_url FROM postimages WHERE postimages.animal_id = animals.id LIMIT 1) AS animal_image, 
+            adoptions.adoption_date AS created_at`).
+		Joins("JOIN animals ON adoptions.animal_id = animals.id").
+		Where("adoptions.user_id = ?", user.ID).
+		Order("adoptions.adoption_date DESC").
+		Scan(&sentAdoptions).Error; err != nil {
+		log.Println("Error loading sent adoptions:", err)
+		http.Error(w, "Error loading sent adoptions", http.StatusInternalServerError)
+		return
+	}
+
 	// Формируем структурированные данные для шаблона
 	profileData := struct {
 		User        models.User
@@ -443,13 +469,22 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 			Phone        string
 			ProfileImage string
 		}
+		SentAdoptions []struct {
+			AdoptionID  uint
+			StatusID    uint
+			AnimalID    uint
+			AnimalName  string
+			AnimalImage string
+			CreatedAt   time.Time
+		}
 	}{
-		User:        user,
-		UserDetail:  userDetail,
-		UserImage:   userImage,
-		UserPrivacy: userPrivacy,
-		Animals:     animals,
-		Adoptions:   adoptions, // Передаем плоскую структуру adoptions
+		User:          user,
+		UserDetail:    userDetail,
+		UserImage:     userImage,
+		UserPrivacy:   userPrivacy,
+		Animals:       animals,
+		Adoptions:     adoptions, // Передаем плоскую структуру adoptions
+		SentAdoptions: sentAdoptions,
 	}
 
 	// Отправляем данные в шаблон для рендеринга

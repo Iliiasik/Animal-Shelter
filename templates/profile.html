@@ -263,9 +263,66 @@
     </div>
 
 
+
 </div>
-</div>
+
 {{ end }}
+<div class="content-with-border">
+    <div class="listing-header" id="sent-adoptions">
+        <h1>Applications you sent</h1>
+        <img src="system_images/sent.svg" alt="Sent icon" class="listing-icon" />
+    </div>
+    <div class="sent-adoptions-list">
+        {{ range .SentAdoptions }}
+        <div class="adoption-card">
+            <!-- Карточка животного -->
+            <div class="animal-card">
+                <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
+                    <div class="card-content">
+                        <div class="card-image">
+                            <img src="{{.AnimalImage}}" alt="{{.AnimalName}}">
+                        </div>
+                        <div class="card-title">
+                            <p>{{.AnimalName}}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+
+            <!-- Кнопка Decline -->
+            <div class="your-requests">
+                {{if eq .StatusID 1}}
+
+                <div class="status-container">
+                    <p class="status-text">Under review</p>
+                    <div class="request-icon-container">
+                        <img src="system_images/request_under_review.svg" alt="Under Review" />
+                    </div>
+
+                </div>
+                {{else if eq .StatusID 2}}
+                <div class="status-container">
+                    <p class="status-text">Approved</p>
+                    <div class="request-icon-container">
+                        <img src="system_images/request_approved.svg" alt="Approved"/>
+                    </div>
+
+                </div>
+                {{ end }}
+                <div class="adopter-buttons">
+                    <button class="button decline-button" data-adoption-id="{{ .AdoptionID }}">
+                        Withdraw
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+        {{ end }}
+    </div>
+</div>
+
 
 
 
@@ -393,10 +450,10 @@
 
             Swal.fire({
                 title: "Are you sure?",
-                text: "This adoption request will be declined.",
+                text: "This adoption request will be terminated.",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: "Yes, decline!",
+                confirmButtonText: "Yes, terminate it!",
                 cancelButtonText: "Cancel",
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -466,9 +523,5 @@
                         });
                     });
     }
-
-
 </script>
-
-
 </html>
