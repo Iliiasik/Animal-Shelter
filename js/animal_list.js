@@ -58,6 +58,8 @@ function applyFilters() {
     if (gender) url.searchParams.set('gender', gender);
     else url.searchParams.delete('gender');
 
+    url.searchParams.set('page', '1');
+
     window.location.href = url.toString(); // Перенаправляем на новый URL
 }
 

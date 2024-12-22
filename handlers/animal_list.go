@@ -3,9 +3,11 @@ package handlers
 import (
 	"Animals_Shelter/models"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -59,6 +61,63 @@ type AnimalSummary struct {
 	ImageURL  string `json:"image_url"`
 }
 
+// Новая функция для компактной пагинации с фильтрами
+func animalCompactPagination(current, total int, species, breed, color, ageYears, ageMonths, gender string) []PageLink {
+	var pages []PageLink
+
+	addPageLink := func(page int, isActive bool) PageLink {
+		urlString := fmt.Sprintf("/animal_list?page=%d", page)
+		if species != "" {
+			urlString += fmt.Sprintf("&species=%s", url.QueryEscape(species))
+		}
+		if breed != "" {
+			urlString += fmt.Sprintf("&breed=%s", url.QueryEscape(breed))
+		}
+		if color != "" {
+			urlString += fmt.Sprintf("&color=%s", url.QueryEscape(color))
+		}
+		if ageYears != "" {
+			urlString += fmt.Sprintf("&age_years=%s", url.QueryEscape(ageYears))
+		}
+		if ageMonths != "" {
+			urlString += fmt.Sprintf("&age_months=%s", url.QueryEscape(ageMonths))
+		}
+		if gender != "" {
+			urlString += fmt.Sprintf("&gender=%s", url.QueryEscape(gender))
+		}
+		return PageLink{URL: urlString, Number: strconv.Itoa(page), IsActive: isActive}
+	}
+
+	if total <= 5 {
+		for i := 1; i <= total; i++ {
+			pages = append(pages, addPageLink(i, i == current))
+		}
+		return pages
+	}
+
+	pages = append(pages, addPageLink(1, current == 1))
+
+	if current > 3 {
+		pages = append(pages, PageLink{Number: "..."})
+	}
+
+	start := max(2, current-1)
+	end := min(total-1, current+1)
+
+	for i := start; i <= end; i++ {
+		pages = append(pages, addPageLink(i, i == current))
+	}
+
+	if current < total-2 {
+		pages = append(pages, PageLink{Number: "..."})
+	}
+
+	pages = append(pages, addPageLink(total, current == total))
+
+	return pages
+}
+
+// Обновленный обработчик страницы списка животных
 func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	loggedIn := false
 
@@ -76,24 +135,43 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	ageMonths := r.URL.Query().Get("age_months")
 	gender := r.URL.Query().Get("gender")
 
-	// Устанавливаем CurrentCategory
-	currentCategory := "all" // Значение по умолчанию
-	if species != "" {
-		currentCategory = species
+	pageStr := r.URL.Query().Get("page")
+	perPageStr := r.URL.Query().Get("per_page")
+	if perPageStr == "" {
+		perPageStr = "10"
 	}
 
-	// Получаем животных с деталями из базы данных с фильтрами
-	animals, err := fetchAnimalsWithFilters(db, species, breed, color, ageYears, ageMonths, gender)
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	perPage, err := strconv.Atoi(perPageStr)
+	if err != nil || perPage < 1 {
+		perPage = 10
+	}
+
+	// Получаем животных и общее количество записей
+	animals, totalRecords, err := fetchAnimalsWithFilters(db, species, breed, color, ageYears, ageMonths, gender, page, perPage)
 	if err != nil {
 		http.Error(w, "Error fetching animals", http.StatusInternalServerError)
 		return
 	}
 
+	totalPages := (totalRecords + perPage - 1) / perPage
+	pages := animalCompactPagination(page, totalPages, species, breed, color, ageYears, ageMonths, gender)
+
 	// Создаем структуру данных для страницы
-	data := PageDataAnimals{
+	data := struct {
+		LoggedIn        bool
+		Animals         []AnimalSummary
+		CurrentCategory string
+		Pages           []PageLink
+	}{
 		LoggedIn:        loggedIn,
 		Animals:         animals,
-		CurrentCategory: currentCategory,
+		CurrentCategory: species,
+		Pages:           pages,
 	}
 
 	// Загружаем HTML-шаблон и передаем данные
@@ -104,8 +182,7 @@ func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, ageMonthsStr, gender string) ([]AnimalSummary, error) {
+func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, ageMonthsStr, gender string, page, perPage int) ([]AnimalSummary, int, error) {
 	var animals []AnimalSummary
 
 	query := `
@@ -119,7 +196,17 @@ func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, age
         WHERE 1=1
     `
 
+	countQuery := `
+        SELECT COUNT(*) 
+        FROM animals
+        JOIN animaltypes ON animals.species_id = animaltypes.id
+        JOIN genders ON animals.gender_id = genders.id
+        LEFT JOIN animalages ON animals.id = animalages.animal_id
+        WHERE 1=1
+    `
+
 	var args []interface{}
+	var countArgs []interface{}
 
 	// Преобразование строк в числа для возраста
 	var ageYears, ageMonths int
@@ -128,85 +215,109 @@ func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, age
 		ageYears, err = strconv.Atoi(ageYearsStr)
 		if err != nil {
 			log.Printf("Invalid ageYears: %v", err)
-			return nil, err
+			return nil, 0, err
 		}
 	}
 	if ageMonthsStr != "" {
 		ageMonths, err = strconv.Atoi(ageMonthsStr)
 		if err != nil {
 			log.Printf("Invalid ageMonths: %v", err)
-			return nil, err
+			return nil, 0, err
 		}
 	}
 
 	// Фильтрация по species
 	if species != "" {
 		query += " AND animaltypes.name = $" + strconv.Itoa(len(args)+1)
+		countQuery += " AND animaltypes.name = $" + strconv.Itoa(len(countArgs)+1)
 		args = append(args, species)
+		countArgs = append(countArgs, species)
 	}
 
 	// Фильтрация по breed
 	if breed != "" {
 		query += " AND animals.breed LIKE $" + strconv.Itoa(len(args)+1)
+		countQuery += " AND animals.breed LIKE $" + strconv.Itoa(len(countArgs)+1)
 		args = append(args, "%"+breed+"%")
+		countArgs = append(countArgs, "%"+breed+"%")
 	}
 
 	// Фильтрация по color
 	if color != "" {
 		query += " AND animals.color LIKE $" + strconv.Itoa(len(args)+1)
+		countQuery += " AND animals.color LIKE $" + strconv.Itoa(len(countArgs)+1)
 		args = append(args, "%"+color+"%")
+		countArgs = append(countArgs, "%"+color+"%")
 	}
 
-	// Фильтрация по возрасту (если ageYears и ageMonths предоставлены)
+	// Фильтрация по возрасту
 	if ageYearsStr != "" || ageMonthsStr != "" {
-		// Если указаны оба значения возраста
 		if ageYearsStr != "" && ageMonthsStr != "" {
 			query += " AND animalages.years = $" + strconv.Itoa(len(args)+1) + " AND animalages.months = $" + strconv.Itoa(len(args)+2)
+			countQuery += " AND animalages.years = $" + strconv.Itoa(len(countArgs)+1) + " AND animalages.months = $" + strconv.Itoa(len(countArgs)+2)
 			args = append(args, ageYears, ageMonths)
+			countArgs = append(countArgs, ageYears, ageMonths)
 		} else if ageYearsStr != "" {
-			// Если указан только возраст в годах
 			query += " AND animalages.years = $" + strconv.Itoa(len(args)+1)
+			countQuery += " AND animalages.years = $" + strconv.Itoa(len(countArgs)+1)
 			args = append(args, ageYears)
+			countArgs = append(countArgs, ageYears)
 		} else if ageMonthsStr != "" {
-			// Если указан только возраст в месяцах
 			query += " AND animalages.months = $" + strconv.Itoa(len(args)+1)
+			countQuery += " AND animalages.months = $" + strconv.Itoa(len(countArgs)+1)
 			args = append(args, ageMonths)
+			countArgs = append(countArgs, ageMonths)
 		}
 	}
 
 	// Фильтрация по gender
 	if gender != "" {
 		query += " AND genders.name = $" + strconv.Itoa(len(args)+1)
+		countQuery += " AND genders.name = $" + strconv.Itoa(len(countArgs)+1)
 		args = append(args, gender)
+		countArgs = append(countArgs, gender)
 	}
 
-	// Выполняем запрос
+	// Подсчет общего количества записей
+	var totalRecords int
+	err = db.QueryRow(countQuery, countArgs...).Scan(&totalRecords)
+	if err != nil {
+		log.Printf("Error executing count query: %v", err)
+		return nil, 0, err
+	}
+
+	// Добавление лимита и смещения для пагинации
+	offset := (page - 1) * perPage
+	query += " LIMIT $" + strconv.Itoa(len(args)+1) + " OFFSET $" + strconv.Itoa(len(args)+2)
+	args = append(args, perPage, offset)
+
+	// Выполнение основного запроса
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	// Обрабатываем строки результата
+	// Обработка результатов
 	for rows.Next() {
 		var animal AnimalSummary
 		if err := rows.Scan(
 			&animal.ID, &animal.Name, &animal.Species, &animal.Breed,
 			&animal.Color, &animal.AgeYears, &animal.AgeMonths, &animal.Gender, &animal.ImageURL); err != nil {
 			log.Printf("Error scanning row: %v", err)
-			return nil, err
+			return nil, 0, err
 		}
 		animals = append(animals, animal)
 	}
 
-	// Проверяем ошибки после итерации
+	// Проверка ошибок после итерации
 	if err := rows.Err(); err != nil {
 		log.Printf("Error after rows iteration: %v", err)
-		return nil, err
+		return nil, 0, err
 	}
 
-	return animals, nil
+	return animals, totalRecords, nil
 }
 
 func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {

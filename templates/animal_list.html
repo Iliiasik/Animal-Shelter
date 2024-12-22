@@ -42,7 +42,7 @@
     <div class="category-info">
         <h2 class="category-title">
             <span class="category-icon">
-                {{if eq .CurrentCategory "all"}}
+                {{if eq .CurrentCategory ""}}
                 <img src="system_images/all search.png" alt="All Icon">
                 {{else if eq .CurrentCategory "Dog"}}
                 <img src="system_images/Dogs search.png" alt="Dog Icon">
@@ -53,7 +53,7 @@
                 {{end}}
             </span>
             <span class="category-text">
-                 {{if eq .CurrentCategory "all"}}Pets{{else if eq .CurrentCategory "Dog"}}Dogs{{else if eq .CurrentCategory "Cat"}}Cats{{else if eq .CurrentCategory "Bird"}}Birds{{end}}
+                 {{if eq .CurrentCategory ""}}Pets{{else if eq .CurrentCategory "Dog"}}Dogs{{else if eq .CurrentCategory "Cat"}}Cats{{else if eq .CurrentCategory "Bird"}}Birds{{end}}
             </span>
         </h2>
         <div class="search-container">
@@ -111,6 +111,17 @@
     </div>
 
 
+</div>
+<div class="pagination">
+    {{- range .Pages -}}
+    {{- if eq .Number "..." -}}
+    <img src="system_images/paw for pages.png" alt="..." class="pagination-icon">
+    {{- else -}}
+    <a href="{{.URL}}" class="page-number {{if .IsActive}}active{{end}}">
+        {{.Number}}
+    </a>
+    {{- end -}}
+    {{- end -}}
 </div>
 <footer class="site-footer">
     <div class="footer-links-container">
