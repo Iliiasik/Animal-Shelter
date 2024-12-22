@@ -15,7 +15,7 @@ func ConnectOldDB() *gorm.DB {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 	dsn := fmt.Sprintf(
-		"host=http://34.16.104.66 user=%s password=%s dbname=%s sslmode=disable",
+		"user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
