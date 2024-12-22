@@ -26,10 +26,10 @@ type UserDetail struct {
 	User                 User      `json:"user" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Связь с таблицей пользователей
 	PhoneNumber          string    `json:"phone_number"`                                                                // Номер телефона
 	FirstName            string    `json:"first_name"`                                                                  // Имя
-	LastName             string    `json:"last_name"`                                                                   // Фамилия
-	Bio                  string    `json:"bio" gorm:"type:text"`                                                        // Биография
-	DateOfBirth          time.Time `json:"date_of_birth" gorm:"type:date"`                                              // Дата рождения
-	FormattedDateOfBirth string    `gorm:"-"`                                                                           // Форматированная дата рождения (не сохраняется в БД)
+	LastName             string    `json:"last_name"`
+	Bio                  string    `json:"bio" gorm:"type:varchar(250)"`
+	DateOfBirth          time.Time `json:"date_of_birth" gorm:"type:date"` // Дата рождения
+	FormattedDateOfBirth string    `gorm:"-"`                              // Форматированная дата рождения (не сохраняется в БД)
 }
 
 // Приватность пользователя

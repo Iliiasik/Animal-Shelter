@@ -79,6 +79,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
         lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop; // For Mobile or negative scrolling
     });
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Устанавливаем значения полей из URL-параметров
+    breedInput.value = urlParams.get('breed') || '';
+    colorInput.value = urlParams.get('color') || '';
+    ageYearsInput.value = urlParams.get('age_years') || '';
+    ageMonthsInput.value = urlParams.get('age_months') || '';
+    genderSelect.value = urlParams.get('gender') || '';
 });
 function filterAnimals(species) {
     console.log('Filtering animals by species:', species); // Для отладки
@@ -87,3 +95,4 @@ function filterAnimals(species) {
     console.log('Redirecting to URL:', url.toString()); // Для отладки
     window.location.href = url.toString();
 }
+

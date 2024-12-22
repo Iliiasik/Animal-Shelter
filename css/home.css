@@ -327,7 +327,7 @@ nav .wrapper {
 .cards-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Максимум 3 карточки в строке */
-    gap: 30px; /* Промежуток между карточками */
+    gap: 70px; /* Промежуток между карточками */
     justify-content: center; /* Центрируем карточки */
     padding: 20px; /* Отступы вокруг грида */
 }

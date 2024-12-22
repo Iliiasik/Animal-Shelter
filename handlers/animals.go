@@ -50,6 +50,21 @@ func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("UserID: %d\n", session.UserID)
 
+	// Проверяем, сколько объявлений уже создал пользователь
+	var animalCount int64
+	if err := db.Model(&models.Animal{}).Where("user_id = ?", session.UserID).Count(&animalCount).Error; err != nil {
+		log.Println("Error counting user animals:", err)
+		respondWithJSON(w, http.StatusInternalServerError, "error", "Error checking user advertisement limit")
+		return
+	}
+
+	// Проверка ограничения на количество объявлений
+	if animalCount >= 10 {
+		log.Printf("User %d has reached the advertisement limit\n", session.UserID)
+		respondWithJSON(w, http.StatusForbidden, "error", "Advertisement limit reached. You can create up to 10 animals.")
+		return
+	}
+
 	// Создаем новый объект Animal
 	animal := models.Animal{
 		Name:        r.FormValue("name"),
