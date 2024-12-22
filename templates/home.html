@@ -119,6 +119,8 @@
     </div>
 </section>
 
+
+
 <!-- Site footer -->
 <footer class="site-footer">
     <div class="footer-links-container">
@@ -129,16 +131,16 @@
         <div class="footer-links">
             <h6>Categories</h6>
             <ul>
-                <li><a href="/animal_list?species=1">Dogs</a></li>
-                <li><a href="/animal_list?species=2">Cats</a></li>
-                <li><a href="/animal_list?species=3">Birds</a></li>
+                <li><a href="/animal_list?species=Dog">Dogs</a></li>
+                <li><a href="/animal_list?species=Cat">Cats</a></li>
+                <li><a href="/animal_list?species=Bird">Birds</a></li>
             </ul>
         </div>
         <div class="footer-links">
             <h6>Quick Links</h6>
             <ul>
                 <li><a href="/register">Register</a></li>
-                <li><a href="#">Adopt</a></li>
+                <li><a href="/animal_list">Adopt</a></li>
                 <li><a href="/forum">Forum</a></li>
                 <li><a href="/terms-of-service">User Agreement</a></li>
             </ul>
@@ -164,4 +166,30 @@
 </body>
 <script src="/js/home.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+<script>
+    // Проверка, было ли уже согласие на использование cookies
+    window.onload = function() {
+        if (!Cookies.get('cookieConsent')) {
+            showCookieConsent();
+        }
+    };
+
+    function showCookieConsent() {
+        Swal.fire({
+            title: 'We use cookies!',
+            text: 'This website uses cookies to enhance your experience. By continuing to use the site, you agree to our cookie policy.',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Agree',
+            cancelButtonText: 'Disagree',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Cookies.set('cookieConsent', 'true', { expires: 365 }); // Сохраняем cookie на год
+                Swal.fire('Thank you!', 'You have agreed to the use of cookies.', 'success');
+            }
+        });
+    }
+</script>
+
 </html>

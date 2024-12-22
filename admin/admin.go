@@ -21,6 +21,7 @@ func InitAdmin(db *gorm.DB) *admin.Admin {
 
 	// Создаём новый экземпляр QOR Admin
 	Admin := admin.New(&admin.AdminConfig{DB: db, SiteName: "Animal Shelter"})
+
 	// Регистрируем ресурсы
 	// Пользователи
 	Admin.AddResource(&models.User{}, &admin.Config{

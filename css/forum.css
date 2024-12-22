@@ -82,8 +82,8 @@ h1 {
     align-items: center;
     margin-bottom: 15px;
     padding: 10px;
-    border: 2px solid #a8a7a7;
-    border-radius: 10px;
+    border: 1px solid rgba(86, 86, 86, 0.5);
+    border-radius: 20px;
     background-color: #f9f9f9;
     transition: transform 0.3s ease; /* Плавная анимация для блока */
 }
@@ -288,7 +288,6 @@ h1 {
     background-position: center;
     height: 200px; /* Высота фона */
     border-radius: 8px;
-    border: 2px solid #a8a7a7;
     margin-bottom: 10px;
     margin-top: 5px;
     padding: 20px;

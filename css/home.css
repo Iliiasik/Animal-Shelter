@@ -330,6 +330,7 @@ nav .wrapper {
     gap: 70px; /* Промежуток между карточками */
     justify-content: center; /* Центрируем карточки */
     padding: 20px; /* Отступы вокруг грида */
+
 }
 .home-list {
     display: flex;
@@ -806,3 +807,5 @@ nav .wrapper {
 .custom-toast-container{
     top:60px !important;
 }
+
+

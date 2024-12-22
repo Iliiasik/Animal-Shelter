@@ -117,3 +117,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Function to handle cookie acceptance
+function acceptCookies() {
+    document.getElementById('cookie-card').style.display = 'none';
+    // You can set a cookie to remember that the user accepted the notice
+    document.cookie = "cookieAccepted=true; max-age=31536000; path=/"; // Cookie lasts for 1 year
+}
+
+// Check if the cookie is already set
+function checkCookie() {
+    let cookies = document.cookie.split(';');
+    let cookieAccepted = false;
+
+    // Check if cookieAccepted exists
+    cookies.forEach(cookie => {
+        if (cookie.trim().startsWith("cookieAccepted=")) {
+            cookieAccepted = true;
+        }
+    });
+
+    // If the cookie is not set, show the cookie notice
+    if (!cookieAccepted) {
+        document.getElementById('cookie-card').style.display = 'block';
+    }
+}
+
+// Call the checkCookie function when the page loads
+window.onload = checkCookie;
