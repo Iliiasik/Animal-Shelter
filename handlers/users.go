@@ -380,7 +380,7 @@ func sendConfirmationEmail(email, token string) error {
 	m.SetHeader("From", "mama.ne.7.gorui@gmail.com")
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Please confirm your email address")
-	m.SetBody("text/html", fmt.Sprintf("Click the link to confirm your email address: <a href='http://localhost:8080/confirm?token=%s'>Confirm Email</a>", token))
+	m.SetBody("text/html", fmt.Sprintf("Click the link to confirm your email address: <a href='http://34.16.104.66:8080/confirm?token=%s'>Confirm Email</a>", token))
 
 	d := gomail.NewDialer("smtp.gmail.com", 587, "mama.ne.7.gorui@gmail.com", "cuxw pvxk epvp yahf")
 	return d.DialAndSend(m)
