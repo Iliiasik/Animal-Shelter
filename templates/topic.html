@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/footer.css">
     <title>Topic</title>
-    <link rel="website icon" type="svg" href="system_images/logo.svg">
+    <link rel="website icon" type="svg" href="system_images/home_img/logo.svg">
 </head>
 <body>
 <nav>
     <div class="wrapper">
         <div class="logo">
             <a href="/" class="logo-link">
-                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <img src="system_images/home_img/logo.svg" alt="Logo Image" class="logo-image">
                 <span class="logo-text">Animal Shelter</span>
             </a>
         </div>
@@ -27,7 +27,6 @@
 <main class="main-content">
     <div class="content-wrapper">
     <div class="topic-container">
-        <!-- Заголовок и информация о создателе на одном уровне -->
         <div class="topic-header">
             <h1 class="topic-title">{{.Title}}</h1>
             <div class="creator-info">
@@ -35,21 +34,25 @@
                 <span class="creator-username">{{.CreatorUsername}}</span>
             </div>
         </div>
-
-        <!-- Описание темы -->
         <p class="topic-description">{{.Description}}</p>
-
-        <!-- Форма для добавления комментария -->
         <div class="comment-form">
-            <form method="POST" action="/create_post">
+            <form method="POST" action="/create_post" enctype="multipart/form-data">
                 <input type="hidden" name="topic_id" value="{{.IDt}}">
                 <textarea id="content" name="content" required placeholder="Enter your comment..."></textarea>
-                <button type="submit" class="add-comment" id="add-comment-btn">Add Comment</button>
+                <div class="file-input-wrapper">
+                    <button type="submit" class="add-comment" id="add-comment-btn">Add Comment</button>
+                    <label for="photo" class="file-label">
+                        <img src="/system_images/forum_img/clip.svg" alt="Attach File" class="file-icon" />
+                        <span class="tooltip">Attach a file</span>
+                    </label>
+                    <input id="photo" name="photo" type="file" accept="image/*" class="file-input" />
+                    <img id="preview" class="file-preview" alt="Preview" />
+                </div>
+
+
             </form>
         </div>
-
-        <h2 id="commentary-header">Commentaries</h2>
-        <!-- Список комментариев -->
+        <h2 id="commentary-header">Comments</h2>
         <ul class="comments-list">
             {{range .Posts}}
             <li class="comment" id="comment-{{.ID}}">
@@ -58,7 +61,9 @@
                     <span class="username">{{.Username}}</span>
                     <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
                 </div>
-
+                {{if .ImageURL}}
+                <img src="{{.ImageURL}}" alt="Comment Image" class="comment-photo">
+                {{end}}
                 <div class="comment-content">
             <span class="short-content">
                 {{if gt (len .Content) 1000}}
@@ -72,13 +77,15 @@
                 {{.Content}}
                 <a href="javascript:void(0)" class="less-link" onclick="toggleContent(this)">Less</a>
             </span>
+
+
                 </div>
 
                 <!-- Reply and Show replies buttons container -->
                 <div class="buttons-container">
                     <label class="like-container">
                         <button type="button" id="like-button-{{.ID}}" class="rating-button">
-                            <img src="system_images/up.svg" alt="Like" class="rating-icon">
+                            <img src="system_images/forum_img/up.svg" alt="Like" class="rating-icon">
                         </button>
                     </label>
                     {{ if gt .Rating 0 }}
@@ -90,7 +97,7 @@
                     {{ end }}
                     <label class="dislike-container">
                         <button type="button" id="dislike-button-{{.ID}}" class="rating-button">
-                            <img src="system_images/down.svg" alt="Dislike" class="rating-icon">
+                            <img src="system_images/forum_img/down.svg" alt="Dislike" class="rating-icon">
                         </button>
                     </label>
 
@@ -111,11 +118,19 @@
 
                 <!-- Reply form -->
                 <div class="reply-form" id="reply-form-{{.ID}}" style="display:none;">
-                    <form method="POST" action="/create_post">
+                    <form method="POST" action="/create_post" enctype="multipart/form-data">
                         <input type="hidden" name="topic_id" value="{{.TopicID}}">
                         <input type="hidden" name="comment_id" value="{{.ID}}">
                         <textarea id="reply-content" name="content" required placeholder="Enter your reply..."></textarea>
+                        <div class="file-input-wrapper">
                         <button type="submit" class="add-reply" id="add-reply-button">Add Reply</button>
+                            <label for="reply-photo" class="file-label">
+                                <img src="/system_images/forum_img/clip.svg" alt="Attach File" class="file-icon" />
+                                <span class="tooltip">Attach a file</span>
+                            </label>
+                            <input id="reply-photo" name="photo" type="file" accept="image/*" class="file-input" />
+                            <img id="reply-preview" class="file-preview" alt="Preview" />
+                        </div>
                     </form>
                 </div>
 
@@ -129,6 +144,9 @@
                             <span class="username">{{.Username}}</span>
                             <span class="comment-date" data-created-at="{{.CreatedAt}}"></span>
                         </div>
+                        {{if .ImageURL}}
+                        <img src="{{.ImageURL}}" alt="Comment Image" class="comment-photo">
+                        {{end}}
                         <div class="comment-content">
                     <span class="short-content">
                         {{if gt (len .Content) 1000}}
@@ -169,7 +187,7 @@
         {{end}}</span>
         </label>
         <div class="responses-container">
-            <img src="system_images/response.svg" alt="Responses Icon" class="response-icon">
+            <img src="system_images/forum_img/response.svg" alt="Responses Icon" class="response-icon">
             <span>{{len .Posts}}
         {{if eq (len .Posts) 1}}
             Response
@@ -342,20 +360,7 @@
             button.textContent = 'Show Replies';
         }
     }
-
     const textarea = document.getElementById("content");
-    const addCommentButton = document.getElementById("add-comment-btn");
-
-    // Следим за событием ввода в textarea
-    textarea.addEventListener("input", function() {
-        if (textarea.value.trim().length > 0) {
-            // Если в поле что-то введено, показываем кнопку
-            addCommentButton.classList.add("show");
-        } else {
-            // Если поле пустое, скрываем кнопку
-            addCommentButton.classList.remove("show");
-        }
-    });
     function toggleLike() {
         const topicID = '{{.IDt}}'; // Передаем TopicID
         const checkbox = document.getElementById("likeCheckbox");
@@ -423,6 +428,29 @@
             updateRating(postID, 'dislike');
         });
     });
+    document.querySelectorAll("#photo, #reply-photo").forEach((input) => {
+        input.addEventListener("change", function (event) {
+            const inputId = event.target.id;
+            const previewId = inputId === "photo" ? "preview" : "reply-preview";
+            const preview = document.getElementById(previewId);
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "";
+                preview.style.display = "none";
+            }
+
+        });
+
+    });
+
 
 </script>
 </html>

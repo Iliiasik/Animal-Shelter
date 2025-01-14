@@ -117,14 +117,6 @@ body {
     margin-bottom: 20px;
 }
 
-.comment-form textarea {
-    width: 100%;
-    height: 100px;
-    margin-bottom: 10px;
-}
-
-
-
 .comments-list {
     list-style-type: none;
     padding: 0;
@@ -140,6 +132,13 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+}
+.comment-photo {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin: 10px 0;
 }
 
 .user-avatar {
@@ -174,28 +173,29 @@ body {
     margin-top: 10px; /* Отступ сверху для отделения от текста */
 }
 
-
-/* Для textarea, чтобы отключить возможность растягивания */
 textarea {
     width: 100%;
+    height: 75px;
     padding: 0.875rem;
     font-size: 1rem;
     border: 1.5px solid #543f30;
     border-radius: 0.5rem;
     box-shadow: 2.5px 3px 0 #6F4E37;
     outline: none;
-    background-color: #FAFAF8; /* Light gray background */
-    color: #543f30; /* Navy blue text */
-    resize: none; /* Отключение возможности растягивания */
+    background-color: #FAFAF8;
+    color: #543f30;
+    resize: none;
     overflow: hidden;
     transition: ease 0.25s;
+    margin-bottom: 10px;
 }
 
 textarea:focus {
     box-shadow: 5.5px 7px 0 #543f30;
     border-color: #543f30; /* Add color change on focus */
 }
-.add-comment {
+
+.add-reply, .add-comment {
     font-size: 0.9rem;
     font-weight: 800;
     padding: 8px 24px;
@@ -208,36 +208,65 @@ textarea:focus {
     text-decoration: none; /* Убирает подчеркивание */
     text-align: center;
     display: block;
-    margin: 0 auto;
-    opacity: 0; /* Скрываем кнопку по умолчанию */
 }
-
-.add-comment.show {
-    opacity: 1; /* Показываем кнопку */
-}
-
-.add-comment:hover {
+.add-reply:hover, .add-comment:hover {
     background-color: #6F4E37;
     color: #EADDCA;
 }
-.add-reply {
-    font-size: 0.9rem;
-    font-weight: 800;
-    padding: 8px 24px;
-    border: none;
-    border-radius: 5px;
-    background-color: #EADDCA;
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+}
+
+.file-label {
     cursor: pointer;
-    transition: all 0.5s, opacity 0.5s ease-in-out;
-    color: #6F4E37;
-    text-decoration: none; /* Убирает подчеркивание */
-    text-align: center;
-    display: block;
-    margin-top: 1%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
 }
-.add-reply:hover {
-    background-color: #6F4E37;
-    color: #EADDCA;
+
+.file-label:hover .tooltip {
+    display: block;
+    opacity: 1;
+}
+
+.file-icon {
+    width: 30px;
+    height: 30px;
+    transition: transform 0.3s ease;
+}
+.file-label:hover .file-icon {
+    transform: scale(1.05);
+}
+.tooltip {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    opacity: 0;
+    background-color: #000;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    transition: opacity 0.3s;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-preview {
+    width: 40px; /* Size of the thumbnail */
+    height: 40px;
+    border-radius: 5px;
+    object-fit: cover;
+    display: none; /* Hidden by default */
+    border: 1px solid #ccc;
 }
 
 /* Styling for the replies */
@@ -260,7 +289,7 @@ textarea:focus {
     margin-bottom: 10px;
 }
 
-/* heart button*/
+
 .like-container input {
     position: absolute;
     opacity: 0;
@@ -439,3 +468,6 @@ textarea:focus {
 .scroll-up:hover {
     transform: translateY(-.25rem);
 }
+
+
+

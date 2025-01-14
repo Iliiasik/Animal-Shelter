@@ -587,7 +587,7 @@ var userProfile = template.Must(template.ParseFiles("templates/userProfile.html"
 // ViewProfile Handles rendering profiles of other users
 func ViewProfile(db *gorm.DB, w http.ResponseWriter, username string) {
 	var user models.User
-	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+	if err := db.Preload("Role").Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
@@ -597,39 +597,74 @@ func ViewProfile(db *gorm.DB, w http.ResponseWriter, username string) {
 		return
 	}
 
-	var userDetails models.UserDetail
-	if err := db.First(&userDetails, "user_id = ?", user.ID).Error; err != nil {
-		log.Println("Error fetching user details:", err)
+	// Загружаем данные о животных пользователя
+	var animals []models.Animal
+	if err := db.Preload("Species").Preload("Gender").Preload("Status").Preload("Age").Preload("Images").Where("user_id = ?", user.ID).Find(&animals).Error; err != nil {
+		log.Println("Error loading animals:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	}
+
+	// Для каждого животного оставляем только первое изображение
+	for i := range animals {
+		if len(animals[i].Images) > 0 {
+			animals[i].Images = animals[i].Images[:1]
+		}
+	}
+
+	// Загружаем дополнительные данные о пользователе (детали, изображения, конфиденциальность)
+	var userDetail models.UserDetail
+	if err := db.First(&userDetail, "user_id = ?", user.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User details not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	var userImage models.UserImage
 	if err := db.First(&userImage, "user_id = ?", user.ID).Error; err != nil {
-		log.Println("Error fetching user images:", err)
-		return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User images not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	var userPrivacy models.UserPrivacy
 	if err := db.First(&userPrivacy, "user_id = ?", user.ID).Error; err != nil {
-		log.Println("Error fetching user privacy settings:", err)
-		return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User privacy settings not found for user ID:", user.ID)
+		} else {
+			log.Println("Database error:", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
+	// Формируем структурированные данные для шаблона
 	profile := struct {
 		User        models.User
 		UserDetail  models.UserDetail
 		UserImage   models.UserImage
 		UserPrivacy models.UserPrivacy
+		Animals     []models.Animal
 	}{
 		User:        user,
-		UserDetail:  userDetails,
+		UserDetail:  userDetail,
 		UserImage:   userImage,
 		UserPrivacy: userPrivacy,
+		Animals:     animals, // Передаем список животных пользователя
 	}
 
 	log.Println("Profile image path:", userImage.ProfileImage)
 	log.Println("Background image path:", userImage.ProfileBgImage)
 
+	// Отправляем данные в шаблон для рендеринга
 	err := userProfile.Execute(w, profile)
 	if err != nil {
 		log.Println("Template rendering error:", err)

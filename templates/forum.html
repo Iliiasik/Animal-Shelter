@@ -9,20 +9,17 @@
     <link rel="stylesheet" href="/css/footer.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Forum</title>
-    <link rel="website icon" type="svg" href="system_images/logo.svg">
+    <link rel="website icon" type="svg" href="system_images/home_img/logo.svg">
 </head>
 <body>
 <nav>
     <div class="wrapper">
         <div class="logo">
             <a href="/" class="logo-link">
-                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <img src="system_images/home_img/logo.svg" alt="Logo Image" class="logo-image">
                 <span class="logo-text">Animal Shelter</span>
             </a>
         </div>
-
-
-
         <ul class="nav-links">
             <li><a href="#">Feedback</a></li>
         </ul>
@@ -32,7 +29,7 @@
 <div class="content-wrapper">
     <div class="welcome-wrapper">
         <div class="welcome-message">
-            <img src="system_images/welcome cats.jpeg" alt="Welcome Image" class="welcome-image">
+            <img src="system_images/forum_img/welcome cats.jpeg" alt="Welcome Image" class="welcome-image">
             <div class="welcome-text">
                 <h1>Welcome to the Forum!</h1>
                 <p>Feel free to explore and participate in our discussions.</p>
@@ -120,7 +117,7 @@
                     </div>
                     <a href="/topic?id={{$topic.ID}}" class="topic-title">{{$topic.Title}}</a>
                     <span class="responses">Responses: {{$topic.ResponseCount}}</span>
-                    <img src="system_images/fire.png" alt="Popular" class="fire-icon">
+                    <img src="system_images/forum_img/fire.svg" alt="Popular" class="fire-icon">
                 </li>
                 {{end}}
             </ul>
@@ -246,7 +243,7 @@
     </div>
     {{if eq (len .Topics) 0}}
     <div class="no-result">
-        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-result-image">
+        <img src="system_images/search_img/Not found cat.jpeg" alt="No Results" class="no-result-image">
         <p class="no-result-text">Um, sorry, I didn't find anything :(</p>
         <p class="no-result-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar.
             Yes, he works at two jobs)</p>
@@ -272,7 +269,7 @@
     <div class="pagination">
         {{- range .Pages -}}
         {{- if eq .Number "..." -}}
-        <img src="system_images/paw for pages.png" alt="..." class="pagination-icon">
+        <img src="system_images/forum_img/paw for pages.svg" alt="..." class="pagination-icon">
         {{- else -}}
         <a href="{{.URL}}#search-section" class="page-number {{if .IsActive}}active{{end}}">
             {{.Number}}

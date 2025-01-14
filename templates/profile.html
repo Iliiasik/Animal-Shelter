@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile of {{.User.Username}}</title>
-    <link rel="website icon" type="svg" href="system_images/logo.svg">
+    <link rel="website icon" type="svg" href="system_images/home_img/logo.svg">
     <link rel="stylesheet" type="text/css" href="/css/profile.css">
     <link rel="stylesheet" type="text/css" href="/css/home.css">
     <link rel="stylesheet" href="/css/footer.css">
@@ -15,7 +15,6 @@
 </head>
 <body>
 <div class="profile-background" style="background-image: url('{{.UserImage.ProfileBgImage}}');">
-
 </div>
 
     <div class="profile-container">
@@ -29,17 +28,17 @@
                 <h1 class="username">{{.User.Username}}</h1>
                 {{if eq .User.Role.Name "Veterinarian"}}
                 <div class="info-item">
-                    <img src="/system_images/Medicine.svg" alt="Veterinarian Icon" class="info-icon">
+                    <img src="/system_images/profile_img/Medicine.svg" alt="Veterinarian Icon" class="info-icon">
                     <span class="role veterinarian-role">{{.User.Role.Name}}</span>
                 </div>
                 {{else if eq .User.Role.Name "Moderator"}}
                 <div class="info-item">
-                    <img src="/system_images/access.svg" alt="Moderator Icon" class="info-icon">
+                    <img src="/system_images/profile_img/access.svg" alt="Moderator Icon" class="info-icon">
                     <span class="role moderator-role">{{.User.Role.Name}}</span>
                 </div>
                 {{else if eq .User.Role.Name "Admin"}}
                 <div class="info-item">
-                    <img src="/system_images/access.svg" alt="Administrator Icon" class="info-icon">
+                    <img src="/system_images/profile_img/access.svg" alt="Administrator Icon" class="info-icon">
                     <span class="role administrator-role">{{.User.Role.Name}}</span>
                 </div>
                 {{end}}
@@ -49,26 +48,26 @@
             <div class="profile-info">
                 <h2 class="section-title">Personal Information</h2>
                 <div class="info-item">
-                    <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                    <img src="/system_images/profile_img/profile.svg" alt="Name Icon" class="info-icon">
                     <h3>{{.UserDetail.FirstName}} {{.UserDetail.LastName}}</h3>
                 </div>
                 <p class="bio-text">{{.UserDetail.Bio}}</p>
                 {{if .UserPrivacy.ShowEmail}}
                 <div class="info-item">
-                    <img src="/system_images/email.svg" alt="Email Icon" class="info-icon">
+                    <img src="/system_images/profile_img/email.svg" alt="Email Icon" class="info-icon">
                     <span>{{.User.Email}}</span>
                 </div>
                 {{end}}
 
                 {{if .UserPrivacy.ShowPhone}}
                 <div class="info-item">
-                    <img src="/system_images/phone.svg" alt="Phone Icon" class="info-icon">
+                    <img src="/system_images/profile_img/phone.svg" alt="Phone Icon" class="info-icon">
                     <span>{{.UserDetail.PhoneNumber}}</span>
                 </div>
                 {{end}}
 
                 <div class="info-item">
-                    <img src="/system_images/Date.svg" alt="Date Icon" class="info-icon">
+                    <img src="/system_images/profile_img/Date.svg" alt="Date Icon" class="info-icon">
                     <span id="dob-display">{{.UserDetail.DateOfBirth}}</span>
                 </div>
             </div>
@@ -89,7 +88,7 @@
         <div class="profile-options">
             <div class="admin-panel-title">
             <h2>Administration</h2>
-            <img src="system_images/admin_lock.svg" alt="Admin lock icon" class="admin-lock-icon" />
+            <img src="system_images/profile_img/admin_lock.svg" alt="Admin lock icon" class="admin-lock-icon" />
             </div>
             <button class="general-button" onclick="window.location.href='/admin'">Admin panel</button>
         </div>
@@ -98,12 +97,12 @@
 <div class="content-with-border">
     <div class="listing-header" id="listing">
         <h1>Your listing</h1>
-        <img src="system_images/list.svg" alt="Listing icon" class="listing-icon" />
+        <img src="system_images/profile_img/list.svg" alt="Listing icon" class="listing-icon" />
     </div>
 
     {{if eq (len .Animals) 0}}
     <div class="no-result">
-        <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-result-image">
+        <img src="system_images/search_img/Not found cat.jpeg" alt="No Results" class="no-result-image">
         <p class="no-result-text">Um, sorry, I didn't find anything :(</p>
         <p class="no-result-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar. Noo, he works at 3 jobs now (He has bills to pay...)</p>
     </div>
@@ -112,11 +111,7 @@
         {{range $animal := .Animals}}
         <li class="animal-listing-card">
             <div class="animal-listing-img">
-                {{if gt (len $animal.Images) 0}}
                 <img src="{{(index $animal.Images 0).ImageURL}}" alt="Animal Image">
-                {{else}}
-                <img src="default-animal-image.png" alt="Default Animal Image">
-                {{end}}
             </div>
             <a href="/animal_information?id={{$animal.ID}}">
             <div class="animal-listing-info">
@@ -148,10 +143,9 @@
 <div class="content-with-border">
     <div class="listing-header" id="adoptions">
         <h1>Applications for adoption of your animals</h1>
-        <img src="system_images/request.svg" alt="Request icon" class="listing-icon" />
+        <img src="system_images/profile_img/request.svg" alt="Request icon" class="listing-icon" />
     </div>
     <div class="adoptions-list">
-        <!-- Сначала отображаем заявки со StatusID = 1 (Under review) -->
         {{ $hasUnderReview := false }}
         {{ $hasApproved := false }}
 
@@ -162,7 +156,6 @@
         {{ $hasUnderReview = true }}
         {{ end }}
         <div class="adoption-card">
-            <!-- Слева: Карточка животного -->
             <div class="animal-card">
                 <a href="/animal_information?id={{.AnimalID}}" class="adopt-animal">
                     <div class="card-content">
@@ -177,7 +170,7 @@
             </div>
 
             <div class="center-icon">
-                <img src="/system_images/arrow.svg" alt="Center Icon">
+                <img src="/system_images/profile_img/arrow.svg" alt="Center Icon">
             </div>
 
             <!-- Справа: Информация о заявителе -->
@@ -186,7 +179,7 @@
                 <div class="adopter-details">
                     <h3>Requester</h3>
                     <div class="info-item">
-                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <img src="/system_images/profile_img/profile.svg" alt="Name Icon" class="info-icon">
                         <h4>{{ .FirstName }} {{ .LastName }}</h4>
                     </div>
                     <h5>Contact info</h5>
@@ -229,7 +222,7 @@
             </div>
 
             <div class="center-icon">
-                <img src="/system_images/arrow.svg" alt="Center Icon">
+                <img src="/system_images/profile_img/arrow.svg" alt="Center Icon">
             </div>
 
             <!-- Справа: Информация о заявителе -->
@@ -238,7 +231,7 @@
                 <div class="adopter-details">
                     <h3>Requester</h3>
                     <div class="info-item">
-                        <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                        <img src="/system_images/profile_img/profile.svg" alt="Name Icon" class="info-icon">
                         <h4>{{ .FirstName }} {{ .LastName }}</h4>
                     </div>
                     <h5>Contact info</h5>
@@ -272,7 +265,7 @@
 <div class="content-with-border">
     <div class="listing-header" id="sent-adoptions">
         <h1>Applications you sent</h1>
-        <img src="system_images/sent.svg" alt="Sent icon" class="listing-icon" />
+        <img src="system_images/profile_img/sent.svg" alt="Sent icon" class="listing-icon" />
     </div>
     <div class="sent-adoptions-list">
         {{ range .SentAdoptions }}
@@ -299,7 +292,7 @@
                 <div class="status-container">
                     <p class="status-text">Under review</p>
                     <div class="request-icon-container">
-                        <img src="system_images/request_under_review.svg" alt="Under Review" />
+                        <img src="system_images/profile_img/request_under_review.svg" alt="Under Review" />
                     </div>
 
                 </div>
@@ -307,7 +300,7 @@
                 <div class="status-container">
                     <p class="status-text">Approved</p>
                     <div class="request-icon-container">
-                        <img src="system_images/request_approved.svg" alt="Approved"/>
+                        <img src="system_images/profile_img/request_approved.svg" alt="Approved"/>
                     </div>
 
                 </div>
@@ -341,7 +334,7 @@
 
 
 <a href="/" class="button-home">
-    <img src="system_images/home.svg" alt="Home Icon" class="icon-home">
+    <img src="system_images/profile_img/home.svg" alt="Home Icon" class="icon-home">
 </a>
 
 

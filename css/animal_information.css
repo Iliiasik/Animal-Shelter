@@ -403,3 +403,18 @@ a:hover .profile-image {
     background-color: #000;
     color: #eee;
 }
+
+
+@media only screen and (max-width: 767px) {
+    .stage-two {
+        display: block;
+    }
+    .animal-description {
+        width: 100%;
+        margin-top: 5%;
+        margin-bottom: 3%;
+    }
+    .user-info {
+        width: 100%;
+    }
+}
