@@ -1,0 +1,776 @@
+/* Контент под навбаром */
+body {
+    background-color: #F6F5F1; /* Example background color */
+}
+.content-wrapper {
+    margin: 80px auto 0;
+    width: 85%;
+    background-color: #F6F5F1;
+}
+.content-wrapper .content-with-border {
+    padding: 20px; /* Optional: adds padding inside the border */
+    border: 2px solid #F1F0EA; /* The big border around all content */
+    border-radius: 15px; /* Rounded corners */
+    background-color: #FAFAF8;
+}
+.content-with-border {
+    margin-bottom: 30px;
+}
+.welcome-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin: 20px auto;
+}
+.welcome-wrapper p {
+    font-weight: bold;
+}
+
+.welcome-message {
+    text-align: center;
+    margin: 0 auto;
+
+    border-radius: 10px;
+    width: 100%;
+    max-width: 800px;
+    height: 200px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.welcome-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.welcome-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    background-color: rgba(24, 24, 24, 0.5); /* Полупрозрачный фон для текста */
+    z-index: 1;
+
+    /* Увеличиваем рамку вокруг текста */
+    padding: 15px; /* Добавляет отступы внутри рамки */
+
+    /* Скругляем углы */
+    border-radius: 15px; /* Увеличьте это значение для более округлых углов */
+}
+
+
+/* Форум стили */
+h1 {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.view-more {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.topic {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid rgba(86, 86, 86, 0.5);
+    border-radius: 20px;
+    background-color: #f9f9f9;
+    transition: transform 0.3s ease; /* Плавная анимация для блока */
+}
+
+.topic:hover {
+    transform: scale(1.03); /* Увеличение размера блока при наведении */
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.created-at {
+    margin-left: auto; /* Сдвигаем дату к правому краю */
+    font-size: 0.9em; /* Уменьшаем размер шрифта для даты, если нужно */
+    color: #666; /* Изменяем цвет текста для лучшего восприятия */
+}
+
+.profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    transition: transform 0.3s ease; /* Плавный переход при изменении масштаба */
+}
+
+.profile-image:hover {
+    transform: scale(1.1); /* Увеличение на 20% при наведении */
+}
+
+.username {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.topic-title {
+    flex-grow: 1;
+    color: #547e3c;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+    transition: transform 0.3s ease; /* Добавляем плавный переход для трансформации */
+    white-space: nowrap;       /* Запрещаем перенос строки */
+    overflow: hidden;          /* Скрываем текст, выходящий за пределы */
+    text-overflow: ellipsis;   /* Добавляем многоточие */
+}
+
+.topic-title:hover {
+    text-decoration: none;
+    transform: scale(1.03);
+    color: #53a232;
+}
+
+.responses {
+    color: #666;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.fire-icon {
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.discussions-wrapper {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.hot-discussion {
+    width: 62%; /* Ширина для Hot Discussions (большая часть) */
+    height: 300px;
+    margin-right: 20px; /* Отступ справа */
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    padding: 15px;
+}
+
+.hot-discussion h2 {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.your-topics {
+    width: 38%; /* Ширина для Now Discuss (меньшая часть) */
+    border: 2px solid #a8a7a7;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    height: 300px; /* Устанавливаем фиксированную высоту */
+    overflow-y: auto; /* Включаем вертикальный скролл */
+}
+
+
+.your-topics h2 {
+    text-align: center;
+}
+.your-topics p {
+    margin-top: 10px;
+    font-size: 0.9em; /* Уменьшение размера текста для демонстрационного контента */
+}
+.search-wrapper {
+    display: flex;
+    justify-content: center; /* Центрируем кнопку поиска */
+    margin: 20px 0; /* Отступ сверху и снизу */
+}
+
+.search-field {
+    display: flex; /* Используем flex для размещения инпута и кнопки */
+    justify-content: center; /* Центрируем контент */
+    align-items: center; /* Вертикальное выравнивание */
+}
+.search-button {
+    margin-left: 10px;
+}
+.pagination {
+    display: flex;
+    justify-content: center; /* Центрирует элементы по горизонтали */
+    align-items: center; /* Центрирует элементы по вертикали */
+    margin: 15px 0; /* Отступы сверху и снизу */
+}
+
+.pagination a, .pagination span {
+    display: inline-block; /* Делает элементы блочными */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    margin: 0 4px; /* Отступы между кнопками */
+    border-radius: 8em; /* Уменьшенные скругленные углы */
+    font-size: 14px; /* Уменьшенный размер текста */
+    font-weight: 700; /* Более жирный текст */
+    color: black; /* Цвет текста */
+    text-decoration: none; /* Убирает подчеркивание */
+    background-color: white; /* Цвет фона */
+    border: 2px solid black; /* Жирная граница */
+    box-shadow: 0 0 0 0 black; /* Тень */
+    transition: all 0.3s ease-in-out; /* Плавный переход */
+}
+
+.pagination a:hover {
+    transform: translateY(-3px) translateX(-1px); /* Эффект при наведении */
+    box-shadow: 2px 5px 0 0 black; /* Тень при наведении */
+}
+
+.pagination a:active {
+    transform: translateY(1px) translateX(0px); /* Эффект при нажатии */
+    box-shadow: 0 0 0 0 black; /* Убирает тень при нажатии */
+}
+
+.pagination span {
+    background-color: transparent; /* Прозрачный фон для разделителей */
+    color: #333; /* Цвет текста для разделителей */
+    padding: 0.8em 1.6em; /* Уменьшенные внутренние отступы */
+    font-size: 14px; /* Уменьшенный размер текста для разделителей */
+    font-weight: 700; /* Более жирный текст для разделителей */
+}
+.pagination .page-number.active {
+    font-weight: bold;
+    color: #ffffff;
+    background-color: rgb(9, 9, 9);
+}
+.pagination-icon {
+    width: 18px; /* Задайте нужный размер */
+    height: 18px; /* Можно также задать высоту */
+    object-fit: contain; /* Чтобы изображение не растягивалось */
+    margin: 0 4px; /* Отступы, если нужно */
+}
+.no-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует содержимое по горизонтали */
+    justify-content: center; /* Центрирует содержимое по вертикали */
+    text-align: center; /* Центрирование текста */
+}
+
+
+.no-result-image {
+    width: 150px; /* Установите ширину изображения по вашему усмотрению */
+    height: auto; /* Высота будет пропорциональной */
+    border-radius: 30%;
+}
+
+.no-result-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: darkred; /* Цвет текста */
+    margin-top: 10px; /* Отступ сверху для текста */
+}
+.no-result-small-text{
+    font-weight: bold;
+}
+
+.your-topics .user-profile {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+    height: 200px; /* Высота фона */
+    border-radius: 8px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+    padding: 20px;
+}
+
+.your-topics .profile-inner {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.4); /* Легкий белый фон с уменьшенной прозрачностью */
+    padding: 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px); /* Эффект размытия */
+    -webkit-backdrop-filter: blur(8px); /* Поддержка для Safari */
+}
+
+
+.your-topics .profile-image {
+    width: 70px; /* Увеличен размер иконки */
+    height: 70px;
+    border-radius: 50%;
+    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+.your-topics a:hover .profile-image {
+    transform: scale(1.07); /* Увеличение на 10% при наведении */
+}
+.your-topics .user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.your-topics .username {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.your-topics .topic-count {
+    font-size: 1em;
+    color: #000000;
+    margin-top: 5px; /* Немного отступа для лучшей читаемости */
+}
+.your-topics p {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    color: #2C6B2F;
+}
+.your-topics a {
+    text-decoration: none;
+}
+.icon {
+    height: 1.7em;
+    width: auto;
+    position: absolute; /* добавлено для корректного поведения */
+    transition: opacity 0.3s ease; /* добавлен переход для плавного исчезновения */
+}
+
+/* Стили для модального окна */
+
+.BtnTopic {
+    border: none;
+    border-radius: 30%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition-duration: .4s;
+    cursor: pointer;
+    position: relative;
+    background-color: #F1F0EA;
+    overflow: hidden;
+    margin-left: 20px;
+}
+.BtnTopic:hover {
+    width: 110px;
+    transition-duration: .4s;
+    border-radius: 30px;
+}
+
+.BtnTopic:hover .text {
+    opacity: 1;
+    transition-duration: .4s;
+    color: #090909;
+}
+
+.BtnTopic:hover .svgIconT {
+    opacity: 0;
+    transition-duration: .3s;
+}
+.svgIconT {
+    transition-duration: .3s;
+}
+.BtnTopicT:hover .svgIconT {
+    opacity: 0;
+    transition-duration: .3s;
+}
+/* Общие стили для модального окна */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Полупрозрачный фон для модального окна */
+    padding-top: 60px;
+}
+
+/* Стили для содержимого модального окна */
+.modal-content {
+    background-color: #F6F5F1;
+    margin: 5% auto;
+    padding: 20px;
+    border: none;
+    border-radius: 10px; /* Скругленные углы для контента */
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Мягкая тень для модального окна */
+}
+
+/* Кнопка закрытия модального окна */
+.close {
+    color: #6F4E37;
+    font-size: 32px;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Плавный переход для всех изменений */
+}
+
+.close:hover,
+.close:focus {
+    color: #57381c;
+    text-decoration: none;
+    outline: none;
+}
+
+/* Заголовок модального окна */
+.modal-content h2 {
+    color: #543f30; /* Белый цвет заголовка */
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Стили для формы в модальном окне */
+.modal-content label {
+    font-size: 16px;
+    color: #543f30;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Поля ввода в модальном окне */
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #b7b7b7; /* Темный голубой цвет границы */
+    border-radius: 5px;
+    background-color: #FAFAF8; /* Светло-голубой фон для полей */
+    color: #543f30; /* Navy blue цвет текста */
+    font-size: 14px;
+}
+
+
+.createTopic {
+    width: 40%;
+
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 8px 24px;
+    border: none;
+    border-radius: 5px;
+    background-color: #EADDCA;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #6F4E37;
+    text-decoration: none; /* Убирает подчеркивание */
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+}
+
+.createTopic:hover {
+    background-color: #6F4E37;
+    color: #EADDCA;
+}
+.cTopic {
+    font-size: 0.9rem;
+    font-weight: 800;
+    padding: 8px 24px;
+    border: none;
+    border-radius: 5px;
+    background-color: #EADDCA;
+    cursor: pointer;
+    transition: all 0.5s;
+    color: #6F4E37;
+    text-decoration: none; /* Убирает подчеркивание */
+    text-align: center;
+    display: block;
+    margin: 10px;
+}
+
+.cTopic:hover {
+    background-color: #6F4E37;
+    color: #EADDCA;
+}
+.modal input {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+    border: 1.5px solid #543f30;
+    border-radius: 0.5rem;
+    box-shadow: 2.5px 3px 0 #6F4E37;
+    outline: none;
+    transition: ease 0.25s;
+}
+
+.modal input:focus {
+    box-shadow: 5.5px 7px 0 #543f30;
+}
+#errorMessage {
+    color: red;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+
+.checkbox-wrapper-31 {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+    vertical-align: middle;
+}
+
+.checkbox-wrapper-31 svg {
+    width: 30px;
+    height: 30px;
+}
+
+.checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #6cbe45;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
+}
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Отступы между чекбоксом и заголовком */
+.checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+.topics-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.delete-button {
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border: none;
+    position: relative;
+    border-radius: 10px;
+    -webkit-box-shadow: 1px 1px 5px .2px #00000035;
+    box-shadow: 1px 1px 5px .2px #00000035;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+    transition-delay: .2s;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: space-between;
+}
+
+.delete-button:hover {
+    width: 150px;
+    transition-delay: .2s;
+}
+
+.delete-button:hover > .paragraph {
+    visibility: visible;
+    opacity: 1;
+    -webkit-transition-delay: .4s;
+    transition-delay: .4s;
+}
+
+.delete-button:hover > .icon-wrapper .icon {
+    transform: scale(1.1);
+}
+
+.delete-button:hover > .icon-wrapper .icon path {
+    stroke: black;
+}
+
+.delete-button .paragraph {
+    color: black;
+    visibility: hidden;
+    opacity: 0;
+    font-size: 18px;
+    margin-right: 20px;
+    padding-left: 20px;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.delete-button .icon-wrapper {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+
+}
+
+.delete-button .icon {
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.delete-button .icon path {
+    stroke: #000;
+    stroke-width: 2px;
+    -webkit-transition: .2s linear;
+    transition: .2s linear;
+}
+
+.topic-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.topic-wrapper .topic {
+    width: 100%;
+    height: 40px;
+}
+#error-message {
+    color: red;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+.selectLabel {
+    color: #496c33;
+    font-weight: bold; /* Жирный текст */
+    text-align: center; /* Центрирование текста */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+.delete-topics .modal-content{
+    max-width: 800px;
+}
+.delete-topics .topics-list {
+    display: flex;
+    justify-content: space-between; /* Разделяет на два столбца */
+}
+
+
+.delete-topics .topics-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Расстояние между элементами в столбце */
+    width: 48%; /* Каждый столбец занимает 48% ширины */
+}
+
+.delete-topics .topics-column.narrow {
+    width: 100%;
+}
+
+.delete-topics .topics-column.narrow ~ .topics-column {
+    width: auto; /* Стиль отключается */
+}
+
+.delete-topics .modal-content.narrow {
+    max-width: 420px; /* Уменьшаем ширину, если топиков меньше 6 */
+    box-sizing: border-box;
+}
+.select-buttons {
+    position: relative; /* Относительное позиционирование */
+    left: 50%; /* Смещаем контейнер на 50% по горизонтали */
+    transform: translateX(-50%); /* Сдвигаем контейнер на 50% влево, чтобы центрировать его */
+    display: flex; /* Располагаем кнопки в одну строку */
+    gap: 5px; /* Расстояние между кнопками */
+    justify-content: center; /* Центрируем кнопки внутри контейнера */
+    padding: 10px; /* Добавляем внутренние отступы */
+    width: max-content; /* Ширина зависит от содержимого */
+    box-sizing: border-box; /* Учитываем отступы и границы в общей ширине и высоте */
+}
+
+.delete-topics .createTopic {
+    width: 120px; /* Устанавливаем фиксированную ширину */
+    font-size: 14px; /* Уменьшаем размер шрифта */
+}
+.delete-topics .topic {
+    background-color: #F6F5F1;
+}
+.your-topics .createTopic {
+    margin-bottom: 10px;
+}
+.your-topics::-webkit-scrollbar {
+    display: none; /* Скрыть скроллбар */
+}
+.hot-discussion h2 {
+    font-size: 1.5em;
+    background: linear-gradient(45deg, #ff4500, #ff6347, #ff6a00, #ff8c00, #ff0000);
+    background-size: 400% 400%;
+    color: transparent;
+    background-clip: text; /* Применяет градиент только к тексту */
+    -webkit-background-clip: text; /* Для браузеров на основе WebKit (например, Chrome) */
+    animation: fireEffect 15s ease infinite; /* Делаем анимацию медленной */
+}
+
+@keyframes fireEffect {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}

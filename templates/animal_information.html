@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Name}} Information - Animal Shelter</title>
     <link rel="website icon" type="svg" href="system_images/logo.svg">
-    <link rel="stylesheet" href="/css/home.css">
-    <link rel="stylesheet" href="/css/animal_information.css">
-    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/general_styles/general.css">
+    <link rel="stylesheet" href="/css/templates_styles/animal_information.css">
+    <link rel="stylesheet" href="/css/general_styles/footer.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
 </head>
 
@@ -16,7 +16,7 @@
     <div class="wrapper">
         <div class="logo">
             <a href="/" class="logo-link">
-                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <img src="system_images/home_img/logo.svg" alt="Logo Image" class="logo-image">
                 <span class="logo-text">Animal Shelter</span>
             </a>
         </div>
@@ -32,15 +32,15 @@
             <h1 class="animal-title">{{.Name}}</h1>
             {{if eq .Species "Dog"}}
             <a href="/animal_list?species=Dog">
-                <img src="system_images/Dog.svg" alt="Dog Icon" class="animal-icon">
+                <img src="system_images/animal_info_img/Dog.svg" alt="Dog Icon" class="animal-icon">
             </a>
             {{else if eq .Species "Cat"}}
             <a href="/animal_list?species=Cat">
-                <img src="system_images/Cat.svg" alt="Cat Icon" class="animal-icon">
+                <img src="system_images/animal_info_img/Cat.svg" alt="Cat Icon" class="animal-icon">
             </a>
             {{else if eq .Species "Bird"}}
             <a href="/animal_list?species=Bird">
-                <img src="system_images/Bird.svg" alt="Bird Icon" class="animal-icon">
+                <img src="system_images/animal_info_img/Bird.svg" alt="Bird Icon" class="animal-icon">
             </a>
             {{end}}
         </div>
@@ -49,35 +49,35 @@
             <div class="gender-info">
                 <span>{{.Gender}}</span>
                 {{if eq .Gender "Male"}}
-                <img src="system_images/Male.svg" alt="Male Icon" class="gender-icon">
+                <img src="system_images/animal_info_img/Male.svg" alt="Male Icon" class="gender-icon">
                 {{else if eq .Gender "Female"}}
-                <img src="system_images/Female.svg" alt="Female Icon" class="gender-icon">
+                <img src="system_images/animal_info_img/Female.svg" alt="Female Icon" class="gender-icon">
                 {{end}}
             </div>
         </a>
         <div class="item-info">
             <span>{{if .IsSterilized}}Sterilized{{else}}Not sterilized{{end}}</span>
-            <img src="system_images/Sterilized.svg" alt="Sterilized Icon" class="item-icon">
+            <img src="system_images/animal_info_img/Sterilized.svg" alt="Sterilized Icon" class="item-icon">
         </div>
         <div class="item-info">
             <span>{{if .HasPassport}}With passport{{else}}Without passport{{end}}</span>
-            <img src="system_images/Passport.svg" alt="Passport Icon" class="item-icon">
+            <img src="system_images/animal_info_img/Passport.svg" alt="Passport Icon" class="item-icon">
         </div>
         <div class="item-info status-info">
             <span>{{.Status}}</span>
             {{if eq .Status "Available"}}
-            <img src="system_images/Available.svg" alt="Available Icon" class="item-icon">
+            <img src="system_images/animal_info_img/Available.svg" alt="Available Icon" class="item-icon">
             {{else if eq .Status "Booked"}}
-            <img src="system_images/Booked.svg" alt="Booked Icon" class="item-icon">
+            <img src="system_images/animal_info_img/Booked.svg" alt="Booked Icon" class="item-icon">
             {{else if eq .Status "In treatment"}}
-            <img src="system_images/On treatment.svg" alt="On treatment Icon" class="item-icon">
+            <img src="system_images/animal_info_img/On treatment.svg" alt="On treatment Icon" class="item-icon">
             {{end}}
 
 
         </div>
         <div class="item-info views-info">
             <span>{{.Views}} views</span>
-            <img src="system_images/eye.svg" alt="Eye Icon" class="views-icon">
+            <img src="system_images/animal_info_img/eye.svg" alt="Eye Icon" class="views-icon">
         </div>
     </section>
 <!-- Основная информация о животном с секцией слайдера справа -->
@@ -154,15 +154,15 @@
             <div class="user-info-left">
                 <div class="contact-info">
                 <p>
-                    <img src="/system_images/profile.svg" alt="Name Icon" class="info-icon">
+                    <img src="/system_images/profile_img/profile.svg" alt="Name Icon" class="info-icon">
                     <span>{{.UserDetails.FirstName}} {{.UserDetails.LastName}}</span>
                 </p>
                 <p>
-                    <img src="/system_images/email.svg" alt="Email Icon" class="info-icon">
+                    <img src="/system_images/profile_img/email.svg" alt="Email Icon" class="info-icon">
                     <span>{{.UserDetails.Email}}</span>
                 </p>
                 <p>
-                    <img src="/system_images/phone.svg" alt="Phone Icon" class="info-icon">
+                    <img src="/system_images/profile_img/phone.svg" alt="Phone Icon" class="info-icon">
                     <span>{{.UserDetails.PhoneNumber}}</span>
                 </p>
                 </div>

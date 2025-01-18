@@ -1,0 +1,277 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.profile-background {
+
+    background-size: cover;
+    background-position: center;
+    height: 30vh; /* Высота 100% окна браузера */
+    position: relative;
+    z-index: 1;
+}
+.bg-buttons{
+    position: relative;
+    right:1vh;
+    top: 24vh;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: flex-end;
+
+}
+
+.profile-image-functions {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    width: 30vh;
+}
+.buttons{
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+    width: 200px;
+    margin-left: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.profile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: flex-start;
+    width: 80vh;
+    background-color: #fff;
+    border-radius: 5vh;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    gap: 20px;
+}
+
+.profile-image {
+    width: 150px;   /* Фиксируем ширину */
+    height: 150px;  /* Фиксируем высоту */
+    margin-right: 20px;
+    overflow: hidden;  /* Убираем всё, что выходит за границы контейнера */
+    border-radius: 50%;  /* Делаем круглый контейнер */
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Изображение заполняет контейнер, сохраняя пропорции */
+    display: block;    /* Убираем любые возможные отступы вокруг изображения */
+}
+.form-container{
+    width: 40vh;
+}
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
+    width: 45vh;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+label {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* Начало стиля для модального окна */
+.modal {
+    display: none; /* По умолчанию скрыто */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный фон */
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 90vh; /* Ограничение по высоте экрана */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.close {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.crop-container {
+    width: 100%;
+    flex: 1; /* Заполнить оставшееся пространство контейнера */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background-color: #f1f1f1;
+}
+.cropper-container.cropper-bg {
+
+    position: relative;
+    overflow: hidden; /* Чтобы изображение не выходило за пределы */
+    margin-bottom: 10px;
+    background-color: #f1f1f1; /* Цвет фона */
+    background-position: center center;
+    background-size: cover; /* Заполнение контейнера изображением */
+}
+#cropImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Сохранение пропорций изображения */
+    position: relative; /* Изображение остаётся внутри контейнера */
+}
+
+/* Рамка для области обрезки */
+.cropper-crop-box {
+    width: 60%; /* Примерный размер области обрезки */
+    height: 60%; /* Примерный размер области обрезки */
+    border: 2px dashed #00f;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.sidebar {
+    position: fixed;
+    top: 30vh;
+    left: -35vh; /* по умолчанию скрыта за пределами экрана */
+    width: 30vh;
+    height: 100vh;
+    background-color: #f4f4f4;
+    padding: 2vh;
+    transition: left 0.3s;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 2; /* Профиль выше фона */
+}
+
+.sidebar.open {
+    left: 0; /* при открытии сдвигаем в область видимости */
+}
+.sidebar-button-container{
+    position: fixed;
+    top: 85vh;
+    left: 10px;
+    z-index: 1001;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    width: 400px;
+}
+.form-buttons{
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    width: 40vh;
+}
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="url"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+textarea {
+    resize: none;
+}
+.checkbox-wrapper-31 {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+}
+
+.checkbox-wrapper-31 svg {
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #6cbe45;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
+}
+
+

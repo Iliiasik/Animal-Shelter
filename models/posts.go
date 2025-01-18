@@ -10,16 +10,12 @@ type Post struct {
 	UserID    uint      `json:"user_id" gorm:"index;not null"` // Внешний ключ к таблице Users
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
-	ParentID  *int      `json:"parent_id"` // ID родительского поста (если это ответ)
+	ParentID  *int      `json:"parent_id"`               // ID родительского поста (если это ответ)
+	Rating    int       `json:"rating" gorm:"default:0"` // Общий рейтинг (+ или -)
+	ImageURL  string    `json:"image_url"`               // URL изображения (если есть)
 
-	// Рейтинг поста (+ или -), добавляем дефолтное значение
-	Rating int `json:"rating" gorm:"default:0"` // Общий рейтинг (+ или -)
-
-	// Связь с таблицей Topic
 	Topic Topic `gorm:"foreignKey:TopicID;references:ID;constraint:OnDelete:CASCADE"`
-
-	// Связь с таблицей Users
-	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE"` // Связь с таблицей Users через поле UserID
+	User  User  `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 func (Post) TableName() string {

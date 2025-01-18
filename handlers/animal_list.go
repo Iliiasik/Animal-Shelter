@@ -61,7 +61,6 @@ type AnimalSummary struct {
 	ImageURL  string `json:"image_url"`
 }
 
-// Новая функция для компактной пагинации с фильтрами
 func animalCompactPagination(current, total int, species, breed, color, ageYears, ageMonths, gender string) []PageLink {
 	var pages []PageLink
 
@@ -116,8 +115,6 @@ func animalCompactPagination(current, total int, species, breed, color, ageYears
 
 	return pages
 }
-
-// Обновленный обработчик страницы списка животных
 func AnimalListPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	loggedIn := false
 
@@ -319,7 +316,6 @@ func fetchAnimalsWithFilters(db *sql.DB, species, breed, color, ageYearsStr, age
 
 	return animals, totalRecords, nil
 }
-
 func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем ID животного из параметров запроса
 	animalIDStr := r.URL.Query().Get("id")
@@ -452,7 +448,6 @@ func AnimalInformation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func IncrementViews(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

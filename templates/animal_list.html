@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Shelter</title>
-    <link rel="stylesheet" href="/css/home.css">
-    <link rel="stylesheet" href="/css/animal_list.css">
-    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/general_styles/general.css">
+    <link rel="stylesheet" href="/css/general_styles/footer.css">
+    <link rel="stylesheet" href="/css/templates_styles/search_list.css">
+    <link rel="stylesheet" href="/css/templates_styles/animal_cards.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
@@ -14,7 +15,7 @@
     <div class="wrapper">
         <div class="logo">
             <a href="/" class="logo-link">
-                <img src="system_images/logo.svg" alt="Logo Image" class="logo-image">
+                <img src="system_images/home_img/logo.svg" alt="Logo Image" class="logo-image">
                 <span class="logo-text">Animal Shelter</span>
             </a>
         </div>
@@ -43,13 +44,13 @@
         <h2 class="category-title">
             <span class="category-icon">
                 {{if eq .CurrentCategory ""}}
-                <img src="system_images/all search.png" alt="All Icon">
+                <img src="system_images/search_img/all search.svg" alt="All Icon">
                 {{else if eq .CurrentCategory "Dog"}}
-                <img src="system_images/Dogs search.png" alt="Dog Icon">
+                <img src="system_images/animal_info_img/Dog.svg" alt="Dog Icon">
                 {{else if eq .CurrentCategory "Cat"}}
-                <img src="system_images/Cats search.png" alt="Cat Icon">
+                <img src="system_images/animal_info_img/Cat.svg" alt="Cat Icon">
                 {{else if eq .CurrentCategory "Bird"}}
-                <img src="system_images/Birds search.png" alt="Bird Icon">
+                <img src="system_images/animal_info_img/Bird.svg" alt="Bird Icon">
                 {{end}}
             </span>
             <span class="category-text">
@@ -101,10 +102,10 @@
 
         <div class="tips">
 
-            <p><img src="system_images/question.svg" alt="question-icon" class="care-icon">Write your detailed request here to structure your query better. You can include more precise details for better results.</p>
+            <p><img src="system_images/search_img/question.svg" alt="question-icon" class="care-icon">Write your detailed request here to structure your query better. You can include more precise details for better results.</p>
         </div>
         <div class="no-results">
-            <img src="system_images/Not found cat.jpeg" alt="No Results" class="no-results-image">
+            <img src="system_images/search_img/Not found cat.jpeg" alt="No Results" class="no-results-image">
             <p class="no-results-text">Um, sorry, I didn't find anything :(</p>
             <p class="no-results-small-text" style="color: gray; font-size: small;">(Search inspector - Aidar)</p>
         </div>
@@ -117,7 +118,7 @@
 <div class="pagination">
     {{- range .Pages -}}
     {{- if eq .Number "..." -}}
-    <img src="system_images/paw for pages.png" alt="..." class="pagination-icon">
+    <img src="system_images/forum_img/paw for pages.svg" alt="..." class="pagination-icon">
     {{- else -}}
     <a href="{{.URL}}" class="page-number {{if .IsActive}}active{{end}}">
         {{.Number}}

@@ -4,7 +4,8 @@ import (
 	"Animals_Shelter/models"
 	"encoding/json"
 	"errors"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
+
 	"log"
 	"net/http"
 	"time"

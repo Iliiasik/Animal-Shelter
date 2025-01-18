@@ -4,10 +4,9 @@ import (
 	"Animals_Shelter/models"
 	"errors"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
 	"os"
 )
@@ -23,7 +22,7 @@ func ConnectDB() *gorm.DB {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
@@ -87,6 +86,7 @@ func initializeRoles(db *gorm.DB) {
 		}
 	}
 }
+
 func initializeGenders(db *gorm.DB) {
 	genders := []models.Gender{
 		{Name: "Male"},
@@ -107,6 +107,7 @@ func initializeGenders(db *gorm.DB) {
 		}
 	}
 }
+
 func initializeAnimalStatus(db *gorm.DB) {
 	statuses := []models.AnimalStatus{
 		{Name: "Available"},
@@ -129,6 +130,7 @@ func initializeAnimalStatus(db *gorm.DB) {
 		}
 	}
 }
+
 func initializeAnimalTypes(db *gorm.DB) {
 	types := []models.AnimalType{
 		{Name: "Dog"},
@@ -140,7 +142,7 @@ func initializeAnimalTypes(db *gorm.DB) {
 		var existingTypes models.AnimalType
 		if err := db.Where("name = ?", types2.Name).First(&existingTypes).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				if err := db.Create(&types).Error; err != nil {
+				if err := db.Create(&types2).Error; err != nil {
 					log.Printf("Error creating animal type %s: %v\n", types2.Name, err)
 				} else {
 					log.Printf("Animal type %s created successfully.\n", types2.Name)
@@ -151,6 +153,7 @@ func initializeAnimalTypes(db *gorm.DB) {
 		}
 	}
 }
+
 func initializeAdoptionStatus(db *gorm.DB) {
 	statuses := []models.AdoptionStatus{
 		{Name: "Under review"},

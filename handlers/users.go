@@ -5,10 +5,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
-	"gorm.io/gorm"
+
+	"github.com/jinzhu/gorm"
 	"html/template"
 	"io"
 	"log"
@@ -376,13 +378,29 @@ func generateToken() (string, error) {
 }
 
 func sendConfirmationEmail(email, token string) error {
+	err := godotenv.Load("configuration.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	fromEmail := os.Getenv("SMTP_FROM_EMAIL")
+	password := os.Getenv("SMTP_PASSWORD")
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+
+	if fromEmail == "" || password == "" || smtpHost == "" || smtpPort == "" {
+		return fmt.Errorf("missing required SMTP environment variables")
+	}
+
 	m := gomail.NewMessage()
-	m.SetHeader("From", "mama.ne.7.gorui@gmail.com")
+	m.SetHeader("From", fromEmail)
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Please confirm your email address")
 	m.SetBody("text/html", fmt.Sprintf("Click the link to confirm your email address: <a href='http://34.16.104.66:8080/confirm?token=%s'>Confirm Email</a>", token))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "mama.ne.7.gorui@gmail.com", "cuxw pvxk epvp yahf")
+	// Создаем и настраиваем SMTP-диалер
+	d := gomail.NewDialer(smtpHost, 587, fromEmail, password)
+
+	// Отправляем письмо
 	return d.DialAndSend(m)
 }
 

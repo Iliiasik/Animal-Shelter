@@ -2,47 +2,39 @@ package main
 
 import (
 	"Animals_Shelter/admin"
-	"Animals_Shelter/admin/db_old"
 	"Animals_Shelter/auth"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
 	"Animals_Shelter/middleware"
+	"database/sql"
 	"fmt"
-	"regexp"
-
 	"log"
 	"net/http"
+	"regexp"
 )
 
 func main() {
-	// Подключение к базе данных через GORM
 	gormDB := db.ConnectDB()
+	Admin := admin.InitAdmin(gormDB)
 
-	oldGormDB := db_old.ConnectOldDB()
-	// Initialize QOR Admin
-	// Инициализация админки
-	Admin := admin.InitAdmin(oldGormDB)
-
-	// Получаем *sql.DB из *gorm.DB
-	sqlDB, err := gormDB.DB()
-	if err != nil {
-		log.Fatalf("Failed to get *sql.DB from GORM: %v", err)
+	sqlDB := gormDB.DB()
+	if sqlDB == nil {
+		log.Fatalf("Failed to get *sql.DB from GORM")
 	}
 
-	defer sqlDB.Close()
+	defer func(sqlDB *sql.DB) {
+		err := sqlDB.Close()
+		if err != nil {
 
-	// Создаем новый маршрутизатор
+		}
+	}(sqlDB)
+
 	mux := http.NewServeMux()
-
-	// Оборачиваем админку в Middleware
-
-	// Оборачиваем админку в Middleware
 	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
 	mux.Handle("/admin/", adminHandler)
 
-	// Настройка маршрутов с использованием *sql.DB
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handlers.HomePage(sqlDB, w, r)
+		handlers.HomePage(gormDB, w, r)
 	})
 
 	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {
@@ -148,15 +140,10 @@ func main() {
 		handlers.SaveVisibilitySettings(gormDB, w, r)
 	})
 	mux.HandleFunc("/profile/{username}", func(w http.ResponseWriter, r *http.Request) {
-		// Извлекаем username из URL с помощью регулярного выражения
-		re := regexp.MustCompile(`/profile/([a-zA-Z0-9_]+)`) // Можно настроить регулярку под ваши требования для username
+		re := regexp.MustCompile(`/profile/([a-zA-Z0-9_]+)`)
 		match := re.FindStringSubmatch(r.URL.Path)
-
-		// Если путь соответствует, извлекаем username
 		if len(match) > 1 {
 			username := match[1]
-			// Подключаемся к базе данных (или используем уже подключенную)
-			// Пример обработки маршрута с username:
 			handlers.ViewProfile(gormDB, w, username)
 		} else {
 			http.Error(w, "Invalid URL", http.StatusNotFound)
@@ -194,9 +181,7 @@ func main() {
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 	mux.Handle("/system_images/", http.StripPrefix("/system_images/", http.FileServer(http.Dir("system_images"))))
 
-	// Оборачиваем маршрутизатор в middleware логирования
 	loggedMux := middleware.LoggerMiddleware(mux)
-
 	port := 8080
 	address := fmt.Sprintf("http://34.16.104.66:%d", port)
 	fmt.Printf("Starting server on %s\n", address)

@@ -1,19 +1,23 @@
 package handlers
 
-// Importing libraries ---------------------------------------------------------
 import (
 	"database/sql"
 	"fmt"
-	"gorm.io/gorm"
+	"github.com/google/uuid"
+	"github.com/jinzhu/gorm"
 	"html/template"
+	"io"
 	"log"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
+	"path/filepath"
 	"strconv"
 )
 
-// Templates ---------------------------------------------------------
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/topic.html"))
 
 func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -53,31 +57,22 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			CreatedAt     string
 		}
 	)
-	// Получаем ID пользователя из cookie, если он авторизован
-	cookie, err := r.Cookie("session")
-	if err == nil {
-		userLoggedIn = true
-		err = db.QueryRow("SELECT user_id FROM sessions WHERE session_id = $1", cookie.Value).Scan(&user.ID)
-		if err != nil {
-			log.Printf("Error fetching user ID: %v", err)
-			return
-		}
+	userID, userLoggedIn, err := getUserIDFromSession(db, r)
+	if err != nil {
+		log.Printf("Error fetching user ID from session: %v", err)
+		return
+	}
 
-		// Запрос для получения информации о пользователе
-		err = db.QueryRow(`
-            SELECT username 
-            FROM users WHERE id = $1
-        `, user.ID).Scan(&user.Username)
+	if userLoggedIn {
+		// Получаем информацию о пользователе
+		err := db.QueryRow(`SELECT username FROM users WHERE id = $1`, userID).Scan(&user.Username)
 		if err != nil {
 			log.Printf("Error fetching user info: %v", err)
 			return
 		}
 
 		// Запрос для получения изображений профиля и фона
-		err = db.QueryRow(`
-            SELECT profile_image, profile_bg_image
-            FROM user_images WHERE user_id = $1
-        `, user.ID).Scan(&user.ProfileImage, &user.BgImage)
+		err = db.QueryRow(`SELECT profile_image, profile_bg_image FROM user_images WHERE user_id = $1`, userID).Scan(&user.ProfileImage, &user.BgImage)
 		if err != nil {
 			log.Printf("Error fetching user images: %v", err)
 			return
@@ -85,13 +80,13 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 		// Запрос для получения тем пользователя
 		userQuery := `
-            SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
-            FROM topics t
-            LEFT JOIN posts p ON t.id = p.topic_id
-            WHERE t.user_id = $1
-            GROUP BY t.id
-            ORDER BY t.id DESC
-        `
+			SELECT t.id, t.title, COUNT(p.id) AS response_count, TO_CHAR(t.created_at, 'DD.MM.YYYY') AS created_at
+			FROM topics t
+			LEFT JOIN posts p ON t.id = p.topic_id
+			WHERE t.user_id = $1
+			GROUP BY t.id
+			ORDER BY t.id DESC
+		`
 		stmt, err := db.Prepare(userQuery)
 		if err != nil {
 			log.Printf("Error preparing user query: %v", err)
@@ -99,7 +94,7 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 		defer stmt.Close()
 
-		rows, err := stmt.Query(user.ID)
+		rows, err := stmt.Query(userID)
 		if err != nil {
 			log.Printf("Error fetching user topics: %v", err)
 			return
@@ -286,27 +281,23 @@ func ShowForum(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Functions for pagination ---------------------------------------------------------
-
 type PageLink struct {
 	URL      string
-	Number   string // текст для отображения на ссылке
-	IsActive bool   // true для текущей страницы
+	Number   string
+	IsActive bool
 }
 
 func compactPagination(current, total int, title string) []PageLink {
 	var pages []PageLink
 
 	addPageLink := func(page int, isActive bool) PageLink {
-		urlString := fmt.Sprintf("/forum?page=%d", page) // Используем urlString, чтобы избежать конфликта с пакетом
+		urlString := fmt.Sprintf("/forum?page=%d", page)
 		if title != "" {
-			// Используем правильный пакет для функции QueryEscape
 			urlString += fmt.Sprintf("&title=%s", url.QueryEscape(title))
 		}
 		return PageLink{URL: urlString, Number: strconv.Itoa(page), IsActive: isActive}
 	}
 
-	// Если страниц меньше или равно 5, добавляем все страницы
 	if total <= 5 {
 		for i := 1; i <= total; i++ {
 			pages = append(pages, addPageLink(i, i == current))
@@ -314,15 +305,12 @@ func compactPagination(current, total int, title string) []PageLink {
 		return pages
 	}
 
-	// Добавляем первую страницу
 	pages = append(pages, addPageLink(1, current == 1))
 
-	// Если текущая страница больше 3, добавляем троеточие
 	if current > 3 {
 		pages = append(pages, PageLink{Number: "..."})
 	}
 
-	// Определяем диапазон страниц вокруг текущей
 	start := max(2, current-1)
 	end := min(total-1, current+1)
 
@@ -330,12 +318,10 @@ func compactPagination(current, total int, title string) []PageLink {
 		pages = append(pages, addPageLink(i, i == current))
 	}
 
-	// Если текущая страница меньше, чем total-2, добавляем троеточие
 	if current < total-2 {
 		pages = append(pages, PageLink{Number: "..."})
 	}
 
-	// Добавляем последнюю страницу
 	pages = append(pages, addPageLink(total, current == total))
 
 	return pages
@@ -352,8 +338,6 @@ func min(a, b int) int {
 	}
 	return b
 }
-
-// CreateTopic handles the creation of a new topic ---------------------------------------------------------
 func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -363,25 +347,14 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	description := r.FormValue("description")
 
-	// Получаем cookie сессии
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	// Подготавливаем запрос для извлечения user_id из сессии
-	stmt, err := db.Prepare("SELECT user_id FROM sessions WHERE session_id = $1")
-	if err != nil {
-		http.Error(w, "Error preparing statement for session", http.StatusInternalServerError)
-		return
-	}
-	defer stmt.Close()
-
-	var userID int
-	err = stmt.QueryRow(cookie.Value).Scan(&userID)
+	// Получаем userID из сессии с помощью функции getUserIDFromSession
+	userID, loggedIn, err := getUserIDFromSession(db, r)
 	if err != nil {
 		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
+		return
+	}
+	if !loggedIn {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -424,7 +397,6 @@ func CreateTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK) // Возвращает 200 при успешном создании
 }
 
-// ShowTopic displays the messages in a topic ---------------------------------------------------------
 func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	topicID := r.URL.Query().Get("id")
 
@@ -457,7 +429,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Подготовка запроса для получения постов по ID темы
 	stmtPosts, err := db.Prepare(
-		`SELECT id, content, user_id, created_at, parent_id, rating 
+		`SELECT id, content, user_id, created_at, parent_id, rating, image_url 
 		FROM posts 
 		WHERE topic_id = $1 
 		ORDER BY created_at`)
@@ -486,6 +458,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Replies      []Post
 		TopicID      int // Добавляем поле TopicID
 		Rating       int
+		ImageURL     string
 	}
 
 	var posts []Post
@@ -494,7 +467,7 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	// Получаем все посты и ответы
 	for rows.Next() {
 		var post Post
-		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.ParentID, &post.Rating); err != nil {
+		if err := rows.Scan(&post.ID, &post.Content, &post.UserID, &post.CreatedAt, &post.ParentID, &post.Rating, &post.ImageURL); err != nil {
 			http.Error(w, "Error scanning posts", http.StatusInternalServerError)
 			return
 		}
@@ -630,93 +603,128 @@ func ShowTopic(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreatePost handles adding a new post to a topic ---------------------------------------------------------
 func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Проверка метода запроса
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Получаем параметры из формы
+	// Парсим multipart/form-data
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		log.Printf("Error parsing multipart form: %v", err)
+		http.Error(w, "Unable to process form", http.StatusBadRequest)
+		return
+	}
+
+	// Получаем данные из формы
 	topicID := r.FormValue("topic_id")
 	content := r.FormValue("content")
-	parentID := r.FormValue("comment_id") // Это ID родительского комментария для ответа
+	parentID := r.FormValue("comment_id")
 
-	// Отладочный вывод значений параметров
-	fmt.Println("topicID:", topicID)
-	fmt.Println("content:", content)
-	fmt.Println("parentID:", parentID)
+	if topicID == "" || content == "" {
+		http.Error(w, "Topic ID and content are required", http.StatusBadRequest)
+		return
+	}
 
-	// Преобразуем ParentID в int, если оно присутствует
 	var parentIDInt *int
 	if parentID != "" {
 		parsedParentID, err := strconv.Atoi(parentID)
 		if err != nil {
-			fmt.Println("Invalid ParentID:", err) // Выводим ошибку преобразования
-			http.Error(w, "Invalid ParentID", http.StatusBadRequest)
+			log.Printf("Invalid ParentID %s: %v", parentID, err)
+			http.Error(w, "Parent comment ID must be a number", http.StatusBadRequest)
 			return
 		}
 		parentIDInt = &parsedParentID
-	} else {
-		parentIDInt = nil // Если родительский комментарий отсутствует, передаем nil
 	}
 
-	// Получаем cookie для проверки сессии
-	cookie, err := r.Cookie("session")
+	// Получаем userID из сессии
+	userID, isAuthorized, err := getUserIDFromSession(db, r)
 	if err != nil {
-		fmt.Println("Session cookie not found:", err) // Отладочный вывод
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !isAuthorized {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	var userID int
-	// Подготавливаем запрос для получения user_id по session_id
-	stmtSession, err := db.Prepare("SELECT user_id FROM sessions WHERE session_id = $1")
-	if err != nil {
-		fmt.Println("Error preparing statement for session:", err) // Отладочный вывод
-		http.Error(w, "Error preparing statement for session", http.StatusInternalServerError)
-		return
-	}
-	defer stmtSession.Close()
-
-	// Выполняем запрос для получения user_id
-	err = stmtSession.QueryRow(cookie.Value).Scan(&userID)
-	if err != nil {
-		fmt.Println("Error fetching user ID:", err) // Отладочный вывод
-		http.Error(w, "Error fetching user ID", http.StatusInternalServerError)
-		return
+	// Обработка загруженного файла
+	var photoPath string
+	file, handler, err := r.FormFile("photo")
+	if err == nil {
+		defer file.Close()
+		photoPath, err = SaveUploadedFile(file, handler, topicID, userID)
+		if err != nil {
+			http.Error(w, "Error saving file", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Printf("No file uploaded or error: %v", err)
+		photoPath = ""
 	}
 
-	// Подготавливаем запрос для вставки нового поста
+	// Вставка поста в базу данных
 	stmtInsertPost, err := db.Prepare(`
-        INSERT INTO posts (topic_id, user_id, content, parent_id) 
-        VALUES ($1, $2, $3, $4) RETURNING id
+        INSERT INTO posts (topic_id, user_id, content, parent_id, image_url) 
+        VALUES ($1, $2, $3, $4, $5) RETURNING id
     `)
 	if err != nil {
-		fmt.Println("Error preparing statement for inserting post:", err) // Отладочный вывод
-		http.Error(w, "Error preparing statement for inserting post", http.StatusInternalServerError)
+		log.Printf("Error preparing statement for inserting post: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	defer stmtInsertPost.Close()
 
-	// Выполняем запрос для вставки поста
 	var postID int
-	err = stmtInsertPost.QueryRow(topicID, userID, content, parentIDInt).Scan(&postID)
+	err = stmtInsertPost.QueryRow(topicID, userID, content, parentIDInt, photoPath).Scan(&postID)
 	if err != nil {
-		fmt.Println("Error during post creation:", err) // Отладочный вывод
+		log.Printf("Error during post creation: %v", err)
 		http.Error(w, "Error creating post", http.StatusInternalServerError)
 		return
 	}
 
-	// Выводим ID нового поста для отладки
-	fmt.Println("New post created with ID:", postID)
+	log.Printf("New post created with ID: %d", postID)
+	http.Redirect(w, r, fmt.Sprintf("/topic?id=%s", topicID), http.StatusSeeOther)
+}
+func SaveUploadedFile(file multipart.File, handler *multipart.FileHeader, topicID string, userID int) (string, error) {
+	// Создаём путь к директории для топика с приставкой "topic_"
+	topicDir := fmt.Sprintf("topic_%s", topicID)
+	uploadDir := path.Join("uploads/forum_images", topicDir, fmt.Sprintf("user_%d", userID)) // Создаём директорию для пользователя внутри топика
 
-	// Перенаправляем на страницу темы с новым постом
-	http.Redirect(w, r, "/topic?id="+topicID, http.StatusSeeOther)
+	// Создаём директорию для пользователя в топике, если её ещё нет
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+			log.Printf("Error creating user directory in topic: %v", err)
+			return "", err
+		}
+	}
+
+	// Генерация уникального имени файла
+	fileUUID := uuid.New().String()
+	fileExtension := filepath.Ext(handler.Filename)          // Расширение файла
+	fileName := fmt.Sprintf("%s%s", fileUUID, fileExtension) // Используем только UUID для имени файла
+
+	// Формирование полного пути для сохранения файла
+	photoPath := path.Join(uploadDir, fileName)
+
+	// Сохраняем файл
+	destFile, err := os.Create(photoPath)
+	if err != nil {
+		log.Printf("Error saving file: %v", err)
+		return "", err
+	}
+	defer destFile.Close()
+
+	// Копируем содержимое файла в созданный файл
+	if _, err := io.Copy(destFile, file); err != nil {
+		log.Printf("Error copying file: %v", err)
+		return "", err
+	}
+
+	log.Printf("File uploaded successfully: %s", photoPath)
+	return photoPath, nil
 }
 
-// DeleteTopics handles delete topics ---------------------------------------------------------
 func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	// Проверка метода запроса
 	if r.Method != http.MethodPost {
@@ -785,9 +793,7 @@ func DeleteTopics(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	// Перенаправляем пользователя после успешного удаления
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
-
 func getUserIDFromSession(db *sql.DB, r *http.Request) (int, bool, error) {
-	// Получаем куки сессии
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		// Если куки нет, значит пользователь не авторизован
@@ -802,7 +808,6 @@ func getUserIDFromSession(db *sql.DB, r *http.Request) (int, bool, error) {
 		return 0, false, err
 	}
 
-	// Возвращаем userID и флаг, что пользователь авторизован
 	return userID, true, nil
 }
 func ToggleLike(db *sql.DB, w http.ResponseWriter, r *http.Request) {

@@ -15,10 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 )
-
-const animalImagesDir = "uploads/animals"
 
 // AddAnimal handles the submission of the add animal form
 func AddAnimal(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -192,11 +190,20 @@ func validateAnimalImages(r *http.Request) (string, error) {
 	return "", nil
 }
 
-// processAnimalImages обрабатывает загрузку изображений
 func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) (string, error) {
-	if _, err := os.Stat(animalImagesDir); os.IsNotExist(err) {
-		if err := os.Mkdir(animalImagesDir, os.ModePerm); err != nil {
-			log.Println("Error creating upload directory:", err)
+	// Создаем директорию animals_images, если она не существует
+	baseDir := "uploads/animal_images"
+	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
+			log.Println("Error creating base directory:", err)
+			return "", err
+		}
+	}
+
+	animalDir := path.Join(baseDir, fmt.Sprintf("animal_%d", animalID))
+	if _, err := os.Stat(animalDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(animalDir, os.ModePerm); err != nil {
+			log.Println("Error creating animal directory:", err)
 			return "", err
 		}
 	}
@@ -208,15 +215,16 @@ func processAnimalImages(db *gorm.DB, r *http.Request, animalID uint) (string, e
 		return "", fmt.Errorf("You can upload a maximum of 4 images")
 	}
 
+	// Сохраняем каждое изображение
 	for _, fileHeader := range files {
-		if fileExt, err := saveImageAnimal(fileHeader, animalImagesDir, animalID, db); err != nil {
+		if fileExt, err := saveImageAnimal(fileHeader, animalDir, animalID, db); err != nil {
 			return fileExt, err
 		}
 	}
 	return "", nil
 }
 
-// saveImage сохраняет одно изображение и создает запись в таблице PostImage
+// saveImageAnimal сохраняет одно изображение и создает запись в таблице PostImage
 func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalID uint, db *gorm.DB) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -225,15 +233,18 @@ func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalI
 	}
 	defer file.Close()
 
+	// Проверяем расширение файла
 	fileExt := strings.ToLower(path.Ext(fileHeader.Filename))
 	if !isValidImageExt(fileExt) {
 		log.Println("Invalid file extension:", fileExt)
 		return fileExt, fmt.Errorf("Invalid file type")
 	}
 
+	// Генерируем уникальное имя файла
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
 	filePath := path.Join(uploadDir, fileName)
 
+	// Создаем файл
 	outFile, err := os.Create(filePath)
 	if err != nil {
 		log.Println("Error creating file:", err)
@@ -241,13 +252,15 @@ func saveImageAnimal(fileHeader *multipart.FileHeader, uploadDir string, animalI
 	}
 	defer outFile.Close()
 
+	// Сохраняем содержимое
 	if _, err := io.Copy(outFile, file); err != nil {
 		log.Println("Error writing file:", err)
 		return fileExt, err
 	}
 
+	// Сохраняем запись в базе данных
 	image := models.PostImage{
-		AnimalID: uint(animalID),
+		AnimalID: animalID,
 		ImageURL: filepath.ToSlash(filePath),
 	}
 	if err := db.Create(&image).Error; err != nil {
