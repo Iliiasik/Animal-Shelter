@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 	"html/template"
 	"io"
 	"log"

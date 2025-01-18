@@ -9,7 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
-	"gorm.io/gorm"
+
+	"github.com/jinzhu/gorm"
 	"html/template"
 	"io"
 	"log"

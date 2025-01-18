@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 )
 
 // AddAnimal handles the submission of the add animal form

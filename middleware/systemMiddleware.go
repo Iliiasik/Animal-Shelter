@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"Animals_Shelter/auth"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"time"

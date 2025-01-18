@@ -2,11 +2,11 @@ package main
 
 import (
 	"Animals_Shelter/admin"
-	"Animals_Shelter/admin/db_old"
 	"Animals_Shelter/auth"
 	"Animals_Shelter/db"
 	"Animals_Shelter/handlers"
 	"Animals_Shelter/middleware"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,23 +15,26 @@ import (
 
 func main() {
 	gormDB := db.ConnectDB()
+	Admin := admin.InitAdmin(gormDB)
 
-	oldGormDB := db_old.ConnectOldDB()
-	Admin := admin.InitAdmin(oldGormDB)
-
-	sqlDB, err := gormDB.DB()
-	if err != nil {
-		log.Fatalf("Failed to get *sql.DB from GORM: %v", err)
+	sqlDB := gormDB.DB()
+	if sqlDB == nil {
+		log.Fatalf("Failed to get *sql.DB from GORM")
 	}
 
-	defer sqlDB.Close()
+	defer func(sqlDB *sql.DB) {
+		err := sqlDB.Close()
+		if err != nil {
+
+		}
+	}(sqlDB)
 
 	mux := http.NewServeMux()
 	adminHandler := middleware.AdminAuthMiddleware(gormDB, Admin.NewServeMux("/admin"), auth.IsLoggedIn, auth.IsAdmin)
 	mux.Handle("/admin/", adminHandler)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handlers.HomePage(sqlDB, w, r)
+		handlers.HomePage(gormDB, w, r)
 	})
 
 	mux.HandleFunc("/animal_list", func(w http.ResponseWriter, r *http.Request) {

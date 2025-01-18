@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
+
 	"html/template"
 	"io"
 	"log"
@@ -49,12 +50,19 @@ func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user ID from session
-	var userID uint
-	if err := db.Table("sessions").Select("user_id").Where("session_id = ?", sessionToken).Scan(&userID).Error; err != nil {
+	var userIDs []uint
+	if err := db.Table("sessions").Where("session_id = ?", sessionToken).Pluck("user_id", &userIDs).Error; err != nil {
 		http.Error(w, "Session error", http.StatusInternalServerError)
 		log.Println("Error getting user ID from session:", err)
 		return
 	}
+
+	if len(userIDs) == 0 {
+		http.Error(w, "Session not found", http.StatusUnauthorized)
+		return
+	}
+
+	userID := userIDs[0] // Извлекаем первый элемент слайса
 
 	// Get existing images and user details
 	var userDetail models.UserDetail
@@ -381,7 +389,7 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Загружаем заявки на усыновление для животных пользователя
+	// Структура для маппинга данных
 	var adoptions []struct {
 		AdoptionID   uint
 		AnimalID     uint
@@ -397,26 +405,29 @@ func ShowProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		ProfileImage string
 	}
 
-	if err := db.Table("adoptions").
-		Select(`adoptions.id AS adoption_id, 
-            adoptions.animal_id,
-			adoptions.status_id,
-            animals.name AS animal_name, 
-            (SELECT image_url FROM postimages WHERE postimages.animal_id = animals.id LIMIT 1) AS animal_image, 
-            adoptions.user_id,
-            adoptions.adoption_date AS created_at, 
-            user_details.first_name, 
-            user_details.last_name, 
-            users.email, 
-            user_details.phone_number AS phone,
-            user_images.profile_image`).
-		Joins("JOIN animals ON adoptions.animal_id = animals.id").
-		Joins("JOIN users ON adoptions.user_id = users.id").
-		Joins("JOIN user_details ON user_details.user_id = users.id").
-		Joins("LEFT JOIN user_images ON user_images.user_id = users.id").
-		Where("adoptions.animal_id IN (?)", db.Table("animals").Select("id").Where("user_id = ?", user.ID)).
-		Order("adoptions.adoption_date DESC").
-		Scan(&adoptions).Error; err != nil {
+	// Загружаем заявки на усыновление для животных пользователя
+	if err := db.Raw(`
+    SELECT 
+        adoptions.id AS adoption_id, 
+        adoptions.animal_id,
+        adoptions.status_id,
+        animals.name AS animal_name, 
+        (SELECT image_url FROM postimages WHERE postimages.animal_id = animals.id LIMIT 1) AS animal_image, 
+        adoptions.user_id,
+        adoptions.adoption_date AS created_at, 
+        user_details.first_name, 
+        user_details.last_name, 
+        users.email, 
+        user_details.phone_number AS phone,
+        user_images.profile_image
+    FROM adoptions
+    JOIN animals ON adoptions.animal_id = animals.id
+    JOIN users ON adoptions.user_id = users.id
+    JOIN user_details ON user_details.user_id = users.id
+    LEFT JOIN user_images ON user_images.user_id = users.id
+    WHERE adoptions.animal_id IN (SELECT id FROM animals WHERE user_id = ?)
+    ORDER BY adoptions.adoption_date DESC
+`, user.ID).Scan(&adoptions).Error; err != nil {
 		log.Println("Error loading adoptions:", err)
 		http.Error(w, "Error loading adoptions", http.StatusInternalServerError)
 		return
