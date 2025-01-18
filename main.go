@@ -8,10 +8,9 @@ import (
 	"Animals_Shelter/handlers"
 	"Animals_Shelter/middleware"
 	"fmt"
-	"regexp"
-
 	"log"
 	"net/http"
+	"regexp"
 )
 
 func main() {
