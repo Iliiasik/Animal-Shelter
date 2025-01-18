@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Shelter</title>
     <link rel="website icon" type="svg" href="system_images/home_img/logo.svg">
-    <link rel="stylesheet" href="/css/home.css">
-    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/general_styles/general.css">
+    <link rel="stylesheet" href="/css/general_styles/footer.css">
+    <link rel="stylesheet" href="/css/templates_styles/home.css">
+    <link rel="stylesheet" href="/css/templates_styles/animal_cards.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
     <script src="/js/home.js"></script>
 </head>
@@ -32,7 +34,6 @@
     </div>
 </nav>
 
-<!-- Intro Section -->
 <section class="intro">
     <div class="carousel">
         <img src="https://images.pexels.com/photos/736530/pexels-photo-736530.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Adopt a Friend" class="carousel-image">
@@ -67,7 +68,6 @@
 
 
 
-<!-- Choose Your Friend Section -->
 <section class="choose-friend">
     <h2>Choose your Friend</h2>
     <div class="cards-list home-list">
@@ -88,7 +88,6 @@
         <a href="/animal_list" class="view-more-button">View More</a>
     </div>
 </section>
-<!-- News Section -->
 <section class="news-section">
     <h2>Support animal protection funds <img src="system_images/home_img/care.svg" alt="care-icon" class="care-icon"></h2>
     <p>By supporting animal protection funds, you play a key role in helping rescue, rehabilitate, and protect animals in need.</p>
@@ -121,7 +120,6 @@
 
 
 
-<!-- Site footer -->
 <footer class="site-footer">
     <div class="footer-links-container">
         <div class="footer-links">
@@ -168,7 +166,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.9/dist/sweetalert2.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
 <script>
-    // Проверка, было ли уже согласие на использование cookies
     window.onload = function() {
         if (!Cookies.get('cookieConsent')) {
             showCookieConsent();

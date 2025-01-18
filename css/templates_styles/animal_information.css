@@ -11,109 +11,89 @@
 
 .animal-details {
     width: 50%;
-
-    box-sizing: border-box; /* Учитывает отступы и границы */
+    box-sizing: border-box;
 
 }
-
 .details-container {
-    border: 1px solid #ddd; /* Рамка для контейнера */
-    border-radius: 8px; /* Скругление углов */
+    border: 1px solid #ddd;
+    border-radius: 8px;
     padding: 20px;
-    background-color: #fff; /* Белый фон */
+    background-color: #fff;
 }
-
 .details-title {
     font-size: 24px;
     font-weight: bold;
     text-align: center;
     margin-bottom: 20px;
 }
-
 .info-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .info-list li {
     display: flex;
     justify-content: space-between;
     padding: 10px 5px;
     border-radius: 5px;
 }
-
 .info-list li:last-child {
-    border-bottom: none; /* Убираем нижнюю линию у последнего элемента */
+    border-bottom: none;
 }
-
 .info-list strong {
     font-weight: bold;
-    color: #333; /* Цвет для текста заголовка */
+    color: #333;
 }
-
 .info-list li:nth-child(even) {
-    background-color: #f9f9f9; /* Чередование фона для четных элементов */
+    background-color: #f9f9f9;
 }
-
 .animal-slider {
     width: 50%;
     box-sizing: border-box;
 }
-
 .slider {
     margin: 0 auto;
     max-width: 100%;
 }
-
 .slide_viewer {
     height: 340px;
     overflow: hidden;
     position: relative;
 }
-
 .slide_group {
     height: 100%;
     position: relative;
     width: 100%;
 }
-
 .slide {
     display: none;
     height: 100%;
     position: absolute;
     width: 100%;
 }
-
 .slide:first-child {
     display: block;
 }
-
 .slide img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-
 }
-
 .slide_buttons {
     left: 0;
     right: 0;
     text-align: center;
 }
-
 a.slide_btn {
     color: #474544;
     font-size: 42px;
     margin: 0 0.175em;
     transition: all 0.4s ease-in-out;
 }
-
 .slide_btn.active, .slide_btn:hover {
     color: #428CC6;
     cursor: pointer;
 }
-
 .directional_nav {
     margin: 0 auto;
     max-width: 100%;
@@ -156,11 +136,11 @@ a.slide_btn {
     }
 
     .animal-details {
-        width: 100%; /* На мобильных устройствах 100% ширины */
+        width: 100%;
     }
 
     .animal-slider {
-        width: 100%; /* На мобильных устройствах 100% ширины */
+        width: 100%;
     }
 
     .directional_nav {
@@ -196,9 +176,9 @@ a.slide_btn {
 }
 
 .animal-icon {
-    width: 65px; /* Установите желаемую ширину */
-    height: 65px; /* Установите желаемую высоту */
-    margin-left: 10px; /* Отступ между заголовком и иконкой */
+    width: 65px;
+    height: 65px;
+    margin-left: 10px;
     transition: transform 0.3s ease;
 }
 .animal-icon:hover {
@@ -300,9 +280,8 @@ a.slide_btn {
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    flex-wrap: wrap; /* Для адаптивности на маленьких экранах */
+    flex-wrap: wrap;
 }
-
 .user-info-left,
 .user-info-right {
     width: 48%;
@@ -311,8 +290,8 @@ a.slide_btn {
 .contact-info {
     height: 60%;
     padding: 20px;
-    border-radius: 10px; /* Скругленные углы */
-    background-color: #f9f9f9; /* Светлый фон для рамки */
+    border-radius: 10px;
+    background-color: #f9f9f9;
 }
 .user-info-left p,
 .user-info-right p {
@@ -336,7 +315,7 @@ a.slide_btn {
 .user-info h3 {
     margin-bottom: 15px;
     font-size: 20px;
-    text-align: center; /* Центрируем заголовок */
+    text-align: center;
     width: 100%;
 }
 
@@ -360,7 +339,7 @@ a.slide_btn {
     padding: 20px;
     border-radius: 8px;
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px); /* Поддержка для Safari */
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .profile-image {
@@ -382,7 +361,6 @@ a:hover .profile-image {
     align-items: center;
     height: 70px;
 }
-
 .adopt-button {
     display: inline-flex;
     align-items: center;
@@ -403,8 +381,6 @@ a:hover .profile-image {
     background-color: #000;
     color: #eee;
 }
-
-
 @media only screen and (max-width: 767px) {
     .stage-two {
         display: block;

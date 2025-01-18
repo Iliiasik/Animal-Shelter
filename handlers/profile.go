@@ -27,7 +27,7 @@ type UserProfile struct {
 const defaultProfileImagePath = "system_images/default_profile.jpg"
 const defaultBackgroundImagePath = "system_images/default_bg.jpg"
 const profileImageDir = "uploads/profile_images"
-const backgroundImageDir = "uploads/profile_images/background"
+const backgroundImageDir = "uploads/profile_images/background_images"
 
 // SaveProfile handles saving the updated user profile including the cropped image
 func SaveProfile(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
