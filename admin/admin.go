@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+
+	"github.com/qor/qor"
 	"log"
 	"os"
 )
