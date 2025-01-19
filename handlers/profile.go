@@ -218,8 +218,6 @@ func saveImage(r *http.Request, formFieldName, dir string) (string, error) {
 	return imagePath, nil
 }
 
-//ALl above are functions handling the update
-
 // SaveVisibilitySettings Handles saving visibility settings from edit template (email,phone number)
 func SaveVisibilitySettings(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to update visibility settings")

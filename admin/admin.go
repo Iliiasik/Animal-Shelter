@@ -4,6 +4,7 @@ import (
 	"Animals_Shelter/models"
 	"errors"
 	"fmt"
+	"github.com/Depado/articles/code/qor/admin/bindatafs"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor/resource"
@@ -21,7 +22,7 @@ func InitAdmin(db *gorm.DB) *admin.Admin {
 	db.LogMode(true)
 
 	// Создаём новый экземпляр QOR Admin
-	Admin := admin.New(&admin.AdminConfig{DB: db, SiteName: "Animal Shelter"})
+	Admin := admin.New(&admin.AdminConfig{DB: db, SiteName: "Animal Shelter", AssetFS: bindatafs.AssetFS.NameSpace("admin")})
 
 	// Регистрируем ресурсы
 	// Пользователи
