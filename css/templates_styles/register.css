@@ -21,7 +21,7 @@ label {
 }
 main {
     display: grid;
-    grid-template-columns: 1fr; /* Один столбец для мобильных устройств */
+    grid-template-columns: 1fr;
     place-items: center;
     max-width: 1200px; /* Ограничение максимальной ширины */
     border-radius: 20px;
