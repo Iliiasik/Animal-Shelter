@@ -183,7 +183,7 @@ func main() {
 
 	loggedMux := middleware.LoggerMiddleware(mux)
 	port := 8080
-	address := fmt.Sprintf("http://34.16.104.66:%d", port)
+	address := fmt.Sprintf("http://localhost:%d", port)
 	fmt.Printf("Starting server on %s\n", address)
 
 	log.Println("Server started on port 8080")
