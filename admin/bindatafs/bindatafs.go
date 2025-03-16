@@ -3,7 +3,6 @@ package admin
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/containous/go-bindata"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/containous/go-bindata"
 
 	"github.com/qor/assetfs"
 )

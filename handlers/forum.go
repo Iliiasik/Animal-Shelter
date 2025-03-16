@@ -3,8 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	"html/template"
 	"io"
 	"log"
@@ -16,6 +14,9 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+
+	"github.com/google/uuid"
+	"github.com/jinzhu/gorm"
 )
 
 var forumTemplates = template.Must(template.ParseFiles("templates/forum.html", "templates/topic.html"))

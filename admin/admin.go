@@ -4,14 +4,16 @@ import (
 	"Animals_Shelter/models"
 	"errors"
 	"fmt"
+
 	"github.com/Depado/articles/code/qor/admin/bindatafs"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor/resource"
 
-	"github.com/qor/qor"
 	"log"
 	"os"
+
+	"github.com/qor/qor"
 )
 
 // InitAdmin инициализирует и возвращает QOR Admin

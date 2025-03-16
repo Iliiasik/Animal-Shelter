@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/jinzhu/gorm"
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 func AdminAuthMiddleware(db *gorm.DB, next http.Handler, isLoggedInCheck func(db *gorm.DB, r *http.Request) bool, isAdminCheck func(db *gorm.DB, r *http.Request) bool) http.Handler {

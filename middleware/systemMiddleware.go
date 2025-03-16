@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"Animals_Shelter/auth"
-	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 // RedirectIfLoggedIn перенаправляет пользователя на /profile, если он уже вошел

@@ -2,8 +2,9 @@ package auth
 
 import (
 	"Animals_Shelter/models"
-	"github.com/jinzhu/gorm"
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 func IsLoggedIn(db *gorm.DB, r *http.Request) bool {

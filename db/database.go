@@ -4,11 +4,12 @@ import (
 	"Animals_Shelter/models"
 	"errors"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"log"
-	"os"
 )
 
 func ConnectDB() *gorm.DB {

@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"github.com/jinzhu/gorm"
 	"html/template"
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 type AnimalForList struct {

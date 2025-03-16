@@ -5,12 +5,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 
-	"github.com/jinzhu/gorm"
 	"html/template"
 	"io"
 	"log"
@@ -19,6 +19,8 @@ import (
 	"os"
 	"regexp"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 var (
